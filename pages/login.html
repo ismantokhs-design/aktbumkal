@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - PisangKu</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#2e7d32">
+  <style>
+    .password-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .password-container input {
+      padding-right: 45px;
+    }
+    .toggle-password {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 0;
+      width: auto;
+      height: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .toggle-password:hover {
+      color: #2e7d32;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <h1>PisangKu 🍌</h1>
+    <p>Masuk untuk mengelola kebun kamu</p>
+  </header>
+
+  <main style="margin-top: 1.5rem;">
+    <div class="card">
+      <h3 style="margin-top: 0; color: #111;">Masuk ke Akun</h3>
+      
+      <form id="authForm">
+        <div class="form-group">
+          <label for="username">Username atau Email</label>
+          <input type="text" id="username" placeholder="Masukkan username atau email" required autocomplete="username">
+        </div>
+
+        <div class="form-group">
+          <label for="password">Kata Sandi</label>
+          <div class="password-container">
+            <input type="password" id="password" placeholder="Masukkan kata sandi" required autocomplete="current-password">
+            <button type="button" id="togglePasswordBtn" class="toggle-password" title="Tampilkan Kata Sandi">👁️</button>
+          </div>
+        </div>
+
+        <button type="submit" id="btnSubmit">Masuk</button>
+      </form>
+
+      <p style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: #666;">
+        Belum punya akun? Hubungi Admin Kebun.
+      </p>
+    </div>
+  </main>
+
+  <script type="module">
+    import { auth } from '../assets/js/firebase-config.js';
+    import { simpanUser } from '../assets/js/db.js';
+    import { 
+      signInWithEmailAndPassword, 
+      onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    const authForm = document.getElementById('authForm');
+    const btnSubmit = document.getElementById('btnSubmit');
+    const passwordInput = document.getElementById('password');
+    const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        window.location.href = "dashboard.html";
+      }
+    });
+
+    togglePasswordBtn.addEventListener('click', () => {
+      const isPassword = passwordInput.type === 'password';
+      passwordInput.type = isPassword ? 'text' : 'password';
+      togglePasswordBtn.textContent = isPassword ? '🙈' : '👁️';
+      togglePasswordBtn.title = isPassword ? 'Sembunyikan Kata Sandi' : 'Tampilkan Kata Sandi';
+    });
+
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const inputUser = document.getElementById('username').value.trim().toLowerCase();
+      const password = passwordInput.value;
+      const emailFinal = inputUser.includes('@') ? inputUser : `${inputUser}@pisangku.local`;
+
+      btnSubmit.disabled = true;
+      btnSubmit.innerText = "Memproses...";
+
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, emailFinal, password);
+        await simpanUser(userCredential.user);
+        window.location.href = "dashboard.html";
+      } catch (error) {
+        alert("Gagal Masuk: Username/Email atau kata sandi salah!");
+        btnSubmit.disabled = false;
+        btnSubmit.innerText = "Masuk";
+      }
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kalender - PisangKu</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#2e7d32">
+  <style>
+    /* Styling Khusus Kalender */
+    .calendar-card {
+      background: white;
+      border-radius: 20px;
+      padding: 1.2rem;
+      border: 1px solid rgba(139, 195, 74, 0.15);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+      margin-bottom: 1.2rem;
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .calendar-header h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #111;
+    }
+
+    .nav-month-btn {
+      background: var(--light-green);
+      color: var(--primary-color);
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      text-align: center;
+    }
+
+    .day-name {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      padding-bottom: 8px;
+    }
+
+    .day-number {
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 8px 0;
+      border-radius: 12px;
+      color: #333;
+      cursor: pointer;
+      position: relative;
+      transition: background-color 0.15s ease;
+    }
+
+    .day-number:hover, .day-number.selected {
+      background-color: var(--light-green);
+      color: var(--primary-color);
+      font-weight: 800;
+    }
+
+    .day-number.other-month {
+      opacity: 0.3;
+    }
+
+    .day-number.today {
+      background-color: var(--primary-color);
+      color: white !important;
+      font-weight: 800;
+    }
+
+    .event-dots {
+      display: flex;
+      justify-content: center;
+      gap: 2px;
+      position: absolute;
+      bottom: 2px;
+      left: 0;
+      right: 0;
+    }
+
+    .dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--accent-color);
+    }
+
+    /* List Agenda Hari Ini */
+    .agenda-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.8rem;
+    }
+
+    .agenda-header h4 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 800;
+      color: #111;
+    }
+
+    .agenda-item {
+      background: white;
+      border-radius: 16px;
+      padding: 0.9rem 1rem;
+      margin-bottom: 10px;
+      border: 1px solid rgba(139, 195, 74, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+
+    .agenda-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .agenda-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      background: var(--light-green);
+    }
+
+    .agenda-details h5 {
+      margin: 0;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #111;
+    }
+
+    .agenda-details p {
+      margin: 2px 0 0 0;
+      font-size: 0.75rem;
+      color: #666;
+    }
+
+    .btn-delete-agenda {
+      background: none;
+      border: none;
+      font-size: 0.9rem;
+      cursor: pointer;
+      padding: 4px;
+      opacity: 0.6;
+      transition: opacity 0.15s ease;
+    }
+
+    .btn-delete-agenda:hover {
+      opacity: 1;
+    }
+
+    .btn-add-agenda {
+      width: auto;
+      padding: 8px 16px;
+      font-size: 0.8rem;
+      border-radius: 50px;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(46, 125, 50, 0.2);
+    }
+
+    /* Container Dropdown dengan Tombol Plus & Setting */
+    .input-with-btn {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .btn-inline-add {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: var(--light-green);
+      color: var(--primary-color);
+      border: 1px solid rgba(139, 195, 74, 0.3);
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background-color 0.15s ease, transform 0.15s ease;
+    }
+
+    .btn-inline-add:active {
+      transform: scale(0.92);
+      background-color: #c8e6c9;
+    }
+
+    /* Scrollable Container untuk Kelola Kategori */
+    .category-scroll-container {
+      max-height: 240px;
+      overflow-y: auto;
+      margin-bottom: 1rem;
+      padding-right: 4px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .category-scroll-container::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .category-scroll-container::-webkit-scrollbar-thumb {
+      background-color: rgba(46, 125, 50, 0.3);
+      border-radius: 10px;
+    }
+
+    /* Item List Hapus Kategori */
+    .category-manage-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      background: #f9f9f9;
+      border-radius: 12px;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #1b5e20;
+      border: 1px solid #edf2f7;
+    }
+
+    .btn-del-cat {
+      background: #ffebee;
+      color: #c95a49;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+      transition: transform 0.15s ease;
+    }
+
+    .btn-del-cat:active {
+      transform: scale(0.9);
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #888;
+      font-size: 0.85rem;
+      padding: 2rem 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header Sticky -->
+  <header class="dashboard-header">
+    <div class="header-title">
+      <h1>Kalender Kebun 📅</h1>
+      <p>Jadwal Perawatan & Panen</p>
+    </div>
+  </header>
+
+  <main>
+    <!-- Widget Kalender -->
+    <section class="calendar-card">
+      <div class="calendar-header">
+        <button class="nav-month-btn" id="prevMonth">❮</button>
+        <h3 id="monthTitle">Oktober 2026</h3>
+        <button class="nav-month-btn" id="nextMonth">❯</button>
+      </div>
+
+      <div class="calendar-grid" id="calendarGrid">
+        <div class="day-name">Min</div>
+        <div class="day-name">Sen</div>
+        <div class="day-name">Sel</div>
+        <div class="day-name">Rab</div>
+        <div class="day-name">Kam</div>
+        <div class="day-name">Jum</div>
+        <div class="day-name">Sab</div>
+      </div>
+    </section>
+
+    <!-- Daftar Agenda Kegiatan -->
+    <section>
+      <div class="agenda-header">
+        <h4 id="selectedDateTitle">Kegiatan Hari Ini</h4>
+        <button class="btn-add-agenda" onclick="openModal('addAgendaModal')">+ Jadwal</button>
+      </div>
+
+      <div id="agendaContainer">
+        <p class="empty-state">Memuat kegiatan...</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal 1: Tambah Agenda -->
+  <div class="modal-overlay" id="addAgendaModal">
+    <div class="modal-content">
+      <h3>Tambah Jadwal Kegiatan</h3>
+      <p class="modal-desc">Atur pengingat aktivitas perawatan kebun.</p>
+      
+      <form id="formAddAgenda">
+        <div class="form-group" style="text-align: left;">
+          <label for="agendaJudulSelect" style="font-size: 0.8rem;">Jenis Kegiatan</label>
+          <div class="input-with-btn">
+            <select id="agendaJudulSelect" required>
+              <option value="">Memuat kategori...</option>
+            </select>
+            <button type="button" class="btn-inline-add" title="Tambah Kategori Baru" onclick="openModal('addKategoriModal')">+</button>
+            <button type="button" class="btn-inline-add" title="Kelola / Hapus Kategori" onclick="openModal('manageKategoriModal')">⚙️</button>
+          </div>
+        </div>
+
+        <div class="form-group" style="text-align: left;">
+          <label for="agendaBlok" style="font-size: 0.8rem;">Lokasi Blok</label>
+          <select id="agendaBlok" required>
+            <option value="">Memuat blok...</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="text-align: left;">
+          <label for="agendaTanggal" style="font-size: 0.8rem;">Tanggal & Waktu</label>
+          <input type="datetime-local" id="agendaTanggal" required>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="modal-btn cancel" onclick="closeModal('addAgendaModal')">Batal</button>
+          <button type="submit" class="modal-btn confirm">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Tambah Kategori Jenis Kegiatan Baru -->
+  <div class="modal-overlay" id="addKategoriModal" style="z-index: 2200;">
+    <div class="modal-content">
+      <h3>Tambah Kategori Kegiatan</h3>
+      <p class="modal-desc">Masukkan nama jenis kegiatan baru ke database.</p>
+      
+      <form id="formAddKategori">
+        <div class="form-group" style="text-align: left;">
+          <label for="newKategoriNama" style="font-size: 0.8rem;">Nama Kegiatan</label>
+          <input type="text" id="newKategoriNama" placeholder="Contoh: Pembungkusan Tandan" required>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="modal-btn cancel" onclick="closeModal('addKategoriModal')">Batal</button>
+          <button type="submit" class="modal-btn confirm">Tambah</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: Kelola / Hapus Kategori (dengan Fitur Scroll) -->
+  <div class="modal-overlay" id="manageKategoriModal" style="z-index: 2200;">
+    <div class="modal-content">
+      <h3>Kelola Kategori</h3>
+      <p class="modal-desc">Hapus kategori yang tidak lagi digunakan.</p>
+      
+      <div id="manageCategoryList" class="category-scroll-container">
+        <p class="empty-state">Memuat...</p>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="modal-btn cancel" style="width:100%;" onclick="closeModal('manageKategoriModal')">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Kustom Konfirmasi Hapus Agenda -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal-content">
+      <div class="modal-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#c95a49" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          <line x1="10" y1="11" x2="10" y2="17"></line>
+          <line x1="14" y1="11" x2="14" y2="17"></line>
+        </svg>
+      </div>
+      <h3>Hapus Jadwal?</h3>
+      <p class="modal-desc" id="deleteModalText">Apakah Anda yakin ingin menghapus jadwal ini?</p>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn cancel" onclick="closeModal('deleteModal')">Batal</button>
+        <button type="button" class="modal-btn danger" id="confirmDeleteBtn">Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigasi Bawah 5 Menu -->
+  <nav class="nav-bar">
+    <a href="dashboard.html">
+      <span class="icon">🏠</span>
+      <span>Beranda</span>
+    </a>
+    <a href="kalender.html" class="active">
+      <span class="icon">📅</span>
+      <span>Kalender</span>
+    </a>
+    <a href="panduan.html">
+      <span class="icon">📖</span>
+      <span>Panduan</span>
+    </a>
+    <a href="catatan.html">
+      <span class="icon">📝</span>
+      <span>Catatan</span>
+    </a>
+    <a href="setting.html">
+      <span class="icon">⚙️</span>
+      <span>Setting</span>
+    </a>
+  </nav>
+
+  <script type="module">
+    import { auth, db } from '../assets/js/firebase-config.js';
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { 
+      collection, 
+      doc, 
+      addDoc, 
+      deleteDoc, 
+      onSnapshot, 
+      query, 
+      orderBy,
+      serverTimestamp 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    let currentDate = new Date();
+    let selectedDate = new Date();
+    let eventsData = [];
+    let targetDeleteEventId = null;
+
+    const defaultCategories = [
+      "Penyiraman Rutin",
+      "Pemupukan Kalium",
+      "Pemangkasan Daun Kering",
+      "Penyiangan Gulma",
+      "Panen"
+    ];
+
+    const monthNames = [
+      "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+      "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    ];
+
+    window.openModal = function(modalId) {
+      document.getElementById(modalId).classList.add('show');
+    };
+
+    window.closeModal = function(modalId) {
+      document.getElementById(modalId).classList.remove('show');
+    };
+
+    // 1. Proteksi Sesi Login & Inisialisasi
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      listenToCategories();
+      listenToBlocksOption();
+      listenToEvents();
+    });
+
+    // 2. Realtime Listener: Kategori (Scrollable & Dapat Dihapus)
+    function listenToCategories() {
+      const catRef = collection(db, "event_categories");
+      const q = query(catRef, orderBy("createdAt", "asc"));
+
+      const deletedDefaults = JSON.parse(localStorage.getItem('deleted_default_categories') || '[]');
+
+      onSnapshot(q, (snapshot) => {
+        const selectEl = document.getElementById('agendaJudulSelect');
+        const manageContainer = document.getElementById('manageCategoryList');
+        
+        selectEl.innerHTML = '';
+        manageContainer.innerHTML = '';
+
+        let count = 0;
+
+        // Render Kategori Default yang belum dihapus
+        defaultCategories.forEach(cat => {
+          if (!deletedDefaults.includes(cat)) {
+            count++;
+            const opt = document.createElement('option');
+            opt.value = cat;
+            opt.textContent = cat;
+            selectEl.appendChild(opt);
+
+            const itemHtml = `
+              <div class="category-manage-item">
+                <span>${cat}</span>
+                <button class="btn-del-cat" title="Hapus Kategori" onclick="deleteDefaultCategory('${cat}')">🗑️</button>
+              </div>
+            `;
+            manageContainer.insertAdjacentHTML('beforeend', itemHtml);
+          }
+        });
+
+        // Render Kategori Kustom Firestore
+        snapshot.forEach((docSnap) => {
+          const item = docSnap.data();
+          const id = docSnap.id;
+
+          if (item.nama) {
+            count++;
+            const opt = document.createElement('option');
+            opt.value = item.nama;
+            opt.textContent = item.nama;
+            selectEl.appendChild(opt);
+
+            const itemHtml = `
+              <div class="category-manage-item">
+                <span>${item.nama}</span>
+                <button class="btn-del-cat" title="Hapus Kategori" onclick="deleteFirestoreCategory('${id}')">🗑️</button>
+              </div>
+            `;
+            manageContainer.insertAdjacentHTML('beforeend', itemHtml);
+          }
+        });
+
+        if (count === 0) {
+          selectEl.innerHTML = '<option value="">Belum ada kategori. Klik + untuk membuat.</option>';
+          manageContainer.innerHTML = '<p class="empty-state">Belum ada kategori tersedia.</p>';
+        }
+      });
+    }
+
+    // Hapus Kategori Default
+    window.deleteDefaultCategory = function(catName) {
+      const deletedDefaults = JSON.parse(localStorage.getItem('deleted_default_categories') || '[]');
+      if (!deletedDefaults.includes(catName)) {
+        deletedDefaults.push(catName);
+        localStorage.setItem('deleted_default_categories', JSON.stringify(deletedDefaults));
+      }
+      listenToCategories();
+    };
+
+    // Hapus Kategori Firestore
+    window.deleteFirestoreCategory = async function(id) {
+      try {
+        await deleteDoc(doc(db, "event_categories", id));
+      } catch (err) {
+        alert("Gagal menghapus kategori: " + err.message);
+      }
+    };
+
+    // 3. Realtime Listener: Opsi Blok Lahan dari Koleksi 'blocks'
+    function listenToBlocksOption() {
+      const blocksRef = collection(db, "blocks");
+      onSnapshot(blocksRef, (snapshot) => {
+        const selectEl = document.getElementById('agendaBlok');
+        selectEl.innerHTML = '';
+
+        if (snapshot.empty) {
+          selectEl.innerHTML = '<option value="">Belum ada blok di Setting</option>';
+          return;
+        }
+
+        snapshot.forEach((docSnap) => {
+          const item = docSnap.data();
+          const opt = document.createElement('option');
+          opt.value = item.namaBlok;
+          opt.textContent = item.namaBlok;
+          selectEl.appendChild(opt);
+        });
+      });
+    }
+
+    // 4. Realtime Listener: Koleksi 'events'
+    function listenToEvents() {
+      const eventsRef = collection(db, "events");
+      const q = query(eventsRef, orderBy("datetime", "asc"));
+
+      onSnapshot(q, (snapshot) => {
+        eventsData = [];
+        snapshot.forEach((docSnap) => {
+          eventsData.push({
+            id: docSnap.id,
+            ...docSnap.data()
+          });
+        });
+
+        renderCalendar();
+        renderAgendasForSelectedDate();
+      });
+    }
+
+    // 5. Kontrol Render Kalender Bulanan Dinamis
+    function renderCalendar() {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+
+      document.getElementById('monthTitle').innerText = `${monthNames[month]} ${year}`;
+
+      const grid = document.getElementById('calendarGrid');
+      const dayElements = grid.querySelectorAll('.day-number');
+      dayElements.forEach(el => el.remove());
+
+      const firstDayIndex = new Date(year, month, 1).getDay();
+      const lastDay = new Date(year, month + 1, 0).getDate();
+      const prevLastDay = new Date(year, month, 0).getDate();
+
+      const today = new Date();
+
+      // Tanggal Bulan Lalu
+      for (let x = firstDayIndex; x > 0; x--) {
+        const div = document.createElement('div');
+        div.className = 'day-number other-month';
+        div.innerText = prevLastDay - x + 1;
+        grid.appendChild(div);
+      }
+
+      // Tanggal Bulan Sekarang
+      for (let i = 1; i <= lastDay; i++) {
+        const div = document.createElement('div');
+        div.className = 'day-number';
+        div.innerText = i;
+
+        const thisDate = new Date(year, month, i);
+
+        // Highlight Hari Ini
+        if (
+          i === today.getDate() &&
+          month === today.getMonth() &&
+          year === today.getFullYear()
+        ) {
+          div.classList.add('today');
+        }
+
+        // Highlight Terpilih
+        if (
+          i === selectedDate.getDate() &&
+          month === selectedDate.getMonth() &&
+          year === selectedDate.getFullYear()
+        ) {
+          div.classList.add('selected');
+        }
+
+        // Penanda Titik Event (Dot)
+        const dateStr = formatDateKey(thisDate);
+        const hasEvents = eventsData.some(ev => ev.dateKey === dateStr);
+        if (hasEvents) {
+          const dotsDiv = document.createElement('div');
+          dotsDiv.className = 'event-dots';
+          dotsDiv.innerHTML = '<span class="dot"></span>';
+          div.appendChild(dotsDiv);
+        }
+
+        // Handler Klik Tanggal
+        div.addEventListener('click', () => {
+          selectedDate = new Date(year, month, i);
+          renderCalendar();
+          renderAgendasForSelectedDate();
+        });
+
+        grid.appendChild(div);
+      }
+    }
+
+    // Format Tanggal YYYY-MM-DD
+    function formatDateKey(dateObj) {
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const d = String(dateObj.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    // Render Agenda untuk Tanggal yang Dipilih
+    function renderAgendasForSelectedDate() {
+      const key = formatDateKey(selectedDate);
+      const titleEl = document.getElementById('selectedDateTitle');
+      titleEl.innerText = `Kegiatan (${selectedDate.getDate()} ${monthNames[selectedDate.getMonth()]})`;
+
+      const container = document.getElementById('agendaContainer');
+      container.innerHTML = '';
+
+      const filteredEvents = eventsData.filter(ev => ev.dateKey === key);
+
+      if (filteredEvents.length === 0) {
+        container.innerHTML = '<p class="empty-state">Tidak ada agenda pada tanggal ini.</p>';
+        return;
+      }
+
+      filteredEvents.forEach(ev => {
+        let icon = '📋';
+        if (ev.judul.toLowerCase().includes('siram')) icon = '💧';
+        else if (ev.judul.toLowerCase().includes('pupuk')) icon = '🧪';
+        else if (ev.judul.toLowerCase().includes('panen')) icon = '🍌';
+        else if (ev.judul.toLowerCase().includes('pangkas')) icon = '✂️';
+
+        const agendaHtml = `
+          <div class="agenda-item">
+            <div class="agenda-left">
+              <div class="agenda-icon">${icon}</div>
+              <div class="agenda-details">
+                <h5>${ev.judul}</h5>
+                <p>${ev.blok || 'Semua Blok'} • ${ev.jam || ''} WIB</p>
+              </div>
+            </div>
+            <button class="btn-delete-agenda" onclick="confirmDeleteEvent('${ev.id}', '${ev.judul}')">🗑️</button>
+          </div>
+        `;
+        container.insertAdjacentHTML('beforeend', agendaHtml);
+      });
+    }
+
+    // Navigasi Bulan
+    document.getElementById('prevMonth').addEventListener('click', () => {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      renderCalendar();
+    });
+
+    document.getElementById('nextMonth').addEventListener('click', () => {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      renderCalendar();
+    });
+
+    // 6. Form Submit: Tambah Kategori Baru ke Firestore
+    document.getElementById('formAddKategori').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nama = document.getElementById('newKategoriNama').value.trim();
+
+      if (nama) {
+        try {
+          await addDoc(collection(db, "event_categories"), {
+            nama: nama,
+            createdAt: serverTimestamp()
+          });
+
+          document.getElementById('formAddKategori').reset();
+          closeModal('addKategoriModal');
+        } catch (err) {
+          alert("Gagal menambah kategori: " + err.message);
+        }
+      }
+    });
+
+    // 7. Form Submit: Tambah Agenda Baru ke Firestore
+    document.getElementById('formAddAgenda').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const judul = document.getElementById('agendaJudulSelect').value;
+      const blok = document.getElementById('agendaBlok').value;
+      const datetime = document.getElementById('agendaTanggal').value;
+
+      if (!datetime || !judul) return;
+
+      const dateObj = new Date(datetime);
+      const dateKey = formatDateKey(dateObj);
+      const jam = String(dateObj.getHours()).padStart(2, '0') + ':' + String(dateObj.getMinutes()).padStart(2, '0');
+
+      try {
+        await addDoc(collection(db, "events"), {
+          judul: judul,
+          blok: blok,
+          datetime: datetime,
+          dateKey: dateKey,
+          jam: jam,
+          createdAt: serverTimestamp()
+        });
+
+        document.getElementById('formAddAgenda').reset();
+        closeModal('addAgendaModal');
+      } catch (err) {
+        alert("Gagal menyimpan agenda: " + err.message);
+      }
+    });
+
+    // 8. Hapus Agenda dari Firestore
+    window.confirmDeleteEvent = function(id, judul) {
+      targetDeleteEventId = id;
+      document.getElementById('deleteModalText').innerText = `Apakah Anda yakin ingin menghapus kegiatan '${judul}'?`;
+      openModal('deleteModal');
+    };
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+      if (!targetDeleteEventId) return;
+
+      try {
+        await deleteDoc(doc(db, "events", targetDeleteEventId));
+        targetDeleteEventId = null;
+        closeModal('deleteModal');
+      } catch (err) {
+        alert("Gagal menghapus agenda: " + err.message);
+      }
+    });
+  </script>
+
+</body>
+</html>

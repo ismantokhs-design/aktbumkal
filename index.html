@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akt-BUMKal - Akuntansi Umum</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Link External CSS -->
+    <link rel="stylesheet" href="./assets/css/style.css">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Overlay Latar Belakang Gelap -->
+    <div class="drawer-overlay" id="drawerOverlay"></div>
+
+    <!-- Sidebar Navigation Drawer (Garis 3) -->
+    <div class="drawer-menu" id="drawerMenu">
+        <div class="drawer-header">
+            <div class="drawer-header-title">PROFIL AKUNTANSI</div>
+            <div class="drawer-profile-info">
+                <span class="material-icons">domain</span>
+                <div class="profile-name">This</div>
+                <div class="profile-sub">Yogyakarta</div>
+            </div>
+        </div>
+
+        <div class="drawer-content">
+            <div class="menu-category">DATA</div>
+
+            <a href="#" class="menu-item">
+                <span class="material-icons">badge</span>
+                <span>Kontak</span>
+            </a>
+            <a href="#" class="menu-item">
+                <span class="material-icons">list_alt</span>
+                <span>Akun/Perkiraan</span>
+            </a>
+
+            <div class="drawer-divider"></div>
+
+            <div class="menu-category">TRANSAKSI</div>
+
+            <a href="#" class="menu-item">
+                <span class="material-icons">edit_note</span>
+                <span>Saldo Awal</span>
+            </a>
+            <a href="#" class="menu-item">
+                <span class="material-icons">post_add</span>
+                <span>Entri Jurnal</span>
+            </a>
+
+            <div class="drawer-divider"></div>
+
+            <div class="menu-category">TRANSAKSI KHUSUS</div>
+
+            <a href="#" class="menu-item">
+                <span class="material-icons">account_balance_wallet</span>
+                <span>Modal</span>
+            </a>
+            <a href="#" class="menu-item">
+                <span class="material-icons">add_circle</span>
+                <span>Penerimaan Kas</span>
+            </a>
+            <a href="#" class="menu-item">
+                <span class="material-icons">remove_circle</span>
+                <span>Pengeluaran Kas</span>
+            </a>
+            <a href="#" class="menu-item">
+                <span class="material-icons">receipt_long</span>
+                <span>Piutang</span>
+            </a>
+            <a href="#" class="menu-item">
+                <span class="material-icons">request_quote</span>
+                <span>Hutang</span>
+            </a>
+
+            <div class="drawer-divider"></div>
+
+            <div class="menu-category">LAPORAN</div>
+
+            <a href="#" class="menu-item">
+                <span class="material-icons">chat_bubble</span>
+                <span>Jurnal</span>
+            </a>
+            <a href="#" class="menu-item">
+                <span class="material-icons">menu_book</span>
+                <span>Buku Besar</span>
+            </a>
+            <a href="#" class="menu-item">
+                <span class="material-icons">view_list</span>
+                <span>Neraca Saldo</span>
+            </a>
+            <a href="#" class="menu-item">
+                <span class="material-icons">insert_photo</span>
+                <span>Laba/Rugi</span>
+            </a>
+            <a href="#" class="menu-item">
+                <span class="material-icons">view_column</span>
+                <span>Neraca</span>
+            </a>
+            <a href="#" class="menu-item">
+                <span class="material-icons">show_chart</span>
+                <span>Arus Kas</span>
+            </a>
+            <a href="#" class="menu-item">
+                <span class="material-icons">trending_up</span>
+                <span>Perubahan Modal</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Option Menu Popup (Titik 3) -->
+    <div class="option-menu-popup" id="optionMenuPopup">
+        <div class="option-header">OPTION MENU</div>
+        <div class="option-list">
+            <a href="./pages/setting.html" class="option-item">
+                <span class="material-icons">settings</span>
+                <span>Pengaturan</span>
+            </a>
+            <a href="#" class="option-item">
+                <span class="material-icons">sync</span>
+                <span>Reset Data</span>
+            </a>
+
+            <div class="option-divider"></div>
+
+            <a href="#" class="option-item">
+                <span class="material-icons">history</span>
+                <span>Backup</span>
+            </a>
+            <a href="#" class="option-item">
+                <span class="material-icons">restore</span>
+                <span>Restore</span>
+            </a>
+
+            <div class="option-divider"></div>
+
+            <a href="#" class="option-item">
+                <span class="material-icons">cloud_upload</span>
+                <span>Google Drive</span>
+            </a>
+
+            <div class="option-divider"></div>
+
+            <a href="#" class="option-item">
+                <span class="material-icons">info</span>
+                <span>Tentang Aplikasi</span>
+            </a>
+
+            <div class="option-divider"></div>
+
+            <a href="#" class="option-item">
+                <span class="material-icons">power_settings_new</span>
+                <span>Keluar</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="app-container">
+        <!-- Header Utama -->
+        <header>
+            <h1>Akuntansi Umum</h1>
+            <div class="date">15-Okt-2026</div>
+        </header>
+
+        <!-- Rentang Periode -->
+        <div class="period-bar">
+            Periode <span>01-Jan-2026</span> s.d <span>31-Des-2026</span>
+        </div>
+
+        <!-- Main Content -->
+        <main>
+            <!-- CARD LABA / RUGI -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Laba/Rugi</span>
+                    <a href="./pages/dashboard.html" class="icon-btn-next">
+                        <span class="material-icons">chevron_right</span>
+                    </a>
+                </div>
+                <div style="text-align: right; font-size: 11px; color: #005691; font-weight: bold;">Tahun 2026</div>
+                
+                <div class="chart-container">
+                    <span class="chart-label-y">1</span>
+                    <svg viewBox="0 0 340 130" style="width:100%; height:100%;">
+                        <line x1="10" y1="10" x2="10" y2="110" stroke="#ccc" stroke-width="1"/>
+                        <line x1="38" y1="10" x2="38" y2="110" stroke="#ccc" stroke-width="1"/>
+                        <line x1="66" y1="10" x2="66" y2="110" stroke="#ccc" stroke-width="1"/>
+                        <line x1="94" y1="10" x2="94" y2="110" stroke="#ccc" stroke-width="1"/>
+                        <line x1="122" y1="10" x2="122" y2="110" stroke="#ccc" stroke-width="1"/>
+                        <line x1="150" y1="10" x2="150" y2="110" stroke="#ccc" stroke-width="1"/>
+                        <line x1="178" y1="10" x2="178" y2="110" stroke="#ccc" stroke-width="1"/>
+                        <line x1="206" y1="10" x2="206" y2="110" stroke="#ccc" stroke-width="1"/>
+                        <line x1="234" y1="10" x2="234" y2="110" stroke="#ccc" stroke-width="1"/>
+                        <line x1="262" y1="10" x2="262" y2="110" stroke="#ccc" stroke-width="1"/>
+                        <line x1="290" y1="10" x2="290" y2="110" stroke="#ccc" stroke-width="1"/>
+                        <line x1="318" y1="10" x2="318" y2="110" stroke="#ccc" stroke-width="1"/>
+                        
+                        <line x1="10" y1="110" x2="318" y2="110" stroke="#f44336" stroke-width="1"/>
+
+                        <text x="10" y="122" font-size="8" text-anchor="middle">Jan</text>
+                        <text x="38" y="122" font-size="8" text-anchor="middle">Feb</text>
+                        <text x="66" y="122" font-size="8" text-anchor="middle">Mar</text>
+                        <text x="94" y="122" font-size="8" text-anchor="middle">Apr</text>
+                        <text x="122" y="122" font-size="8" text-anchor="middle">Mei</text>
+                        <text x="150" y="122" font-size="8" text-anchor="middle">Jun</text>
+                        <text x="178" y="122" font-size="8" text-anchor="middle">Jul</text>
+                        <text x="206" y="122" font-size="8" text-anchor="middle">Agu</text>
+                        <text x="234" y="122" font-size="8" text-anchor="middle">Sep</text>
+                        <text x="262" y="122" font-size="8" text-anchor="middle">Okt</text>
+                        <text x="290" y="122" font-size="8" text-anchor="middle">Nov</text>
+                        <text x="318" y="122" font-size="8" text-anchor="middle">Des</text>
+
+                        <text x="10" y="105" font-size="8" text-anchor="middle">0</text>
+                        <text x="38" y="105" font-size="8" text-anchor="middle">0</text>
+                        <text x="66" y="105" font-size="8" text-anchor="middle">0</text>
+                        <text x="94" y="105" font-size="8" text-anchor="middle">0</text>
+                        <text x="122" y="105" font-size="8" text-anchor="middle">0</text>
+                        <text x="150" y="105" font-size="8" text-anchor="middle">0</text>
+                        <text x="178" y="105" font-size="8" text-anchor="middle">0</text>
+                        <text x="206" y="105" font-size="8" text-anchor="middle">0</text>
+                        <text x="234" y="105" font-size="8" text-anchor="middle">0</text>
+                        <text x="262" y="105" font-size="8" text-anchor="middle">0</text>
+                        <text x="290" y="105" font-size="8" text-anchor="middle">0</text>
+                        <text x="318" y="105" font-size="8" text-anchor="middle">0</text>
+
+                        <circle cx="10" cy="110" r="3" stroke="#005691" stroke-width="1" fill="#fff"/>
+                        <polygon points="38,107 35,112 41,112" stroke="#005691" stroke-width="1" fill="#fff"/>
+                    </svg>
+                </div>
+                <div class="chart-legend">
+                    <span class="legend-color"></span> Total Laba/Rugi
+                </div>
+            </div>
+
+            <!-- CARD ARUS KAS -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Arus Kas</span>
+                    <a href="#" class="icon-btn-next">
+                        <span class="material-icons">chevron_right</span>
+                    </a>
+                </div>
+                <div class="card-grid-2">
+                    <div class="grid-item">
+                        <span class="grid-item-title">Total Penerimaan Kas</span>
+                        <span class="grid-value green">0</span>
+                    </div>
+                    <div class="grid-item">
+                        <span class="grid-item-title">Total Pengeluaran Kas</span>
+                        <span class="grid-value red">0</span>
+                    </div>
+                    <div class="full-width-item">
+                        <div class="grid-item-title">Arus Kas Bersih</div>
+                        <div class="grid-value orange">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD SALDO -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Saldo</span>
+                    <a href="#" class="icon-btn-next">
+                        <span class="material-icons">chevron_right</span>
+                    </a>
+                </div>
+                <div>
+                    <div class="list-row">
+                        <span class="list-label">Kas dan Bank</span>
+                        <span class="list-value orange">0</span>
+                    </div>
+                    <div class="list-row">
+                        <span class="list-label">Pendapatan</span>
+                        <span class="list-value green">0</span>
+                    </div>
+                    <div class="list-row">
+                        <span class="list-label">Biaya</span>
+                        <span class="list-value red">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD HUTANG & PIUTANG -->
+            <div class="card-grid-2" style="gap:12px; margin-bottom: 20px;">
+                <div class="card" style="margin-bottom:0;">
+                    <div class="card-header">
+                        <span class="card-title" style="font-size:10px;">Total Hutang</span>
+                        <a href="#" class="icon-btn-next">
+                            <span class="material-icons">chevron_right</span>
+                        </a>
+                    </div>
+                    <div style="text-align:center; padding: 6px 0;">
+                        <div class="grid-value orange" style="margin-bottom: 6px;">0</div>
+                        <span class="grid-item-title">Total Belum Dibayar</span>
+                        <div class="grid-value red" style="font-size: 13px;">0</div>
+                    </div>
+                </div>
+                <div class="card" style="margin-bottom:0;">
+                    <div class="card-header">
+                        <span class="card-title" style="font-size:10px;">Total Piutang</span>
+                        <a href="#" class="icon-btn-next">
+                            <span class="material-icons">chevron_right</span>
+                        </a>
+                    </div>
+                    <div style="text-align:center; padding: 6px 0;">
+                        <div class="grid-value orange" style="margin-bottom: 6px;">0</div>
+                        <span class="grid-item-title">Total Belum Dibayar</span>
+                        <div class="grid-value green" style="font-size: 13px;">0</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation Bar -->
+        <nav class="bottom-nav">
+            <button class="nav-btn" id="btnToggleMenu">
+                <span class="material-icons">menu</span>
+            </button>
+            <button class="nav-btn" id="btnToggleOption">
+                <span class="material-icons">more_vert</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Script Kontrol Menu Sidebar & Option Menu -->
+    <script>
+        const btnToggleMenu = document.getElementById('btnToggleMenu');
+        const btnToggleOption = document.getElementById('btnToggleOption');
+        const drawerMenu = document.getElementById('drawerMenu');
+        const optionMenuPopup = document.getElementById('optionMenuPopup');
+        const drawerOverlay = document.getElementById('drawerOverlay');
+
+        // Kontrol Sidebar Drawer (Garis 3)
+        function openMenu() {
+            closeOption(); // Tutup option menu jika terbuka
+            drawerMenu.classList.add('active');
+            drawerOverlay.classList.add('active');
+            document.body.classList.add('no-scroll');
+        }
+
+        function closeMenu() {
+            drawerMenu.classList.remove('active');
+            drawerOverlay.classList.remove('active');
+            document.body.classList.remove('no-scroll');
+        }
+
+        // Kontrol Option Menu Popup (Titik 3)
+        function toggleOption(e) {
+            e.stopPropagation();
+            closeMenu(); // Tutup sidebar jika terbuka
+            const isActive = optionMenuPopup.classList.contains('active');
+            if (isActive) {
+                closeOption();
+            } else {
+                optionMenuPopup.classList.add('active');
+                drawerOverlay.classList.add('active');
+            }
+        }
+
+        function closeOption() {
+            optionMenuPopup.classList.remove('active');
+            if (!drawerMenu.classList.contains('active')) {
+                drawerOverlay.classList.remove('active');
+            }
+        }
+
+        btnToggleMenu.addEventListener('click', openMenu);
+        btnToggleOption.addEventListener('click', toggleOption);
+        drawerOverlay.addEventListener('click', () => {
+            closeMenu();
+            closeOption();
+        });
+    </script>
+
+    <!-- Pendaftaran Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker terdaftar:', reg.scope))
+                    .catch(err => console.warn('Peringatan Service Worker:', err.message));
+            });
+        }
+    </script>
+</body>
+</html>

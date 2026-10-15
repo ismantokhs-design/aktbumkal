@@ -1,0 +1,460 @@
+/* ==========================================
+   1. RESET & GENERAL STYLES
+   ========================================== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: #f0f4f8;
+    color: #333333;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+/* Kunci scroll background saat menu aktif */
+body.no-scroll {
+    overflow: hidden;
+}
+
+/* Sembunyikan scrollbar di semua browser */
+html, body, main, .drawer-menu, .option-menu-popup {
+    -ms-overflow-style: none;  /* IE dan Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+main::-webkit-scrollbar,
+.drawer-menu::-webkit-scrollbar,
+.option-menu-popup::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari, Opera */
+}
+
+/* ==========================================
+   2. APP CONTAINER
+   ========================================== */
+.app-container {
+    width: 100%;
+    max-width: 480px;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding-bottom: 70px;
+    min-height: 100vh;
+}
+
+/* ==========================================
+   3. HEADER & PERIODE BAR
+   ========================================== */
+header {
+    background-color: #5114B9;
+    color: #ffffff;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+header h1 {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+header .date {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.period-bar {
+    background-color: #eef2f7;
+    text-align: center;
+    padding: 10px;
+    font-size: 12px;
+    color: #444444;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.period-bar span {
+    color: #0c00a3;
+    font-weight: bold;
+}
+
+/* ==========================================
+   4. MAIN CONTENT & CARDS
+   ========================================== */
+main {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+}
+
+.card {
+    background: #ffffff;
+    border: 1px solid #90caf9;
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 2px 4px rgba(144, 202, 249, 0.15);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #f0f4f8;
+    padding-bottom: 6px;
+}
+
+.card-title {
+    font-size: 12px;
+    font-weight: bold;
+    color: #005691;
+    text-transform: uppercase;
+}
+
+.icon-btn-next {
+    color: #5114B9;
+    font-size: 18px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* ==========================================
+   5. CHART
+   ========================================== */
+.chart-container {
+    width: 100%;
+    height: 180px;
+    margin-top: 8px;
+    position: relative;
+}
+
+.chart-label-y {
+    position: absolute;
+    left: 0;
+    top: 20px;
+    font-size: 10px;
+    color: #666666;
+}
+
+.chart-legend {
+    display: flex;
+    align-items: center;
+    font-size: 10px;
+    color: #333333;
+    margin-top: 4px;
+    gap: 6px;
+}
+
+.legend-color {
+    width: 10px;
+    height: 10px;
+    background-color: #b71c1c;
+    display: inline-block;
+}
+
+/* ==========================================
+   6. GRID LAYOUTS & VALUES
+   ========================================== */
+.card-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    text-align: center;
+    position: relative;
+}
+
+.card .card-grid-2::after {
+    content: "";
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    width: 1px;
+    height: 80%;
+    background-color: #e0e0e0;
+}
+
+.grid-item {
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 60px;
+}
+
+.grid-item-title {
+    font-size: 11px;
+    color: #555555;
+    margin-bottom: 4px;
+}
+
+.grid-value {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.grid-value.green { color: #2e7d32; }
+.grid-value.red { color: #c62828; }
+.grid-value.orange { color: #ef6c00; }
+
+.full-width-item {
+    grid-column: span 2;
+    border-top: 1px solid #f0f4f8;
+    padding-top: 8px;
+    margin-top: 8px;
+    text-align: center;
+}
+
+/* ==========================================
+   7. LIST ROWS
+   ========================================== */
+.list-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 6px 0;
+    border-bottom: 1px dashed #f0f0f0;
+}
+
+.list-row:last-child {
+    border-bottom: none;
+}
+
+.list-label {
+    color: #444444;
+}
+
+.list-value {
+    font-weight: bold;
+}
+
+.list-value.green { color: #2e7d32; }
+.list-value.red { color: #c62828; }
+.list-value.orange { color: #ef6c00; }
+
+/* ==========================================
+   8. BOTTOM NAVIGATION BAR
+   ========================================== */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    max-width: 480px;
+    height: 56px;
+    background-color: #5114B9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    color: #ffffff;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ==========================================
+   9. SIDEBAR DRAWER MENU & OVERLAY
+   ========================================== */
+.drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 200;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.drawer-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.drawer-menu {
+    position: fixed;
+    top: 0;
+    left: -85%;
+    width: 70%;
+    max-width: 320px;
+    height: 100vh;
+    background-color: #ffffff;
+    z-index: 201;
+    transition: left 0.3s ease;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.drawer-menu.active {
+    left: 0;
+}
+
+.drawer-header {
+    background-color: #5114B9;
+    color: #ffffff;
+    padding: 16px 14px 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.drawer-header-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.drawer-profile-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.drawer-profile-info .material-icons {
+    font-size: 26px;
+}
+
+.profile-name {
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.profile-sub {
+    font-size: 11px;
+    opacity: 0.85;
+}
+
+.drawer-content {
+    padding: 4px 0 30px 0;
+}
+
+.menu-category {
+    font-size: 10px;
+    font-weight: bold;
+    color: #888888;
+    padding: 10px 16px 4px 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    color: #5114B9;
+    text-decoration: none;
+    font-size: 11.5px;
+    font-weight: 600;
+    gap: 12px;
+    transition: background 0.2s;
+}
+
+.menu-item:hover {
+    background-color: #f0ebf8;
+}
+
+.menu-item .material-icons {
+    font-size: 18px;
+    color: #5114B9;
+}
+
+.drawer-divider {
+    height: 1px;
+    background-color: #e0e0e0;
+    margin: 4px 0;
+}
+
+/* ==========================================
+   10. OPTION MENU POPUP (TITIK TIGA)
+   ========================================== */
+.option-menu-popup {
+    position: fixed;
+    bottom: 60px; /* Muncul tepat di atas bottom-nav */
+    right: 12px;
+    width: 190px;
+    background-color: #ffffff;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    z-index: 201;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.2s ease;
+}
+
+.option-menu-popup.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.option-header {
+    background-color: #5114B9;
+    color: #ffffff;
+    text-align: center;
+    padding: 8px 12px;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.option-list {
+    padding: 4px 0;
+}
+
+.option-item {
+    display: flex;
+    align-items: center;
+    padding: 9px 14px;
+    color: #5114B9;
+    text-decoration: none;
+    font-size: 11.5px;
+    font-weight: 600;
+    gap: 12px;
+    transition: background 0.15s;
+}
+
+.option-item:hover {
+    background-color: #f0ebf8;
+}
+
+.option-item .material-icons {
+    font-size: 18px;
+    color: #5114B9;
+}
+
+.option-divider {
+    height: 1px;
+    background-color: #e0e0e0;
+    margin: 3px 0;
+}
