@@ -1,19 +1,25 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+// Import fungsi yang dibutuhkan dari SDK Firebase Web (v10+ CDN)
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-// Konfigurasi Firebase Asli Proyek PisangKu
+// Konfigurasi Firebase Web App Anda
 const firebaseConfig = {
-  apiKey: "AIzaSyAnubNMPQ-io4O1AIRWzrlbugqV4RiG8ug",
-  authDomain: "pisangku-fb8a8.firebaseapp.com",
-  projectId: "pisangku-fb8a8",
-  storageBucket: "pisangku-fb8a8.firebasestorage.app",
-  messagingSenderId: "684481262098",
-  appId: "1:684481262098:web:9d1b39bf751fff55db5ecb",
-  measurementId: "G-25LV6WK6CR"
+  apiKey: "AIzaSyAcMaRsKZ2plzQQvwoLDXHPsteVrHJjR1Y",
+  authDomain: "aktbumkal.firebaseapp.com",
+  projectId: "aktbumkal",
+  storageBucket: "aktbumkal.firebasestorage.app",
+  messagingSenderId: "123464282645",
+  appId: "1:123464282645:web:f766e920ccb88c1ed0141c",
+  measurementId: "G-2YRZZNWW3Z"
 };
 
-// Inisialisasi Firebase & Layanan
+// Inisialisasi Firebase
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+const analytics = getAnalytics(app);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+// Ekspor instance agar bisa digunakan di file JS lain
+export { app, analytics, db, auth };

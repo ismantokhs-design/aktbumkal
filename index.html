@@ -17,6 +17,18 @@
 </head>
 <body>
 
+    <!-- Cek Status Auth di index.html -->
+    <script type="module">
+        import { auth } from './assets/js/firebase-config.js';
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = './pages/login.html';
+            }
+        });
+    </script>
+
     <!-- Overlay Latar Belakang Gelap -->
     <div class="drawer-overlay" id="drawerOverlay"></div>
 
@@ -26,8 +38,8 @@
             <div class="drawer-header-title">PROFIL AKUNTANSI</div>
             <div class="drawer-profile-info">
                 <span class="material-icons">domain</span>
-                <div class="profile-name">This</div>
-                <div class="profile-sub">Yogyakarta</div>
+                <div class="profile-name" id="drawerProfileName">This</div>
+                <div class="profile-sub" id="drawerProfileAddress">Yogyakarta</div>
             </div>
         </div>
 
@@ -124,9 +136,13 @@
                 <span class="material-icons">settings</span>
                 <span>Pengaturan</span>
             </a>
-            <a href="#" class="option-item">
-                <span class="material-icons">sync</span>
-                <span>Reset Data</span>
+            <a href="./pages/user-setting.html" class="option-item">
+                <span class="material-icons">manage_accounts</span>
+                <span>Setting User</span>
+            </a>
+            <a href="./pages/access-control.html" class="option-item">
+                <span class="material-icons">admin_panel_settings</span>
+                <span>Hak Akses</span>
             </a>
 
             <div class="option-divider"></div>
@@ -156,19 +172,35 @@
 
             <div class="option-divider"></div>
 
-            <a href="#" class="option-item">
+            <!-- Tombol Keluar -->
+            <div class="option-item" id="btnOpenLogout">
                 <span class="material-icons">power_settings_new</span>
                 <span>Keluar</span>
-            </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Popup Konfirmasi Keluar -->
+    <div class="logout-modal-overlay" id="modalLogout">
+        <div class="logout-modal-box">
+            <div class="logout-icon-wrapper">
+                <span class="material-icons" style="font-size:28px;">power_settings_new</span>
+            </div>
+            <div class="logout-modal-title">Konfirmasi Keluar</div>
+            <div class="logout-modal-desc">Apakah Anda yakin ingin keluar dari aplikasi?</div>
+            <div class="logout-btn-group">
+                <button class="btn-confirm-logout" id="btnConfirmLogout">Ya, Keluar</button>
+                <button class="btn-cancel-logout" id="btnCancelLogout">Batal</button>
+            </div>
         </div>
     </div>
 
     <!-- Main Container -->
     <div class="app-container">
-        <!-- Header Utama -->
+        <!-- Header Utama: Mengambil Nama dan Alamat dari Database -->
         <header>
-            <h1>Akuntansi Umum</h1>
-            <div class="date">15-Okt-2026</div>
+            <h1 id="headerHeaderName">Memuat...</h1>
+            <div class="date" id="headerHeaderAddress">-</div>
         </header>
 
         <!-- Rentang Periode -->
@@ -182,7 +214,7 @@
             <div class="card">
                 <div class="card-header">
                     <span class="card-title">Laba/Rugi</span>
-                    <a href="./pages/dashboard.html" class="icon-btn-next">
+                    <a href="#" class="icon-btn-next">
                         <span class="material-icons">chevron_right</span>
                     </a>
                 </div>
@@ -322,66 +354,93 @@
 
         <!-- Bottom Navigation Bar -->
         <nav class="bottom-nav">
-            <button class="nav-btn" id="btnToggleMenu">
+            <button class="nav-btn" id="btnToggleMenu" type="button">
                 <span class="material-icons">menu</span>
             </button>
-            <button class="nav-btn" id="btnToggleOption">
+            <button class="nav-btn" id="btnToggleOption" type="button">
                 <span class="material-icons">more_vert</span>
             </button>
         </nav>
     </div>
 
-    <!-- Script Kontrol Menu Sidebar & Option Menu -->
-    <script>
-        const btnToggleMenu = document.getElementById('btnToggleMenu');
-        const btnToggleOption = document.getElementById('btnToggleOption');
-        const drawerMenu = document.getElementById('drawerMenu');
+    <!-- Script Utama Aplikasi -->
+    <script type="module" src="./assets/js/app.js"></script>
+
+    <!-- Script Mengambil Profil (Nama & Alamat) dari Database & Logout -->
+    <script type="module">
+        import { auth, db } from './assets/js/firebase-config.js';
+        import { signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const headerHeaderName = document.getElementById('headerHeaderName');
+        const headerHeaderAddress = document.getElementById('headerHeaderAddress');
+        const drawerProfileName = document.getElementById('drawerProfileName');
+        const drawerProfileAddress = document.getElementById('drawerProfileAddress');
+
+        // Fungsi Memuat Data Nama & Alamat dari Firestore
+        async function loadProfileHeader() {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const nama = data.namaProfil || 'BUMKal';
+                    const alamat = data.alamat || 'Yogyakarta';
+
+                    // Update Header Utama
+                    if (headerHeaderName) headerHeaderName.textContent = nama;
+                    if (headerHeaderAddress) headerHeaderAddress.textContent = alamat;
+
+                    // Update Drawer Menu
+                    if (drawerProfileName) drawerProfileName.textContent = nama;
+                    if (drawerProfileAddress) drawerProfileAddress.textContent = alamat;
+                } else {
+                    if (headerHeaderName) headerHeaderName.textContent = 'This';
+                    if (headerHeaderAddress) headerHeaderAddress.textContent = 'Yogyakarta';
+                }
+            } catch (error) {
+                console.error("Gagal memuat profil header:", error);
+                if (headerHeaderName) headerHeaderName.textContent = 'This';
+                if (headerHeaderAddress) headerHeaderAddress.textContent = 'Yogyakarta';
+            }
+        }
+
+        // Kontrol Modal Logout
+        const btnOpenLogout = document.getElementById('btnOpenLogout');
+        const modalLogout = document.getElementById('modalLogout');
+        const btnCancelLogout = document.getElementById('btnCancelLogout');
+        const btnConfirmLogout = document.getElementById('btnConfirmLogout');
         const optionMenuPopup = document.getElementById('optionMenuPopup');
-        const drawerOverlay = document.getElementById('drawerOverlay');
 
-        // Kontrol Sidebar Drawer (Garis 3)
-        function openMenu() {
-            closeOption(); // Tutup option menu jika terbuka
-            drawerMenu.classList.add('active');
-            drawerOverlay.classList.add('active');
-            document.body.classList.add('no-scroll');
-        }
-
-        function closeMenu() {
-            drawerMenu.classList.remove('active');
-            drawerOverlay.classList.remove('active');
-            document.body.classList.remove('no-scroll');
-        }
-
-        // Kontrol Option Menu Popup (Titik 3)
-        function toggleOption(e) {
-            e.stopPropagation();
-            closeMenu(); // Tutup sidebar jika terbuka
-            const isActive = optionMenuPopup.classList.contains('active');
-            if (isActive) {
-                closeOption();
-            } else {
-                optionMenuPopup.classList.add('active');
-                drawerOverlay.classList.add('active');
-            }
-        }
-
-        function closeOption() {
-            optionMenuPopup.classList.remove('active');
-            if (!drawerMenu.classList.contains('active')) {
-                drawerOverlay.classList.remove('active');
-            }
-        }
-
-        btnToggleMenu.addEventListener('click', openMenu);
-        btnToggleOption.addEventListener('click', toggleOption);
-        drawerOverlay.addEventListener('click', () => {
-            closeMenu();
-            closeOption();
+        btnOpenLogout?.addEventListener('click', () => {
+            optionMenuPopup?.classList.remove('active');
+            modalLogout?.classList.add('active');
         });
+
+        function closeLogoutModal() {
+            modalLogout?.classList.remove('active');
+        }
+
+        btnCancelLogout?.addEventListener('click', closeLogoutModal);
+        modalLogout?.addEventListener('click', (e) => {
+            if (e.target === modalLogout) closeLogoutModal();
+        });
+
+        btnConfirmLogout?.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.warn("Sign out local:", error);
+            }
+            window.location.href = './pages/login.html';
+        });
+
+        // Jalankan pemuatan data profil
+        loadProfileHeader();
     </script>
 
-    <!-- Pendaftaran Service Worker -->
+    <!-- Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {

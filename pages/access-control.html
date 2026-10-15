@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akt-BUMKal - Hak Akses</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Link External CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header Page */
+        .page-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-title-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-back {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .page-header h1 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        /* Content Body */
+        .content-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex-grow: 1;
+            padding-bottom: 90px;
+        }
+
+        /* Role Selector Card */
+        .role-selector-card {
+            background-color: #ffffff;
+            border: 1px solid #dcdcdc;
+            border-radius: 10px;
+            padding: 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .selector-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #5114B9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid #a4c2f4;
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            background-color: #fff;
+            color: #222;
+        }
+
+        .form-select:focus {
+            border-color: #5114B9;
+        }
+
+        /* Access Category Sections */
+        .access-section {
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+        }
+
+        .section-header {
+            background-color: #f0ebf8;
+            color: #5114B9;
+            padding: 10px 14px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2d8f3;
+        }
+
+        .menu-access-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-access-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .menu-access-item:last-child {
+            border-bottom: none;
+        }
+
+        .menu-item-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu-item-info .material-icons {
+            font-size: 20px;
+            color: #5114B9;
+        }
+
+        .menu-item-title {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #333333;
+        }
+
+        /* Custom Switch Toggle */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 22px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .3s;
+            border-radius: 22px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #5114B9;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(18px);
+        }
+
+        /* Fixed Bottom Save Bar */
+        .bottom-save-bar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            border-top: 1px solid #e0e0e0;
+            padding: 12px 16px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 10px;
+            box-sizing: border-box;
+            z-index: 100;
+        }
+
+        .btn-save-access {
+            flex: 1;
+            background-color: #5114B9;
+            color: #ffffff;
+            border: none;
+            padding: 12px 0;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(81, 20, 185, 0.2);
+            transition: background 0.2s;
+        }
+
+        .btn-save-access:active {
+            transform: scale(0.98);
+        }
+
+        .btn-toggle-all {
+            background-color: #f0f4f8;
+            color: #5114B9;
+            border: 1px solid #d0d7de;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Toast Notification */
+        .toast-notif {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background-color: #2e7d32;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 500;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast-notif.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Toast Notifikasi -->
+    <div class="toast-notif" id="toastNotif">
+        <span class="material-icons" style="font-size: 18px;">check_circle</span>
+        <span id="toastMsg">Pengaturan Hak Akses Berhasil Disimpan</span>
+    </div>
+
+    <div class="page-container">
+        <!-- Header Halaman -->
+        <header class="page-header">
+            <div class="header-title-box">
+                <a href="../index.html" class="btn-back">
+                    <span class="material-icons">arrow_back</span>
+                </a>
+                <h1>Hak Akses Menu</h1>
+            </div>
+            <span class="material-icons" style="opacity: 0.8;">admin_panel_settings</span>
+        </header>
+
+        <!-- Body Halaman -->
+        <div class="content-body">
+            <!-- Pilih Role / Pengguna -->
+            <div class="role-selector-card">
+                <label class="selector-label" for="selectRole">PILIH ROLE / AKUN USER</label>
+                <select id="selectRole" class="form-select">
+                    <option value="role_user">Role: User / Operator</option>
+                    <option value="role_admin">Role: Administrator (Akses Penuh)</option>
+                </select>
+            </div>
+
+            <!-- KATEGORI: DATA -->
+            <div class="access-section">
+                <div class="section-header">
+                    <span>DATA</span>
+                    <span class="material-icons" style="font-size: 16px;">folder</span>
+                </div>
+                <div class="menu-access-list">
+                    <div class="menu-access-item">
+                        <div class="menu-item-info">
+                            <span class="material-icons">badge</span>
+                            <span class="menu-item-title">Kontak</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" data-menu="menu_kontak" class="menu-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="menu-access-item">
+                        <div class="menu-item-info">
+                            <span class="material-icons">list_alt</span>
+                            <span class="menu-item-title">Akun/Perkiraan</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" data-menu="menu_akun" class="menu-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KATEGORI: TRANSAKSI -->
+            <div class="access-section">
+                <div class="section-header">
+                    <span>TRANSAKSI</span>
+                    <span class="material-icons" style="font-size: 16px;">receipt</span>
+                </div>
+                <div class="menu-access-list">
+                    <div class="menu-access-item">
+                        <div class="menu-item-info">
+                            <span class="material-icons">edit_note</span>
+                            <span class="menu-item-title">Saldo Awal</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" data-menu="menu_saldo_awal" class="menu-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="menu-access-item">
+                        <div class="menu-item-info">
+                            <span class="material-icons">post_add</span>
+                            <span class="menu-item-title">Entri Jurnal</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" data-menu="menu_entri_jurnal" class="menu-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KATEGORI: TRANSAKSI KHUSUS -->
+            <div class="access-section">
+                <div class="section-header">
+                    <span>TRANSAKSI KHUSUS</span>
+                    <span class="material-icons" style="font-size: 16px;">payments</span>
+                </div>
+                <div class="menu-access-list">
+                    <div class="menu-access-item">
+                        <div class="menu-item-info">
+                            <span class="material-icons">account_balance_wallet</span>
+                            <span class="menu-item-title">Modal</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" data-menu="menu_modal" class="menu-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="menu-access-item">
+                        <div class="menu-item-info">
+                            <span class="material-icons">add_circle</span>
+                            <span class="menu-item-title">Penerimaan Kas</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" data-menu="menu_penerimaan_kas" class="menu-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="menu-access-item">
+                        <div class="menu-item-info">
+                            <span class="material-icons">remove_circle</span>
+                            <span class="menu-item-title">Pengeluaran Kas</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" data-menu="menu_pengeluaran_kas" class="menu-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="menu-access-item">
+                        <div class="menu-item-info">
+                            <span class="material-icons">receipt_long</span>
+                            <span class="menu-item-title">Piutang</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" data-menu="menu_piutang" class="menu-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="menu-access-item">
+                        <div class="menu-item-info">
+                            <span class="material-icons">request_quote</span>
+                            <span class="menu-item-title">Hutang</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" data-menu="menu_hutang" class="menu-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KATEGORI: LAPORAN -->
+            <div class="access-section">
+                <div class="section-header">
+                    <span>LAPORAN</span>
+                    <span class="material-icons" style="font-size: 16px;">assessment</span>
+                </div>
+                <div class="menu-access-list">
+                    <div class="menu-access-item">
+                        <div class="menu-item-info">
+                            <span class="material-icons">chat_bubble</span>
+                            <span class="menu-item-title">Jurnal</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" data-menu="menu_laporan_jurnal" class="menu-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="menu-access-item">
+                        <div class="menu-item-info">
+                            <span class="material-icons">menu_book</span>
+                            <span class="menu-item-title">Buku Besar</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" data-menu="menu_buku_besar" class="menu-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="menu-access-item">
+                        <div class="menu-item-info">
+                            <span class="material-icons">view_list</span>
+                            <span class="menu-item-title">Neraca Saldo</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" data-menu="menu_neraca_saldo" class="menu-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="menu-access-item">
+                        <div class="menu-item-info">
+                            <span class="material-icons">insert_photo</span>
+                            <span class="menu-item-title">Laba/Rugi</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" data-menu="menu_laba_rugi" class="menu-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="menu-access-item">
+                        <div class="menu-item-info">
+                            <span class="material-icons">view_column</span>
+                            <span class="menu-item-title">Neraca</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" data-menu="menu_neraca" class="menu-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="menu-access-item">
+                        <div class="menu-item-info">
+                            <span class="material-icons">show_chart</span>
+                            <span class="menu-item-title">Arus Kas</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" data-menu="menu_arus_kas" class="menu-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="menu-access-item">
+                        <div class="menu-item-info">
+                            <span class="material-icons">trending_up</span>
+                            <span class="menu-item-title">Perubahan Modal</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" data-menu="menu_perubahan_modal" class="menu-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KATEGORI: OPTION MENU / SISTEM -->
+            <div class="access-section">
+                <div class="section-header">
+                    <span>OPTION MENU & SISTEM</span>
+                    <span class="material-icons" style="font-size: 16px;">settings</span>
+                </div>
+                <div class="menu-access-list">
+                    <div class="menu-access-item">
+                        <div class="menu-item-info">
+                            <span class="material-icons">settings</span>
+                            <span class="menu-item-title">Pengaturan System</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" data-menu="option_pengaturan" class="menu-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="menu-access-item">
+                        <div class="menu-item-info">
+                            <span class="material-icons">manage_accounts</span>
+                            <span class="menu-item-title">Setting User</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" data-menu="option_setting_user" class="menu-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="menu-access-item">
+                        <div class="menu-item-info">
+                            <span class="material-icons">admin_panel_settings</span>
+                            <span class="menu-item-title">Hak Akses</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" data-menu="option_hak_akses" class="menu-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="menu-access-item">
+                        <div class="menu-item-info">
+                            <span class="material-icons">backup</span>
+                            <span class="menu-item-title">Backup & Restore</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" data-menu="option_backup_restore" class="menu-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sticky Footer Bar -->
+        <div class="bottom-save-bar">
+            <button class="btn-toggle-all" id="btnToggleAll">Pilih Semua</button>
+            <button class="btn-save-access" id="btnSaveAccess">
+                <span class="material-icons">save</span>
+                <span>SIMPAN PERUBAHAN</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Script Integrasi Firestore & Logika Hak Akses -->
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import { 
+            doc, 
+            getDoc, 
+            setDoc, 
+            getDocs, 
+            collection, 
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const selectRole = document.getElementById('selectRole');
+        const btnSaveAccess = document.getElementById('btnSaveAccess');
+        const btnToggleAll = document.getElementById('btnToggleAll');
+        const menuToggles = document.querySelectorAll('.menu-toggle');
+        const toastNotif = document.getElementById('toastNotif');
+        const toastMsg = document.getElementById('toastMsg');
+
+        let allSelected = true;
+
+        // Muat daftar user tambahan dari Firestore ke dropdown
+        async function loadUsersToDropdown() {
+            try {
+                const querySnapshot = await getDocs(collection(db, 'users'));
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const opt = document.createElement('option');
+                    opt.value = `user_${docSnap.id}`;
+                    opt.textContent = `User: ${data.nama || data.email} (${data.email})`;
+                    selectRole.appendChild(opt);
+                });
+            } catch (err) {
+                console.warn("Gagal memuat pengguna spesifik ke dropdown:", err.message);
+            }
+        }
+
+        // Tampilkan Toast Notifikasi
+        function showToast(message) {
+            toastMsg.textContent = message;
+            toastNotif.classList.add('show');
+            setTimeout(() => {
+                toastNotif.classList.remove('show');
+            }, 2500);
+        }
+
+        // Ambil Data Hak Akses Berdasarkan Role/User yang Dipilih
+        async function loadAccessControl() {
+            const selectedKey = selectRole.value;
+
+            // Jika Administrator, aktifkan dan matikan kontrol edit
+            if (selectedKey === 'role_admin') {
+                menuToggles.forEach(chk => {
+                    chk.checked = true;
+                    chk.disabled = true;
+                });
+                btnSaveAccess.disabled = true;
+                btnSaveAccess.style.opacity = '0.6';
+                return;
+            }
+
+            btnSaveAccess.disabled = false;
+            btnSaveAccess.style.opacity = '1';
+            menuToggles.forEach(chk => chk.disabled = false);
+
+            try {
+                const docRef = doc(db, 'access_controls', selectedKey);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const permissions = docSnap.data().permissions || {};
+                    menuToggles.forEach(chk => {
+                        const menuKey = chk.dataset.menu;
+                        chk.checked = permissions[menuKey] !== false; // Default true jika tidak ada
+                    });
+                } else {
+                    // Default jika data belum diset
+                    menuToggles.forEach(chk => chk.checked = true);
+                }
+            } catch (err) {
+                console.error("Gagal memuat hak akses:", err);
+            }
+        }
+
+        // Simpan Pengaturan Hak Akses ke Firestore
+        async function saveAccessControl() {
+            const selectedKey = selectRole.value;
+            if (selectedKey === 'role_admin') {
+                showToast("Role Admin selalu memiliki akses penuh.");
+                return;
+            }
+
+            const permissions = {};
+            menuToggles.forEach(chk => {
+                permissions[chk.dataset.menu] = chk.checked;
+            });
+
+            try {
+                btnSaveAccess.disabled = true;
+                btnSaveAccess.innerHTML = `<span class="material-icons">sync</span> Menyimpan...`;
+
+                await setDoc(doc(db, 'access_controls', selectedKey), {
+                    roleOrUserId: selectedKey,
+                    permissions: permissions,
+                    updatedAt: serverTimestamp()
+                });
+
+                showToast("Hak akses berhasil disimpan!");
+            } catch (err) {
+                alert("Gagal menyimpan hak akses: " + err.message);
+            } finally {
+                btnSaveAccess.disabled = false;
+                btnSaveAccess.innerHTML = `<span class="material-icons">save</span> SIMPAN PERUBAHAN`;
+            }
+        }
+
+        // Tombol Toggle Pilih Semua / Batal Semua
+        btnToggleAll.addEventListener('click', () => {
+            if (selectRole.value === 'role_admin') return;
+            allSelected = !allSelected;
+            menuToggles.forEach(chk => chk.checked = allSelected);
+            btnToggleAll.textContent = allSelected ? "Batal Semua" : "Pilih Semua";
+        });
+
+        // Event Listeners
+        selectRole.addEventListener('change', loadAccessControl);
+        btnSaveAccess.addEventListener('click', saveAccessControl);
+
+        // Inisialisasi awal
+        loadUsersToDropdown();
+        loadAccessControl();
+    </script>
+</body>
+</html>

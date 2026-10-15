@@ -1,122 +1,284 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - PisangKu</title>
-  <link rel="stylesheet" href="../assets/css/style.css">
-  <link rel="manifest" href="../manifest.json">
-  <meta name="theme-color" content="#2e7d32">
-  <style>
-    .password-container {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-    .password-container input {
-      padding-right: 45px;
-    }
-    .toggle-password {
-      position: absolute;
-      right: 12px;
-      background: none;
-      border: none;
-      color: #666;
-      cursor: pointer;
-      font-size: 1.2rem;
-      padding: 0;
-      width: auto;
-      height: auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .toggle-password:hover {
-      color: #2e7d32;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akt-BUMKal - Masuk</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Link External CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 360px;
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            padding: 40px 24px 32px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        /* Logo Lingkaran */
+        .logo-container {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .login-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #111111;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .login-form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            text-align: left;
+        }
+
+        .form-label {
+            font-size: 12px;
+            color: #444444;
+            font-weight: 500;
+        }
+
+        /* Container password dengan posisi relative untuk ikon mata */
+        .password-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #a4c2f4;
+            border-radius: 10px;
+            font-size: 13px;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input-password {
+            padding-right: 44px;
+        }
+
+        .form-input:focus {
+            border-color: #3b82f6;
+        }
+
+        .form-input::placeholder {
+            color: #aaaaaa;
+        }
+
+        /* Tombol Ikon Tampilkan Password */
+        .toggle-password {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #888888;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            user-select: none;
+        }
+
+        .toggle-password:hover {
+            color: #555555;
+        }
+
+        /* Seksi Link Opsi */
+        .options-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            font-size: 11px;
+            margin-top: -4px;
+        }
+
+        .text-muted {
+            color: #666666;
+            line-height: 1.4;
+        }
+
+        .link-blue {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .link-blue:hover {
+            text-decoration: underline;
+        }
+
+        /* Tombol Masuk */
+        .btn-submit {
+            width: 100%;
+            background-color: #3b82f6;
+            color: #ffffff;
+            border: none;
+            padding: 14px 0;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .btn-submit:active {
+            transform: scale(0.98);
+        }
+
+        /* Pesan Error */
+        .auth-error {
+            color: #d32f2f;
+            font-size: 12px;
+            text-align: center;
+            margin-top: 8px;
+            display: none;
+        }
+    </style>
 </head>
 <body>
 
-  <header class="app-header">
-    <h1>PisangKu 🍌</h1>
-    <p>Masuk untuk mengelola kebun kamu</p>
-  </header>
-
-  <main style="margin-top: 1.5rem;">
-    <div class="card">
-      <h3 style="margin-top: 0; color: #111;">Masuk ke Akun</h3>
-      
-      <form id="authForm">
-        <div class="form-group">
-          <label for="username">Username atau Email</label>
-          <input type="text" id="username" placeholder="Masukkan username atau email" required autocomplete="username">
+    <div class="login-card">
+        <!-- Logo -->
+        <div class="logo-container">
+            <img src="../assets/icons/icon.png" alt="Logo Aplikasi" onerror="this.src='https://via.placeholder.com/80/5114B9/FFFFFF?text=AKT'">
         </div>
 
-        <div class="form-group">
-          <label for="password">Kata Sandi</label>
-          <div class="password-container">
-            <input type="password" id="password" placeholder="Masukkan kata sandi" required autocomplete="current-password">
-            <button type="button" id="togglePasswordBtn" class="toggle-password" title="Tampilkan Kata Sandi">👁️</button>
-          </div>
-        </div>
+        <!-- Judul -->
+        <h1 class="login-title">Masuk</h1>
 
-        <button type="submit" id="btnSubmit">Masuk</button>
-      </form>
+        <!-- Form Login -->
+        <form class="login-form" id="loginForm">
+            <div class="form-group">
+                <label class="form-label" for="email">Masukkan Email</label>
+                <input type="email" id="email" class="form-input" placeholder="Email" required>
+            </div>
 
-      <p style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: #666;">
-        Belum punya akun? Hubungi Admin Kebun.
-      </p>
+            <div class="form-group">
+                <label class="form-label" for="password">Masukkan Password</label>
+                <div class="password-container">
+                    <input type="password" id="password" class="form-input form-input-password" placeholder="Password" required>
+                    <button type="button" class="toggle-password" id="btnTogglePassword">
+                        <span class="material-icons" id="eyeIcon">visibility_off</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="options-row">
+                <div style="max-width: 60%;">
+                    <span class="text-muted">Belum punya akun? Hubungi Admin BUMKal.</span>
+                </div>
+                <a href="#" class="link-blue" id="linkLupaPassword">Lupa password?</a>
+            </div>
+
+            <div class="auth-error" id="authError">Email atau password salah!</div>
+
+            <button type="submit" class="btn-submit">Masuk</button>
+        </form>
     </div>
-  </main>
 
-  <script type="module">
-    import { auth } from '../assets/js/firebase-config.js';
-    import { simpanUser } from '../assets/js/db.js';
-    import { 
-      signInWithEmailAndPassword, 
-      onAuthStateChanged 
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    <!-- Script Firebase Auth -->
+    <script type="module">
+        import { auth } from '../assets/js/firebase-config.js';
+        import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-    const authForm = document.getElementById('authForm');
-    const btnSubmit = document.getElementById('btnSubmit');
-    const passwordInput = document.getElementById('password');
-    const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+        const loginForm = document.getElementById('loginForm');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const authError = document.getElementById('authError');
+        const btnTogglePassword = document.getElementById('btnTogglePassword');
+        const eyeIcon = document.getElementById('eyeIcon');
 
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        window.location.href = "dashboard.html";
-      }
-    });
+        // Toggle Password
+        btnTogglePassword?.addEventListener('click', () => {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.textContent = 'visibility';
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.textContent = 'visibility_off';
+            }
+        });
 
-    togglePasswordBtn.addEventListener('click', () => {
-      const isPassword = passwordInput.type === 'password';
-      passwordInput.type = isPassword ? 'text' : 'password';
-      togglePasswordBtn.textContent = isPassword ? '🙈' : '👁️';
-      togglePasswordBtn.title = isPassword ? 'Sembunyikan Kata Sandi' : 'Tampilkan Kata Sandi';
-    });
+        // Proses Login
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            authError.style.display = 'none';
 
-    authForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const inputUser = document.getElementById('username').value.trim().toLowerCase();
-      const password = passwordInput.value;
-      const emailFinal = inputUser.includes('@') ? inputUser : `${inputUser}@pisangku.local`;
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
 
-      btnSubmit.disabled = true;
-      btnSubmit.innerText = "Memproses...";
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                window.location.href = '../index.html';
+            } catch (error) {
+                console.error("Gagal Masuk:", error.code, error.message);
+                
+                let msg = "Email atau password salah!";
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+                    msg = "Password yang dimasukkan salah.";
+                } else if (error.code === 'auth/user-not-found') {
+                    msg = "Email belum terdaftar di Firebase Auth.";
+                } else if (error.code === 'auth/too-many-requests') {
+                    msg = "Terlalu banyak percobaan. Coba lagi nanti.";
+                }
 
-      try {
-        const userCredential = await signInWithEmailAndPassword(auth, emailFinal, password);
-        await simpanUser(userCredential.user);
-        window.location.href = "dashboard.html";
-      } catch (error) {
-        alert("Gagal Masuk: Username/Email atau kata sandi salah!");
-        btnSubmit.disabled = false;
-        btnSubmit.innerText = "Masuk";
-      }
-    });
-  </script>
-
+                authError.textContent = msg;
+                authError.style.display = 'block';
+            }
+        });
+    </script>
 </body>
 </html>
