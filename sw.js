@@ -1,4 +1,4 @@
-const CACHE_NAME = 'akt-bumkal-v3';
+const CACHE_NAME = 'akt-bumkal-v4';
 
 // Daftar aset utama yang disimpan ke cache awal
 const PRECACHE_ASSETS = [
