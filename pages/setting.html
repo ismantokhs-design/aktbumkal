@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Akt-BUMKal - Pengaturan Profil</title>
+    <title>PENGATURAN</title>
     
     <!-- Link Manifest -->
     <link rel="manifest" href="../manifest.json">
@@ -15,278 +15,635 @@
     <!-- Google Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
         body {
-            background-color: #f0f4f8;
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Top Header Area */
+        .page-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-title-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-back {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .icon-menu {
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        /* Form Container Body */
+        .content-body {
+            padding: 20px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex-grow: 1;
+            padding-bottom: 100px;
+        }
+
+        .form-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 6px;
+            margin-bottom: 4px;
+        }
+
+        .form-section-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: #5114B9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-add-unit {
+            background-color: #5114B9;
+            color: #ffffff;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #1e293b;
+            outline: none;
+            background-color: #ffffff;
+        }
+
+        .form-control:focus {
+            border-color: #5114B9;
+            box-shadow: 0 0 0 2px rgba(81, 20, 185, 0.1);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        .form-row-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        /* Daftar Unit List */
+        .unit-list-box {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .unit-card-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background-color: #f1f5f9;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .unit-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .unit-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .unit-code {
+            font-size: 10px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .unit-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .btn-unit-action {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: #64748b;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-unit-action:hover {
+            background-color: #e2e8f0;
+            color: #5114B9;
+        }
+
+        /* Group Tombol Aksi */
+        .btn-group-footer {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .btn-save-setting {
+            background-color: #5114B9;
+            color: #ffffff;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 6px rgba(81, 20, 185, 0.3);
+        }
+
+        .btn-cancel-setting {
+            background-color: #ffffff;
+            color: #64748b;
+            border: 1px solid #cbd5e1;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-save-setting:active, .btn-cancel-setting:active {
+            transform: scale(0.98);
+        }
+
+        /* Modal Popup Unit */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 300;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
             padding: 16px;
-            box-sizing: border-box;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
         }
 
         .modal-box {
             width: 100%;
-            max-width: 360px;
+            max-width: 400px;
             background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border-radius: 12px;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         }
 
         .modal-header {
             background-color: #5114B9;
             color: #ffffff;
-            padding: 14px 16px;
+            padding: 12px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .modal-header-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 13px;
+        .modal-title {
+            font-size: 12px;
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .modal-close-btn {
-            background: none;
-            border: none;
-            color: #ffffff;
-            font-size: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            text-decoration: none;
         }
 
         .modal-body {
-            padding: 20px 16px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 12px;
         }
 
-        .setting-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            border-bottom: 1px solid #e0e0e0;
-            padding-bottom: 12px;
-        }
-
-        .setting-group:last-child {
-            border-bottom: none;
-        }
-
-        .setting-label {
-            font-size: 10px;
-            font-weight: bold;
-            color: #888888;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .setting-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .setting-text-main {
-            font-size: 13px;
-            color: #222222;
-            font-weight: 600;
-        }
-
-        .setting-text-sub {
-            font-size: 11.5px;
-            color: #666666;
-            margin-top: 2px;
-        }
-
-        .form-input-text {
-            width: 100%;
-            padding: 8px 10px;
-            border: 1px solid #b0bec5;
-            border-radius: 6px;
-            font-size: 12px;
-            outline: none;
-            box-sizing: border-box;
-            margin-top: 4px;
-        }
-
-        .form-input-text:focus {
-            border-color: #5114B9;
-        }
-
-        .modal-footer-btn-group {
+        .modal-footer {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 10px;
-        }
-
-        .btn-simpan {
-            background-color: #5114B9;
-            color: white;
-            border: none;
-            padding: 12px 0;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            box-shadow: 0 2px 6px rgba(81, 20, 185, 0.3);
-            transition: background-color 0.2s;
-        }
-
-        .btn-simpan:hover {
-            background-color: #3f0e93;
-        }
-
-        .btn-tutup {
-            background-color: white;
-            color: #c62828;
-            border: 1px solid #c62828;
-            padding: 12px 0;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            text-decoration: none;
-            text-align: center;
-            display: inline-block;
-        }
-
-        .status-msg {
-            font-size: 11px;
-            text-align: center;
-            display: none;
-        }
-
-        .status-msg.success {
-            color: #2e7d32;
-        }
-
-        .status-msg.error {
-            color: #c62828;
+            gap: 10px;
+            margin-top: 8px;
         }
     </style>
 </head>
 <body>
 
-    <div class="modal-box">
-        <div class="modal-header">
-            <div class="modal-header-title">
-                <span class="material-icons" style="font-size: 20px;">settings</span>
-                <span>Pengaturan</span>
+    <div class="page-container">
+        <!-- Header Halaman -->
+        <header class="page-header">
+            <div class="header-title-box">
+                <a href="../index.html" class="btn-back">
+                    <span class="material-icons">arrow_back</span>
+                </a>
+                <h1>PENGATURAN PROFIL</h1>
             </div>
-            <a href="../index.html" class="modal-close-btn">
-                <span class="material-icons">close</span>
-            </a>
+            <span class="material-icons icon-menu">more_vert</span>
+        </header>
+
+        <!-- Body Form Pengaturan -->
+        <div class="content-body">
+            <form id="settingForm">
+                <!-- SEKSI BUMKAL -->
+                <div class="form-section-header">
+                    <span class="form-section-title">Informasi Utama BUMKal</span>
+                </div>
+
+                <div class="form-group" style="margin-top: 10px;">
+                    <label class="form-label" for="namaProfil">Nama BUMKal / Induk</label>
+                    <input type="text" id="namaProfil" class="form-control" placeholder="Contoh: BUMKal Murni Mandiri" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="telepon">No. Telepon / Whatsapp</label>
+                    <input type="text" id="telepon" class="form-control" placeholder="Contoh: 081234567890">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="alamat">Alamat Lengkap</label>
+                    <textarea id="alamat" class="form-control" placeholder="Alamat kantor / unit usaha..."></textarea>
+                </div>
+
+                <!-- SEKSI MANAJEMEN UNIT USAHA -->
+                <div class="form-section-header" style="margin-top: 16px;">
+                    <span class="form-section-title">Daftar Unit Usaha</span>
+                    <button type="button" class="btn-add-unit" id="btnOpenAddUnitModal">
+                        <span class="material-icons" style="font-size: 14px;">add</span>
+                        <span>Tambah Unit</span>
+                    </button>
+                </div>
+
+                <div class="unit-list-box" id="unitListBox">
+                    <div style="text-align: center; padding: 12px; color: #94a3b8; font-size: 11px;">
+                        Belum ada unit usaha.
+                    </div>
+                </div>
+
+                <!-- SEKSI PERIODE -->
+                <div class="form-section-header" style="margin-top: 16px;">
+                    <span class="form-section-title">Periode Akuntansi</span>
+                </div>
+
+                <div class="form-row-2col" style="margin-top: 10px;">
+                    <div class="form-group">
+                        <label class="form-label" for="tglMulai">Tanggal Mulai</label>
+                        <input type="date" id="tglMulai" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="tglSelesai">Tanggal Selesai</label>
+                        <input type="date" id="tglSelesai" class="form-control" required>
+                    </div>
+                </div>
+
+                <!-- Tombol Aksi -->
+                <div class="btn-group-footer">
+                    <button type="submit" class="btn-save-setting" id="btnSaveSetting">SIMPAN</button>
+                    <button type="button" class="btn-cancel-setting" id="btnResetSetting">BATAL</button>
+                </div>
+            </form>
         </div>
-
-        <form id="settingForm">
-            <div class="modal-body">
-                <!-- Group 1: Profil Nama -->
-                <div class="setting-group">
-                    <span class="setting-label">Profil Nama</span>
-                    <input type="text" id="inputNamaProfil" class="form-input-text" placeholder="Masukkan nama lembaga/BUMKal" required>
-                </div>
-
-                <!-- Group 2: Alamat -->
-                <div class="setting-group">
-                    <span class="setting-label">Alamat</span>
-                    <input type="text" id="inputAlamat" class="form-input-text" placeholder="Masukkan alamat lembaga" required>
-                </div>
-
-                <div class="status-msg" id="statusMsg">Data berhasil disimpan!</div>
-
-                <!-- Footer Action Buttons -->
-                <div class="modal-footer-btn-group">
-                    <button type="submit" class="btn-simpan" id="btnSimpan">Simpan</button>
-                    <a href="../index.html" class="btn-tutup">Tutup</a>
-                </div>
-            </div>
-        </form>
     </div>
 
-    <!-- Firebase SDK & Controller Script -->
+    <!-- Modal Form Tambah / Edit Unit Usaha -->
+    <div class="modal-overlay" id="modalUnit">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span class="modal-title" id="modalUnitTitle">Tambah Unit Usaha</span>
+                <button type="button" class="btn-unit-action" id="btnCloseUnitModal" style="color: white;">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="unitIndex">
+                <div class="form-group">
+                    <label class="form-label" for="kodeUnit">Kode Unit</label>
+                    <input type="text" id="kodeUnit" class="form-control" placeholder="Contoh: U-01, JASA, DAGANG" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="namaUnit">Nama Unit Usaha</label>
+                    <input type="text" id="namaUnit" class="form-control" placeholder="Contoh: Unit Toko Kelontong" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-save-setting" id="btnSaveUnitItem">SIMPAN UNIT</button>
+                    <button type="button" class="btn-cancel-setting" id="btnCancelUnitItem">BATAL</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Integrasi Firestore -->
     <script type="module">
         import { db } from '../assets/js/firebase-config.js';
         import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const settingForm = document.getElementById('settingForm');
-        const inputNamaProfil = document.getElementById('inputNamaProfil');
-        const inputAlamat = document.getElementById('inputAlamat');
-        const statusMsg = document.getElementById('statusMsg');
-        const btnSimpan = document.getElementById('btnSimpan');
+        const namaProfilInput = document.getElementById('namaProfil');
+        const teleponInput = document.getElementById('telepon');
+        const alamatInput = document.getElementById('alamat');
+        const tglMulaiInput = document.getElementById('tglMulai');
+        const tglSelesaiInput = document.getElementById('tglSelesai');
+        const btnResetSetting = document.getElementById('btnResetSetting');
 
-        const profileDocRef = doc(db, 'settings', 'profile');
+        const unitListBox = document.getElementById('unitListBox');
+        const modalUnit = document.getElementById('modalUnit');
+        const modalUnitTitle = document.getElementById('modalUnitTitle');
+        const btnOpenAddUnitModal = document.getElementById('btnOpenAddUnitModal');
+        const btnCloseUnitModal = document.getElementById('btnCloseUnitModal');
+        const btnCancelUnitItem = document.getElementById('btnCancelUnitItem');
+        const btnSaveUnitItem = document.getElementById('btnSaveUnitItem');
 
-        // Memuat Data Pengaturan dari Firestore Database
+        const unitIndexInput = document.getElementById('unitIndex');
+        const kodeUnitInput = document.getElementById('kodeUnit');
+        const namaUnitInput = document.getElementById('namaUnit');
+
+        let originalSettingData = {};
+        let unitList = [];
+
+        // Load Settings
         async function loadSettings() {
             try {
-                const docSnap = await getDoc(profileDocRef);
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
                 if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    inputNamaProfil.value = data.namaProfil || 'This';
-                    inputAlamat.value = data.alamat || 'Yogyakarta';
+                    originalSettingData = docSnap.data();
+                    unitList = originalSettingData.unitList || [];
+                    populateForm(originalSettingData);
                 } else {
-                    inputNamaProfil.value = 'This';
-                    inputAlamat.value = 'Yogyakarta';
+                    const defaultData = {
+                        namaProfil: 'BUMKal Murni Mandiri',
+                        telepon: '',
+                        alamat: '',
+                        tglMulai: '2026-01-01',
+                        tglSelesai: '2026-12-31',
+                        unitList: []
+                    };
+                    originalSettingData = { ...defaultData };
+                    unitList = [];
+                    populateForm(defaultData);
                 }
             } catch (error) {
                 console.error("Gagal memuat pengaturan:", error);
-                inputNamaProfil.value = 'This';
-                inputAlamat.value = 'Yogyakarta';
             }
         }
 
-        // Menyimpan / Update Data Pengaturan ke Firestore Database
+        function populateForm(data) {
+            namaProfilInput.value = data.namaProfil || '';
+            teleponInput.value = data.telepon || '';
+            alamatInput.value = data.alamat || '';
+            tglMulaiInput.value = data.tglMulai || '2026-01-01';
+            tglSelesaiInput.value = data.tglSelesai || '2026-12-31';
+            renderUnitList();
+        }
+
+        // Render List Unit Usaha
+        function renderUnitList() {
+            unitListBox.innerHTML = '';
+
+            if (unitList.length === 0) {
+                unitListBox.innerHTML = `
+                    <div style="text-align: center; padding: 12px; color: #94a3b8; font-size: 11px;">
+                        Belum ada unit usaha terdaftar.
+                    </div>`;
+                return;
+            }
+
+            unitList.forEach((unit, idx) => {
+                const item = document.createElement('div');
+                item.className = 'unit-card-item';
+
+                item.innerHTML = `
+                    <div class="unit-info">
+                        <span class="unit-name">${unit.namaUnit}</span>
+                        <span class="unit-code">Kode: ${unit.kodeUnit}</span>
+                    </div>
+                    <div class="unit-actions">
+                        <button type="button" class="btn-unit-action btn-edit-unit" data-idx="${idx}">
+                            <span class="material-icons" style="font-size: 16px;">edit</span>
+                        </button>
+                        <button type="button" class="btn-unit-action btn-delete-unit" data-idx="${idx}">
+                            <span class="material-icons" style="font-size: 16px; color: #ef4444;">delete</span>
+                        </button>
+                    </div>
+                `;
+
+                unitListBox.appendChild(item);
+            });
+
+            // Handlers Edit & Delete Unit
+            document.querySelectorAll('.btn-edit-unit').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = e.currentTarget.dataset.idx;
+                    const item = unitList[idx];
+
+                    unitIndexInput.value = idx;
+                    kodeUnitInput.value = item.kodeUnit;
+                    namaUnitInput.value = item.namaUnit;
+
+                    modalUnitTitle.textContent = 'Edit Unit Usaha';
+                    modalUnit.classList.add('active');
+                });
+            });
+
+            document.querySelectorAll('.btn-delete-unit').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = e.currentTarget.dataset.idx;
+                    unitList.splice(idx, 1);
+                    renderUnitList();
+                });
+            });
+        }
+
+        // Control Modal Unit
+        btnOpenAddUnitModal.addEventListener('click', () => {
+            unitIndexInput.value = '';
+            kodeUnitInput.value = '';
+            namaUnitInput.value = '';
+            modalUnitTitle.textContent = 'Tambah Unit Usaha';
+            modalUnit.classList.add('active');
+        });
+
+        function closeUnitModal() {
+            modalUnit.classList.remove('active');
+        }
+
+        btnCloseUnitModal.addEventListener('click', closeUnitModal);
+        btnCancelUnitItem.addEventListener('click', closeUnitModal);
+
+        // Save Unit ke variabel temporary
+        btnSaveUnitItem.addEventListener('click', () => {
+            const kode = kodeUnitInput.value.trim();
+            const nama = namaUnitInput.value.trim();
+            const idx = unitIndexInput.value;
+
+            if (!kode || !nama) {
+                Swal.fire('Peringatan', 'Kode dan Nama Unit wajib diisi.', 'warning');
+                return;
+            }
+
+            if (idx !== '') {
+                unitList[idx] = { kodeUnit: kode, namaUnit: nama };
+            } else {
+                unitList.push({ kodeUnit: kode, namaUnit: nama });
+            }
+
+            renderUnitList();
+            closeUnitModal();
+        });
+
+        // Batal / Reset
+        btnResetSetting.addEventListener('click', () => {
+            unitList = originalSettingData.unitList ? [...originalSettingData.unitList] : [];
+            populateForm(originalSettingData);
+        });
+
+        // Save All Settings
         settingForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            btnSimpan.disabled = true;
-            btnSimpan.textContent = 'Menyimpan...';
-            statusMsg.style.display = 'none';
+
+            if (!namaProfilInput.value.trim()) {
+                Swal.fire('Peringatan', 'Nama BUMKal / Induk wajib diisi.', 'warning');
+                return;
+            }
+
+            const confirmResult = await Swal.fire({
+                title: 'Simpan Pengaturan?',
+                text: 'Apakah Anda yakin ingin memperbarui data profil & unit usaha BUMKal?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#5114B9',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Simpan',
+                cancelButtonText: 'Batal'
+            });
+
+            if (!confirmResult.isConfirmed) return;
+
+            const payload = {
+                namaProfil: namaProfilInput.value.trim(),
+                telepon: teleponInput.value.trim(),
+                alamat: alamatInput.value.trim(),
+                tglMulai: tglMulaiInput.value,
+                tglSelesai: tglSelesaiInput.value,
+                unitList: unitList,
+                updatedAt: serverTimestamp()
+            };
 
             try {
-                await setDoc(profileDocRef, {
-                    namaProfil: inputNamaProfil.value.trim(),
-                    alamat: inputAlamat.value.trim(),
-                    updatedAt: serverTimestamp()
-                }, { merge: true });
+                const docRef = doc(db, 'settings', 'profile');
+                await setDoc(docRef, payload, { merge: true });
 
-                statusMsg.className = 'status-msg success';
-                statusMsg.textContent = 'Pengaturan berhasil diperbarui!';
-                statusMsg.style.display = 'block';
+                originalSettingData = { ...payload };
 
-                setTimeout(() => {
-                    statusMsg.style.display = 'none';
-                }, 3000);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: 'Data profil & unit usaha berhasil disimpan.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
             } catch (error) {
-                console.error("Gagal menyimpan data:", error);
-                statusMsg.className = 'status-msg error';
-                statusMsg.textContent = 'Gagal menyimpan perubahan!';
-                statusMsg.style.display = 'block';
-            } finally {
-                btnSimpan.disabled = false;
-                btnSimpan.textContent = 'Simpan';
+                console.error("Gagal menyimpan:", error);
+                Swal.fire('Gagal', error.message, 'error');
             }
         });
 
-        // Jalankan pemuatan data saat halaman dibuka
         loadSettings();
     </script>
 </body>

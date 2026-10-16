@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AKUN/PERKIRAAN</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Top Header Area */
+        .page-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-title-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-back {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .icon-menu {
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        /* Tab Switcher Area */
+        .tab-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            padding: 10px 12px 0 12px;
+            background-color: #ffffff;
+        }
+
+        .tab-item {
+            padding: 10px 0;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid #5114B9;
+            transition: all 0.2s ease;
+        }
+
+        .tab-item.active {
+            background-color: #5114B9;
+            color: #ffffff;
+        }
+
+        .tab-item:not(.active) {
+            background-color: #ffffff;
+            color: #5114B9;
+        }
+
+        .tab-item:first-child {
+            border-top-left-radius: 4px;
+        }
+
+        .tab-item:last-child {
+            border-top-right-radius: 4px;
+        }
+
+        /* Search Filter Area */
+        .filter-section {
+            padding: 10px 12px;
+            background-color: #ffffff;
+        }
+
+        .search-box-container {
+            display: flex;
+            align-items: center;
+            border: 1px solid #5114B9;
+            border-radius: 4px;
+            padding: 4px 10px;
+            background-color: #ffffff;
+        }
+
+        .search-input {
+            flex-grow: 1;
+            border: none;
+            outline: none;
+            font-size: 13px;
+            color: #1e293b;
+            background: transparent;
+            padding: 4px 0;
+        }
+
+        .search-icon-btn {
+            color: #5114B9;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        /* Card List Container */
+        .list-container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            padding-bottom: 80px;
+        }
+
+        .account-card {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            background-color: #ffffff;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .account-card:hover {
+            background-color: #f8fafc;
+        }
+
+        .card-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .card-category {
+            font-size: 10px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #1e293b;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 4px;
+            opacity: 0.8;
+        }
+
+        .btn-card-action {
+            background: none;
+            border: none;
+            padding: 6px;
+            color: #64748b;
+            cursor: pointer;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-card-action:hover {
+            background-color: #e2e8f0;
+            color: #5114B9;
+        }
+
+        /* Floating Action Button (FAB) */
+        .fab-add {
+            position: fixed;
+            bottom: 24px;
+            right: calc(50% - 210px);
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background-color: #5114B9;
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 4px 12px rgba(81, 20, 185, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 200;
+            transition: transform 0.2s ease;
+        }
+
+        @media (max-width: 480px) {
+            .fab-add {
+                right: 20px;
+            }
+        }
+
+        .fab-add:active {
+            transform: scale(0.95);
+        }
+
+        /* Modal Overlay & Form CSS */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 300;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-box {
+            width: 100%;
+            max-width: 420px;
+            max-height: 90vh;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .modal-title {
+            font-size: 13px;
+            font-weight: bold;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .modal-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .form-row-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 9px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .form-control:disabled, 
+        .form-control[readonly] {
+            background-color: #f1f5f9;
+            color: #64748b;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .modal-footer {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .btn-save-modal {
+            background-color: #5114B9;
+            color: white;
+            border: none;
+            padding: 10px 0;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .btn-cancel-modal {
+            background-color: #ffffff;
+            color: #64748b;
+            border: 1px solid #cbd5e1;
+            padding: 10px 0;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <!-- Header Halaman HP -->
+        <header class="page-header">
+            <div class="header-title-box">
+                <a href="../index.html" class="btn-back">
+                    <span class="material-icons">arrow_back</span>
+                </a>
+                <h1>AKUN/PERKIRAAN</h1>
+            </div>
+            <span class="material-icons icon-menu">more_vert</span>
+        </header>
+
+        <!-- Tab Switcher (DEFAULT: AKUN ACTIVE) -->
+        <div class="tab-wrapper">
+            <div class="tab-item" id="tabSubKlasifikasi">Sub Klasifikasi</div>
+            <div class="tab-item active" id="tabAkun">Akun</div>
+        </div>
+
+        <!-- Filter / Search Bar -->
+        <div class="filter-section">
+            <div class="search-box-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="Cari Kode atau Nama Akun..." onkeyup="filterAccountList()">
+                <button class="search-icon-btn">
+                    <span class="material-icons">search</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Daftar Card Akun -->
+        <div class="list-container" id="accountListContainer">
+            <div style="text-align: center; padding: 40px; color: #94a3b8; font-size: 12px;">
+                Memuat data akun...
+            </div>
+        </div>
+
+        <!-- Floating Action Button (FAB) (+) -->
+        <button class="fab-add" id="btnOpenAddModal">
+            <span class="material-icons" style="font-size: 28px;">add</span>
+        </button>
+    </div>
+
+    <!-- Modal Form Tambah / Edit Akun -->
+    <div class="modal-overlay" id="modalAccount">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <span class="material-icons" style="font-size:18px;">post_add</span>
+                    <span id="modalHeaderTitle">Tambah Akun Baru</span>
+                </div>
+                <button type="button" class="btn-card-action" id="btnCloseModal" style="color:white;">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+
+            <form id="accountForm">
+                <div class="modal-body">
+                    <input type="hidden" id="accountId">
+
+                    <!-- BARIS 1 (2 KOLOM): LEVEL AKUN & KODE AKUN -->
+                    <div class="form-row-2col">
+                        <div class="form-group">
+                            <label class="form-label" for="level">Level Akun</label>
+                            <select id="level" class="form-control" required>
+                                <option value="" selected disabled>--Pilih Level--</option>
+                                <option value="1">Level 1</option>
+                                <option value="2">Level 2</option>
+                                <option value="3">Level 3</option>
+                                <option value="4">Level 4</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="accCode">Kode Akun (AccCode)</label>
+                            <input type="text" id="accCode" class="form-control" placeholder="Otomatis" readonly tabindex="-1" required>
+                        </div>
+                    </div>
+
+                    <!-- KELOMPOK AKUN INDUK -->
+                    <div class="form-group" id="parentGroupWrapper" style="display: none;">
+                        <label class="form-label" for="parentAccount">Kelompok Akun Induk</label>
+                        <select id="parentAccount" class="form-control">
+                            <option value="" selected disabled>--Pilih Akun Induk--</option>
+                        </select>
+                    </div>
+
+                    <!-- NAMA AKUN -->
+                    <div class="form-group">
+                        <label class="form-label" for="accName">Nama Akun (AccName)</label>
+                        <input type="text" id="accName" class="form-control" placeholder="Contoh: Kas BUMKal" required>
+                    </div>
+
+                    <!-- BARIS 2 (2 KOLOM): SALDO NORMAL & REPORT GROUP -->
+                    <div class="form-row-2col">
+                        <div class="form-group">
+                            <label class="form-label" for="normalBalance">Saldo Normal</label>
+                            <select id="normalBalance" class="form-control" required>
+                                <option value="" selected disabled>--Pilih--</option>
+                                <option value="Debit">Debit</option>
+                                <option value="Kredit">Kredit</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="reportGroup">Report Group</label>
+                            <select id="reportGroup" class="form-control" required>
+                                <option value="" selected disabled>--Pilih--</option>
+                                <option value="Neraca">Neraca</option>
+                                <option value="Laba Rugi">Laba Rugi</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- CASH FLOW GROUP -->
+                    <div class="form-group">
+                        <label class="form-label" for="cashFlowGroup">Cash Flow Group</label>
+                        <select id="cashFlowGroup" class="form-control" disabled tabindex="-1">
+                            <option value="-">-</option>
+                            <option value="Kas dan Bank">Kas dan Bank</option>
+                            <option value="Aktivitas Operasi">Aktivitas Operasi</option>
+                            <option value="Aktivitas Investasi">Aktivitas Investasi</option>
+                            <option value="Aktivitas Pendanaan">Aktivitas Pendanaan</option>
+                        </select>
+                    </div>
+
+                    <!-- PAGU -->
+                    <div class="form-group">
+                        <label class="form-label" for="hasPagu">Pagu</label>
+                        <select id="hasPagu" class="form-control" disabled tabindex="-1">
+                            <option value="" selected disabled>--Pilih--</option>
+                            <option value="Ya">Ya</option>
+                            <option value="Tidak">Tidak</option>
+                        </select>
+                    </div>
+
+                    <!-- BARIS 3 (2 KOLOM): TIPE AKUN & STATUS AKTIF -->
+                    <div class="form-row-2col">
+                        <div class="form-group">
+                            <label class="form-label" for="isPostable">Tipe Akun (Otomatis)</label>
+                            <select id="isPostable" class="form-control" disabled readonly tabindex="-1">
+                                <option value="true">Postable (Transaksi)</option>
+                                <option value="false">Header (Induk Akun)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="isActive">Status Akun</label>
+                            <select id="isActive" class="form-control" required>
+                                <option value="true">Aktif</option>
+                                <option value="false">Tidak Aktif</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn-save-modal" id="btnSaveAccount">SIMPAN</button>
+                        <button type="button" class="btn-cancel-modal" id="btnResetForm">BATAL</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script Integrasi Firestore -->
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import { 
+            collection, 
+            getDocs, 
+            doc, 
+            setDoc, 
+            updateDoc, 
+            deleteDoc, 
+            query, 
+            orderBy, 
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const accountListContainer = document.getElementById('accountListContainer');
+        const tabSubKlasifikasi = document.getElementById('tabSubKlasifikasi');
+        const tabAkun = document.getElementById('tabAkun');
+        const searchInput = document.getElementById('searchInput');
+
+        const modalAccount = document.getElementById('modalAccount');
+        const btnOpenAddModal = document.getElementById('btnOpenAddModal');
+        const btnCloseModal = document.getElementById('btnCloseModal');
+        const btnResetForm = document.getElementById('btnResetForm');
+        const accountForm = document.getElementById('accountForm');
+        const modalHeaderTitle = document.getElementById('modalHeaderTitle');
+
+        const accountIdInput = document.getElementById('accountId');
+        const levelInput = document.getElementById('level');
+        const parentGroupWrapper = document.getElementById('parentGroupWrapper');
+        const parentAccountInput = document.getElementById('parentAccount');
+        const accCodeInput = document.getElementById('accCode');
+        const accNameInput = document.getElementById('accName');
+        const normalBalanceInput = document.getElementById('normalBalance');
+        const reportGroupInput = document.getElementById('reportGroup');
+        const cashFlowGroupInput = document.getElementById('cashFlowGroup');
+        const hasPaguInput = document.getElementById('hasPagu');
+        const isPostableInput = document.getElementById('isPostable');
+        const isActiveInput = document.getElementById('isActive');
+
+        let accountsData = [];
+        let activeTabMode = 'akun'; // DEFAULT SETTING: TAB AKUN (LEVEL 4)
+
+        // TAB SWITCHER HANDLER
+        tabSubKlasifikasi.addEventListener('click', () => {
+            tabSubKlasifikasi.classList.add('active');
+            tabAkun.classList.remove('active');
+            activeTabMode = 'sub_klasifikasi';
+            renderCardList();
+        });
+
+        tabAkun.addEventListener('click', () => {
+            tabAkun.classList.add('active');
+            tabSubKlasifikasi.classList.remove('active');
+            activeTabMode = 'akun';
+            renderCardList();
+        });
+
+        // RESET FORM
+        function resetFormFields() {
+            accountForm.reset();
+            accountIdInput.value = '';
+            levelInput.value = '';
+            accCodeInput.value = '';
+            
+            normalBalanceInput.value = '';
+            normalBalanceInput.disabled = false;
+            
+            reportGroupInput.value = '';
+            reportGroupInput.disabled = false;
+            
+            cashFlowGroupInput.value = '-';
+            cashFlowGroupInput.disabled = true;
+            cashFlowGroupInput.setAttribute('tabindex', '-1');
+
+            hasPaguInput.value = '';
+            hasPaguInput.disabled = true;
+            hasPaguInput.setAttribute('tabindex', '-1');
+
+            isPostableInput.value = 'false';
+            isActiveInput.value = 'true';
+            parentGroupWrapper.style.display = 'none';
+            parentAccountInput.innerHTML = '<option value="" selected disabled>--Pilih Akun Induk--</option>';
+            modalHeaderTitle.textContent = 'Tambah Akun Baru';
+        }
+
+        btnOpenAddModal.addEventListener('click', () => {
+            resetFormFields();
+            modalAccount.classList.add('active');
+        });
+
+        btnCloseModal.addEventListener('click', () => {
+            modalAccount.classList.remove('active');
+        });
+
+        btnResetForm.addEventListener('click', () => {
+            resetFormFields();
+        });
+
+        // EVENT LEVEL CHANGE
+        levelInput.addEventListener('change', () => {
+            const selectedLevel = parseInt(levelInput.value, 10);
+            
+            if (selectedLevel === 4) {
+                isPostableInput.value = 'true';
+                cashFlowGroupInput.disabled = false;
+                cashFlowGroupInput.removeAttribute('tabindex');
+                hasPaguInput.disabled = false;
+                hasPaguInput.removeAttribute('tabindex');
+                if (!hasPaguInput.value) hasPaguInput.value = '';
+            } else {
+                isPostableInput.value = 'false';
+                cashFlowGroupInput.value = '-';
+                cashFlowGroupInput.disabled = true;
+                cashFlowGroupInput.setAttribute('tabindex', '-1');
+                hasPaguInput.value = '';
+                hasPaguInput.disabled = true;
+                hasPaguInput.setAttribute('tabindex', '-1');
+            }
+
+            if (selectedLevel === 1) {
+                parentGroupWrapper.style.display = 'none';
+                parentAccountInput.removeAttribute('required');
+                normalBalanceInput.disabled = false;
+                reportGroupInput.disabled = false;
+                normalBalanceInput.value = '';
+                reportGroupInput.value = '';
+
+                const level1Count = accountsData.filter(a => parseInt(a.level, 10) === 1).length;
+                accCodeInput.value = (level1Count + 1).toString();
+            } else if (selectedLevel > 1) {
+                parentGroupWrapper.style.display = 'flex';
+                parentAccountInput.setAttribute('required', 'true');
+                accCodeInput.value = '';
+
+                const targetParentLevel = selectedLevel - 1;
+                const parents = accountsData.filter(a => parseInt(a.level, 10) === targetParentLevel);
+
+                parentAccountInput.innerHTML = '<option value="" selected disabled>--Pilih Akun Induk--</option>';
+                parents.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.accCode;
+                    opt.textContent = `${p.accCode} - ${p.accName}`;
+                    parentAccountInput.appendChild(opt);
+                });
+            }
+        });
+
+        // EVENT INDUK CHANGE
+        parentAccountInput.addEventListener('change', () => {
+            const parentCode = parentAccountInput.value;
+            const selectedLevel = parseInt(levelInput.value, 10);
+            if (!parentCode) return;
+
+            const parentObj = accountsData.find(a => a.accCode === parentCode);
+            if (parentObj) {
+                normalBalanceInput.value = parentObj.normalBalance || '';
+                normalBalanceInput.disabled = true;
+                reportGroupInput.value = parentObj.reportGroup || '';
+                reportGroupInput.disabled = true;
+            }
+
+            const children = accountsData.filter(a => a.parentCode === parentCode || (a.accCode && a.accCode.startsWith(parentCode + '.')));
+            const nextChildNum = children.length + 1;
+            
+            let formattedChildNum = '';
+            if (selectedLevel === 4) {
+                formattedChildNum = String(nextChildNum).padStart(3, '0');
+            } else {
+                formattedChildNum = String(nextChildNum).padStart(2, '0');
+            }
+            
+            accCodeInput.value = `${parentCode}.${formattedChildNum}`;
+        });
+
+        // FETCH DATA FIRESTORE
+        async function loadAccounts() {
+            try {
+                const q = query(collection(db, 'accounts'), orderBy('accCode', 'asc'));
+                const querySnapshot = await getDocs(q);
+                
+                accountsData = [];
+                querySnapshot.forEach((docSnap) => {
+                    accountsData.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                renderCardList();
+            } catch (error) {
+                console.error("Gagal memuat akun:", error);
+                accountListContainer.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #ef4444; font-size: 12px;">
+                        Gagal memuat data akun dari database.
+                    </div>`;
+            }
+        }
+
+        // RENDER CARD LIST MOBILE
+        function renderCardList() {
+            accountListContainer.innerHTML = '';
+            const keyword = searchInput.value.toLowerCase().trim();
+
+            let filtered = accountsData.filter(item => {
+                const isLevel4 = parseInt(item.level, 10) === 4;
+                if (activeTabMode === 'sub_klasifikasi') return !isLevel4;
+                return isLevel4;
+            });
+
+            if (keyword) {
+                filtered = filtered.filter(item => 
+                    (item.accCode && item.accCode.toLowerCase().includes(keyword)) ||
+                    (item.accName && item.accName.toLowerCase().includes(keyword))
+                );
+            }
+
+            if (filtered.length === 0) {
+                accountListContainer.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #94a3b8; font-size: 13px;">
+                        Data akun tidak ditemukan
+                    </div>`;
+                return;
+            }
+
+            filtered.forEach((item) => {
+                let parentCategory = item.cashFlowGroup && item.cashFlowGroup !== '-' ? item.cashFlowGroup : '';
+                if (!parentCategory && item.parentCode) {
+                    const parentObj = accountsData.find(a => a.accCode === item.parentCode);
+                    if (parentObj) parentCategory = parentObj.accName;
+                }
+                if (!parentCategory) parentCategory = item.reportGroup || 'AKUN';
+
+                const card = document.createElement('div');
+                card.className = 'account-card';
+
+                card.innerHTML = `
+                    <div class="card-info">
+                        <span class="card-category">${parentCategory}</span>
+                        <span class="card-title">${item.accCode || ''} - ${item.accName || ''}</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-card-action btn-edit" data-id="${item.id}">
+                            <span class="material-icons" style="font-size: 18px;">edit</span>
+                        </button>
+                        <button class="btn-card-action btn-delete" data-id="${item.id}" data-name="${item.accName}">
+                            <span class="material-icons" style="font-size: 18px; color: #ef4444;">delete</span>
+                        </button>
+                    </div>
+                `;
+
+                accountListContainer.appendChild(card);
+            });
+
+            // EDIT HANDLER
+            document.querySelectorAll('.btn-edit').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = e.currentTarget.dataset.id;
+                    const item = accountsData.find(a => a.id === id);
+                    if (item) {
+                        accountIdInput.value = item.id;
+                        levelInput.value = item.level || '';
+                        levelInput.dispatchEvent(new Event('change'));
+
+                        if (item.parentCode) {
+                            parentAccountInput.value = item.parentCode;
+                            parentAccountInput.dispatchEvent(new Event('change'));
+                        }
+
+                        accCodeInput.value = item.accCode || '';
+                        accNameInput.value = item.accName || '';
+                        normalBalanceInput.value = item.normalBalance || '';
+                        reportGroupInput.value = item.reportGroup || '';
+                        
+                        if (parseInt(item.level, 10) === 4) {
+                            cashFlowGroupInput.disabled = false;
+                            cashFlowGroupInput.removeAttribute('tabindex');
+                            cashFlowGroupInput.value = item.cashFlowGroup || '-';
+
+                            hasPaguInput.disabled = false;
+                            hasPaguInput.removeAttribute('tabindex');
+                            hasPaguInput.value = item.hasPagu || '';
+                        } else {
+                            cashFlowGroupInput.disabled = true;
+                            cashFlowGroupInput.setAttribute('tabindex', '-1');
+                            cashFlowGroupInput.value = '-';
+
+                            hasPaguInput.disabled = true;
+                            hasPaguInput.setAttribute('tabindex', '-1');
+                            hasPaguInput.value = '';
+                        }
+
+                        isPostableInput.value = item.isPostable ? 'true' : 'false';
+                        isActiveInput.value = item.isActive !== false ? 'true' : 'false';
+
+                        modalHeaderTitle.textContent = 'Edit Data Akun';
+                        modalAccount.classList.add('active');
+                    }
+                });
+            });
+
+            // DELETE HANDLER
+            document.querySelectorAll('.btn-delete').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const id = e.currentTarget.dataset.id;
+                    const name = e.currentTarget.dataset.name;
+
+                    const result = await Swal.fire({
+                        title: 'Hapus Akun?',
+                        text: `Apakah Anda yakin ingin menghapus akun "${name}"?`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ef4444',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: 'Ya, Hapus',
+                        cancelButtonText: 'Batal'
+                    });
+
+                    if (result.isConfirmed) {
+                        try {
+                            await deleteDoc(doc(db, 'accounts', id));
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Terhapus!',
+                                text: 'Akun berhasil dihapus.',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                            loadAccounts();
+                        } catch (err) {
+                            Swal.fire('Gagal', err.message, 'error');
+                        }
+                    }
+                });
+            });
+        }
+
+        // FILTER SEARCH REALTIME
+        window.filterAccountList = function() {
+            renderCardList();
+        };
+
+        // FORM SUBMIT HANDLER
+        accountForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!levelInput.value) {
+                Swal.fire('Peringatan', 'Silakan pilih Level Akun terlebih dahulu.', 'warning');
+                return;
+            }
+
+            if (!accNameInput.value.trim()) {
+                Swal.fire('Peringatan', 'Nama Akun tidak boleh kosong.', 'warning');
+                accNameInput.focus();
+                return;
+            }
+
+            if (!normalBalanceInput.value || !reportGroupInput.value) {
+                Swal.fire('Peringatan', 'Silakan pilih Saldo Normal dan Report Group.', 'warning');
+                return;
+            }
+
+            const selectedLevel = parseInt(levelInput.value, 10);
+
+            if (selectedLevel === 4) {
+                if (!cashFlowGroupInput.value || cashFlowGroupInput.value === '-') {
+                    Swal.fire('Peringatan', 'Silakan pilih Cash Flow Group untuk Level 4.', 'warning');
+                    cashFlowGroupInput.focus();
+                    return;
+                }
+
+                if (!hasPaguInput.value) {
+                    Swal.fire('Peringatan', 'Silakan pilih status Pagu (Ya/Tidak) untuk Level 4.', 'warning');
+                    hasPaguInput.focus();
+                    return;
+                }
+            }
+
+            const confirmResult = await Swal.fire({
+                title: 'Konfirmasi Simpan',
+                text: 'Apakah Anda yakin ingin menyimpan data akun ini?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#5114B9',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Simpan',
+                cancelButtonText: 'Tidak',
+                reverseButtons: true
+            });
+
+            if (!confirmResult.isConfirmed) return;
+
+            const id = accountIdInput.value;
+
+            const payload = {
+                level: selectedLevel,
+                parentCode: selectedLevel > 1 ? parentAccountInput.value : null,
+                accCode: accCodeInput.value.trim(),
+                accName: accNameInput.value.trim(),
+                normalBalance: normalBalanceInput.value,
+                reportGroup: reportGroupInput.value,
+                cashFlowGroup: cashFlowGroupInput.value,
+                hasPagu: selectedLevel === 4 ? hasPaguInput.value : '-',
+                isPostable: isPostableInput.value === 'true',
+                isActive: isActiveInput.value === 'true',
+                updatedAt: serverTimestamp()
+            };
+
+            try {
+                if (id) {
+                    await updateDoc(doc(db, 'accounts', id), payload);
+                } else {
+                    payload.createdAt = serverTimestamp();
+                    const newDocRef = doc(collection(db, 'accounts'));
+                    await setDoc(newDocRef, payload);
+                }
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: 'Data akun berhasil disimpan.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                resetFormFields();
+                loadAccounts();
+
+            } catch (error) {
+                Swal.fire('Gagal', error.message, 'error');
+            }
+        });
+
+        // INIT DATA LOAD
+        loadAccounts();
+    </script>
+</body>
+</html>

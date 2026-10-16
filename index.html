@@ -39,7 +39,6 @@
             <div class="drawer-profile-info">
                 <span class="material-icons">domain</span>
                 <div class="profile-name" id="drawerProfileName">This</div>
-                <div class="profile-sub" id="drawerProfileAddress">Yogyakarta</div>
             </div>
         </div>
 
@@ -50,7 +49,8 @@
                 <span class="material-icons">badge</span>
                 <span>Kontak</span>
             </a>
-            <a href="#" class="menu-item">
+            <!-- Tautan Terhubung ke pages/akun.html -->
+            <a href="./pages/akun.html" class="menu-item">
                 <span class="material-icons">list_alt</span>
                 <span>Akun/Perkiraan</span>
             </a>
@@ -59,7 +59,8 @@
 
             <div class="menu-category">TRANSAKSI</div>
 
-            <a href="#" class="menu-item">
+            <!-- Tautan Terhubung ke pages/saldo-awal.html -->
+            <a href="./pages/saldo-awal.html" class="menu-item">
                 <span class="material-icons">edit_note</span>
                 <span>Saldo Awal</span>
             </a>
@@ -197,10 +198,9 @@
 
     <!-- Main Container -->
     <div class="app-container">
-        <!-- Header Utama: Mengambil Nama dan Alamat dari Database -->
+        <!-- Header Utama -->
         <header>
             <h1 id="headerHeaderName">Memuat...</h1>
-            <div class="date" id="headerHeaderAddress">-</div>
         </header>
 
         <!-- Rentang Periode -->
@@ -366,18 +366,16 @@
     <!-- Script Utama Aplikasi -->
     <script type="module" src="./assets/js/app.js"></script>
 
-    <!-- Script Mengambil Profil (Nama & Alamat) dari Database & Logout -->
+    <!-- Script Mengambil Nama BUMKal dari Database & Logout -->
     <script type="module">
         import { auth, db } from './assets/js/firebase-config.js';
         import { signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
         import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const headerHeaderName = document.getElementById('headerHeaderName');
-        const headerHeaderAddress = document.getElementById('headerHeaderAddress');
         const drawerProfileName = document.getElementById('drawerProfileName');
-        const drawerProfileAddress = document.getElementById('drawerProfileAddress');
 
-        // Fungsi Memuat Data Nama & Alamat dari Firestore
+        // Memuat Nama BUMKal dari Firestore
         async function loadProfileHeader() {
             try {
                 const docRef = doc(db, 'settings', 'profile');
@@ -386,23 +384,17 @@
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     const nama = data.namaProfil || 'BUMKal';
-                    const alamat = data.alamat || 'Yogyakarta';
 
-                    // Update Header Utama
                     if (headerHeaderName) headerHeaderName.textContent = nama;
-                    if (headerHeaderAddress) headerHeaderAddress.textContent = alamat;
-
-                    // Update Drawer Menu
                     if (drawerProfileName) drawerProfileName.textContent = nama;
-                    if (drawerProfileAddress) drawerProfileAddress.textContent = alamat;
                 } else {
                     if (headerHeaderName) headerHeaderName.textContent = 'This';
-                    if (headerHeaderAddress) headerHeaderAddress.textContent = 'Yogyakarta';
+                    if (drawerProfileName) drawerProfileName.textContent = 'This';
                 }
             } catch (error) {
                 console.error("Gagal memuat profil header:", error);
                 if (headerHeaderName) headerHeaderName.textContent = 'This';
-                if (headerHeaderAddress) headerHeaderAddress.textContent = 'Yogyakarta';
+                if (drawerProfileName) drawerProfileName.textContent = 'This';
             }
         }
 
@@ -436,7 +428,7 @@
             window.location.href = './pages/login.html';
         });
 
-        // Jalankan pemuatan data profil
+        // Jalankan pemuatan data nama profil
         loadProfileHeader();
     </script>
 

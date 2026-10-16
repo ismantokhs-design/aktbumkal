@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SALDO AWAL AKUN</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Top Header Area */
+        .page-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-title-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-back {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .icon-menu {
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        /* Search & Filter Bar */
+        .filter-section {
+            padding: 12px 16px;
+            background-color: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .search-box-container {
+            display: flex;
+            align-items: center;
+            border: 1px solid #5114B9;
+            border-radius: 6px;
+            padding: 6px 12px;
+            background-color: #ffffff;
+        }
+
+        .search-input {
+            flex-grow: 1;
+            border: none;
+            outline: none;
+            font-size: 13px;
+            color: #1e293b;
+            background: transparent;
+        }
+
+        .search-icon-btn {
+            color: #5114B9;
+            display: flex;
+            align-items: center;
+            background: none;
+            border: none;
+        }
+
+        /* List Container */
+        .list-container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            padding-bottom: 180px;
+        }
+
+        .account-card {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .card-header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-category {
+            font-size: 10px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+        }
+
+        .card-normal-balance {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .badge-debit { background-color: #e0f2fe; color: #0369a1; }
+        .badge-kredit { background-color: #fef3c7; color: #b45309; }
+
+        .card-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .inputs-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .input-group-sm {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .input-label {
+            font-size: 9px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .input-amount {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 12px;
+            outline: none;
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .input-amount:focus {
+            border-color: #5114B9;
+        }
+
+        /* Sticky Summary Footer */
+        .summary-footer {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            border-top: 2px solid #e2e8f0;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+            padding: 12px 16px;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .summary-label {
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .summary-value {
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .balance-status-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .status-balanced {
+            background-color: #dcfce7;
+            color: #15803d;
+        }
+
+        .status-unbalanced {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+
+        /* Group Tombol Aksi */
+        .btn-group-footer {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn-save-all {
+            background-color: #5114B9;
+            color: #ffffff;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 6px rgba(81, 20, 185, 0.3);
+        }
+
+        .btn-reset-all {
+            background-color: #ffffff;
+            color: #64748b;
+            border: 1px solid #cbd5e1;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-save-all:active, .btn-reset-all:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <!-- Top Header -->
+        <header class="page-header">
+            <div class="header-title-box">
+                <a href="../index.html" class="btn-back">
+                    <span class="material-icons">arrow_back</span>
+                </a>
+                <h1>SALDO AWAL AKUN</h1>
+            </div>
+            <span class="material-icons icon-menu">more_vert</span>
+        </header>
+
+        <!-- Search Bar -->
+        <div class="filter-section">
+            <div class="search-box-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="Cari Kode atau Nama Akun..." onkeyup="filterAccounts()">
+                <button class="search-icon-btn">
+                    <span class="material-icons">search</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Daftar Card Akun -->
+        <div class="list-container" id="accountListContainer">
+            <div style="text-align: center; padding: 40px; color: #94a3b8; font-size: 12px;">
+                Memuat data akun Neraca...
+            </div>
+        </div>
+
+        <!-- Sticky Footer Ringkasan & Simpan -->
+        <div class="summary-footer">
+            <div class="summary-row">
+                <span class="summary-label">Total Debit</span>
+                <span class="summary-value" id="totalDebitText">Rp 0</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Total Kredit</span>
+                <span class="summary-value" id="totalKreditText">Rp 0</span>
+            </div>
+
+            <!-- Status Balance -->
+            <div class="balance-status-box status-balanced" id="balanceStatusBox">
+                <span>STATUS: BALANCED</span>
+                <span id="diffText">Selisih: Rp 0</span>
+            </div>
+
+            <div class="btn-group-footer">
+                <button class="btn-save-all" id="btnSaveBalances">SIMPAN SALDO AWAL</button>
+                <button class="btn-reset-all" id="btnResetBalances">BATAL</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Firestore -->
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import { 
+            collection, 
+            getDocs, 
+            doc, 
+            writeBatch, 
+            query, 
+            orderBy, 
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const accountListContainer = document.getElementById('accountListContainer');
+        const searchInput = document.getElementById('searchInput');
+        const totalDebitText = document.getElementById('totalDebitText');
+        const totalKreditText = document.getElementById('totalKreditText');
+        const balanceStatusBox = document.getElementById('balanceStatusBox');
+        const diffText = document.getElementById('diffText');
+        const btnSaveBalances = document.getElementById('btnSaveBalances');
+        const btnResetBalances = document.getElementById('btnResetBalances');
+
+        let neracaAccounts = [];
+        let originalAccountsData = []; // Menyimpan backup data awal dari database
+
+        // Format angka ke Rupiah
+        function formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                maximumFractionDigits: 0
+            }).format(number);
+        }
+
+        // Format input currency saat diketik
+        function formatInputCurrency(val) {
+            let cleanNumber = val.replace(/\D/g, '');
+            if (!cleanNumber) return '';
+            return parseInt(cleanNumber, 10).toLocaleString('id-ID');
+        }
+
+        function parseCurrencyValue(val) {
+            let cleanNumber = val.replace(/\D/g, '');
+            return cleanNumber ? parseInt(cleanNumber, 10) : 0;
+        }
+
+        // Load Data Akun Neraca
+        async function loadNeracaAccounts() {
+            try {
+                const q = query(collection(db, 'accounts'), orderBy('accCode', 'asc'));
+                const querySnapshot = await getDocs(q);
+                
+                neracaAccounts = [];
+                originalAccountsData = [];
+
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const isPostable = data.isPostable === true || data.isPostable === 'true' || parseInt(data.level, 10) === 4;
+                    const isNeraca = data.reportGroup === 'Neraca';
+
+                    if (isPostable && isNeraca) {
+                        const itemObj = {
+                            id: docSnap.id,
+                            accCode: data.accCode || '',
+                            accName: data.accName || '',
+                            normalBalance: data.normalBalance || 'Debit',
+                            reportGroup: data.reportGroup || 'Neraca',
+                            initialDebit: data.initialDebit || 0,
+                            initialKredit: data.initialKredit || 0
+                        };
+
+                        neracaAccounts.push({ ...itemObj });
+                        originalAccountsData.push({ ...itemObj });
+                    }
+                });
+
+                renderCards();
+            } catch (error) {
+                console.error("Gagal memuat akun Neraca:", error);
+                accountListContainer.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #ef4444; font-size: 12px;">
+                        Gagal memuat data akun Neraca: ${error.message}
+                    </div>`;
+            }
+        }
+
+        // Render List Card
+        function renderCards() {
+            accountListContainer.innerHTML = '';
+            const keyword = searchInput.value.toLowerCase().trim();
+
+            let filtered = neracaAccounts.filter(item => 
+                item.accCode.toLowerCase().includes(keyword) ||
+                item.accName.toLowerCase().includes(keyword)
+            );
+
+            if (filtered.length === 0) {
+                accountListContainer.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #94a3b8; font-size: 13px;">
+                        Tidak ada akun Neraca (Level 4) ditemukan.
+                    </div>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                const isDebitNormal = item.normalBalance === 'Debit';
+                const card = document.createElement('div');
+                card.className = 'account-card';
+
+                card.innerHTML = `
+                    <div class="card-header-info">
+                        <span class="card-category">${item.reportGroup}</span>
+                        <span class="card-normal-balance ${isDebitNormal ? 'badge-debit' : 'badge-kredit'}">
+                            Normal: ${item.normalBalance}
+                        </span>
+                    </div>
+                    <div class="card-title">${item.accCode} - ${item.accName}</div>
+                    
+                    <div class="inputs-row">
+                        <div class="input-group-sm">
+                            <span class="input-label">DEBIT (RP)</span>
+                            <input type="text" class="input-amount input-debit" data-id="${item.id}" 
+                                   value="${item.initialDebit ? item.initialDebit.toLocaleString('id-ID') : ''}" placeholder="0">
+                        </div>
+                        <div class="input-group-sm">
+                            <span class="input-label">KREDIT (RP)</span>
+                            <input type="text" class="input-amount input-kredit" data-id="${item.id}" 
+                                   value="${item.initialKredit ? item.initialKredit.toLocaleString('id-ID') : ''}" placeholder="0">
+                        </div>
+                    </div>
+                `;
+
+                accountListContainer.appendChild(card);
+            });
+
+            attachInputEvents();
+            calculateTotals();
+        }
+
+        // Handle Event Input Realtime
+        function attachInputEvents() {
+            document.querySelectorAll('.input-amount').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    e.target.value = formatInputCurrency(e.target.value);
+
+                    const accountId = e.target.dataset.id;
+                    const accountObj = neracaAccounts.find(a => a.id === accountId);
+                    
+                    if (accountObj) {
+                        if (e.target.classList.contains('input-debit')) {
+                            accountObj.initialDebit = parseCurrencyValue(e.target.value);
+                        } else if (e.target.classList.contains('input-kredit')) {
+                            accountObj.initialKredit = parseCurrencyValue(e.target.value);
+                        }
+                    }
+
+                    calculateTotals();
+                });
+            });
+        }
+
+        // Kalkulasi Total Debit & Kredit
+        function calculateTotals() {
+            let totalDebit = 0;
+            let totalKredit = 0;
+
+            neracaAccounts.forEach(acc => {
+                totalDebit += (acc.initialDebit || 0);
+                totalKredit += (acc.initialKredit || 0);
+            });
+
+            totalDebitText.textContent = formatRupiah(totalDebit);
+            totalKreditText.textContent = formatRupiah(totalKredit);
+
+            const diff = Math.abs(totalDebit - totalKredit);
+
+            if (diff === 0) {
+                balanceStatusBox.className = 'balance-status-box status-balanced';
+                balanceStatusBox.children[0].textContent = 'STATUS: BALANCED';
+                diffText.textContent = 'Selisih: Rp 0';
+            } else {
+                balanceStatusBox.className = 'balance-status-box status-unbalanced';
+                balanceStatusBox.children[0].textContent = 'STATUS: UNBALANCED';
+                diffText.textContent = `Selisih: ${formatRupiah(diff)}`;
+            }
+        }
+
+        // Filter Realtime
+        window.filterAccounts = function() {
+            renderCards();
+        };
+
+        // RESET / BATAL PERUBAHAN
+        btnResetBalances.addEventListener('click', () => {
+            neracaAccounts = originalAccountsData.map(item => ({ ...item }));
+            renderCards();
+        });
+
+        // Simpan Data
+        btnSaveBalances.addEventListener('click', async () => {
+            let totalDebit = 0;
+            let totalKredit = 0;
+
+            neracaAccounts.forEach(acc => {
+                totalDebit += (acc.initialDebit || 0);
+                totalKredit += (acc.initialKredit || 0);
+            });
+
+            if (totalDebit !== totalKredit) {
+                const confirmUnbalance = await Swal.fire({
+                    title: 'Saldo Belum Balance!',
+                    text: `Terdapat selisih ${formatRupiah(Math.abs(totalDebit - totalKredit))}. Yakin ingin tetap menyimpan?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#5114B9',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Tetap Simpan',
+                    cancelButtonText: 'Perbaiki'
+                });
+
+                if (!confirmUnbalance.isConfirmed) return;
+            } else {
+                const confirmSave = await Swal.fire({
+                    title: 'Simpan Saldo Awal?',
+                    text: 'Data saldo awal seluruh akun Neraca akan diperbarui.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#5114B9',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Ya, Simpan',
+                    cancelButtonText: 'Batal'
+                });
+
+                if (!confirmSave.isConfirmed) return;
+            }
+
+            try {
+                const batch = writeBatch(db);
+
+                neracaAccounts.forEach(acc => {
+                    const accRef = doc(db, 'accounts', acc.id);
+                    batch.update(accRef, {
+                        initialDebit: acc.initialDebit || 0,
+                        initialKredit: acc.initialKredit || 0,
+                        updatedAt: serverTimestamp()
+                    });
+                });
+
+                await batch.commit();
+
+                // Update backup data dengan nilai yang baru berhasil disimpan
+                originalAccountsData = neracaAccounts.map(item => ({ ...item }));
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: 'Saldo awal akun Neraca berhasil diperbarui.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+            } catch (error) {
+                console.error("Gagal menyimpan saldo awal:", error);
+                Swal.fire('Gagal', error.message, 'error');
+            }
+        });
+
+        // Inisialisasi
+        loadNeracaAccounts();
+    </script>
+</body>
+</html>

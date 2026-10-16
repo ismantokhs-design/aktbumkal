@@ -16,75 +16,238 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
     <style>
-        body {
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
             background-color: #f0f4f8;
+        }
+
+        body {
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 16px;
-            box-sizing: border-box;
         }
 
-        .login-card {
+        /* Container PWA Fullscreen */
+        .app-welcome-card {
             width: 100%;
-            max-width: 360px;
+            max-width: 480px;
+            height: 100vh;
+            min-height: 100vh;
             background-color: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            padding: 40px 24px 32px 24px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+            overflow-y: auto;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Hero Banner Header */
+        .hero-banner {
+            background: linear-gradient(135deg, #5114B9 0%, #3b82f6 100%);
+            color: #ffffff;
+            padding: 30px 20px 40px 20px;
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-banner .app-brand {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .hero-banner .greeting {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .hero-banner .sub-greeting {
+            font-size: 13px;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        /* Fast Menu & Area Wallpaper */
+        .fast-menu-section {
+            padding: 24px 20px;
+            flex-grow: 1;
+            /* Pasang Wallpaper wall.jpg di area bawah Fast Menu */
+            background-image: url('../assets/icons/wall.jpg');
+            background-size: 260px;
+            background-repeat: no-repeat;
+            background-position: center bottom 10px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #333333;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .fast-menu-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .fast-menu-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            box-sizing: border-box;
+            gap: 8px;
+            cursor: pointer;
+            text-decoration: none;
         }
 
-        /* Logo Lingkaran */
-        .logo-container {
-            width: 80px;
-            height: 80px;
-            margin-bottom: 24px;
+        .fast-menu-icon {
+            width: 52px;
+            height: 52px;
+            background-color: rgba(240, 235, 248, 0.9);
+            color: #5114B9;
+            border-radius: 50%;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(81, 20, 185, 0.12);
+            transition: transform 0.2s;
+            backdrop-filter: blur(4px);
         }
 
-        .logo-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+        .fast-menu-item:active .fast-menu-icon {
+            transform: scale(0.92);
         }
 
-        .login-title {
-            font-size: 28px;
-            font-weight: 700;
-            color: #111111;
-            margin-bottom: 32px;
+        .fast-menu-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #444444;
             text-align: center;
         }
 
-        .login-form {
+        /* Sticky Action Bottom Bar */
+        .welcome-bottom-action {
+            padding: 16px 20px 24px 20px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-top: 1px solid #f0f0f0;
+            backdrop-filter: blur(5px);
+        }
+
+        .btn-trigger-login {
             width: 100%;
+            background-color: #3b82f6;
+            color: #ffffff;
+            border: none;
+            padding: 14px 0;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .btn-trigger-login:active {
+            transform: scale(0.98);
+        }
+
+        /* Overlay Background untuk Modal Login */
+        .login-sheet-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .login-sheet-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Bottom Sheet Modal Form Login */
+        .login-sheet-card {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            padding: 24px 20px 32px 20px;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .login-sheet-overlay.active .login-sheet-card {
+            transform: translateY(0);
+        }
+
+        .sheet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .sheet-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111111;
+        }
+
+        .btn-close-sheet {
+            background: none;
+            border: none;
+            color: #777777;
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+        }
+
+        .login-form {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 16px;
         }
 
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            text-align: left;
+            gap: 6px;
         }
 
         .form-label {
-            font-size: 12px;
-            color: #444444;
-            font-weight: 500;
+            font-size: 11px;
+            color: #555555;
+            font-weight: 600;
         }
 
-        /* Container password dengan posisi relative untuk ikon mata */
         .password-container {
             position: relative;
             width: 100%;
@@ -97,7 +260,6 @@
             border-radius: 10px;
             font-size: 13px;
             outline: none;
-            box-sizing: border-box;
             transition: border-color 0.2s ease;
         }
 
@@ -109,11 +271,6 @@
             border-color: #3b82f6;
         }
 
-        .form-input::placeholder {
-            color: #aaaaaa;
-        }
-
-        /* Tombol Ikon Tampilkan Password */
         .toggle-password {
             position: absolute;
             right: 14px;
@@ -125,22 +282,15 @@
             cursor: pointer;
             display: flex;
             align-items: center;
-            justify-content: center;
-            padding: 0;
             user-select: none;
         }
 
-        .toggle-password:hover {
-            color: #555555;
-        }
-
-        /* Seksi Link Opsi */
         .options-row {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
             font-size: 11px;
-            margin-top: -4px;
+            margin-top: -2px;
         }
 
         .text-muted {
@@ -154,11 +304,6 @@
             font-weight: 500;
         }
 
-        .link-blue:hover {
-            text-decoration: underline;
-        }
-
-        /* Tombol Masuk */
         .btn-submit {
             width: 100%;
             background-color: #3b82f6;
@@ -166,10 +311,10 @@
             border: none;
             padding: 14px 0;
             border-radius: 12px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            margin-top: 16px;
+            margin-top: 8px;
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
             transition: background-color 0.2s ease, transform 0.1s ease;
         }
@@ -178,61 +323,112 @@
             transform: scale(0.98);
         }
 
-        /* Pesan Error */
         .auth-error {
             color: #d32f2f;
-            font-size: 12px;
+            font-size: 11px;
             text-align: center;
-            margin-top: 8px;
             display: none;
         }
     </style>
 </head>
 <body>
 
-    <div class="login-card">
-        <!-- Logo -->
-        <div class="logo-container">
-            <img src="../assets/icons/icon.png" alt="Logo Aplikasi" onerror="this.src='https://via.placeholder.com/80/5114B9/FFFFFF?text=AKT'">
+    <div class="app-welcome-card">
+        <!-- Hero Header -->
+        <div class="hero-banner">
+            <div class="app-brand">AKT-BUMKAL</div>
+            <div class="greeting">Hallo!</div>
+            <div class="sub-greeting" id="welcomeBumkalName">Selamat datang di Sistem Akuntansi BUMKal</div>
         </div>
 
-        <!-- Judul -->
-        <h1 class="login-title">Masuk</h1>
-
-        <!-- Form Login -->
-        <form class="login-form" id="loginForm">
-            <div class="form-group">
-                <label class="form-label" for="email">Masukkan Email</label>
-                <input type="email" id="email" class="form-input" placeholder="Email" required>
+        <!-- Fast Menu dengan Wallpaper di Latar Belakang -->
+        <div class="fast-menu-section">
+            <div class="section-title">
+                <span>Fast Menu</span>
+                <span class="material-icons" style="font-size: 16px; color: #3b82f6;">info</span>
             </div>
 
-            <div class="form-group">
-                <label class="form-label" for="password">Masukkan Password</label>
-                <div class="password-container">
-                    <input type="password" id="password" class="form-input form-input-password" placeholder="Password" required>
-                    <button type="button" class="toggle-password" id="btnTogglePassword">
-                        <span class="material-icons" id="eyeIcon">visibility_off</span>
-                    </button>
+            <div class="fast-menu-grid">
+                <div class="fast-menu-item">
+                    <div class="fast-menu-icon">
+                        <span class="material-icons">campaign</span>
+                    </div>
+                    <span class="fast-menu-label">Informasi</span>
+                </div>
+
+                <div class="fast-menu-item">
+                    <div class="fast-menu-icon">
+                        <span class="material-icons">info_outline</span>
+                    </div>
+                    <span class="fast-menu-label">Tentang</span>
+                </div>
+
+                <div class="fast-menu-item">
+                    <div class="fast-menu-icon">
+                        <span class="material-icons">help_outline</span>
+                    </div>
+                    <span class="fast-menu-label">Bantuan</span>
                 </div>
             </div>
+        </div>
 
-            <div class="options-row">
-                <div style="max-width: 60%;">
-                    <span class="text-muted">Belum punya akun? Hubungi Admin BUMKal.</span>
-                </div>
-                <a href="#" class="link-blue" id="linkLupaPassword">Lupa password?</a>
-            </div>
-
-            <div class="auth-error" id="authError">Email atau password salah!</div>
-
-            <button type="submit" class="btn-submit">Masuk</button>
-        </form>
+        <!-- Tombol Utama Login -->
+        <div class="welcome-bottom-action">
+            <button class="btn-trigger-login" id="btnOpenLogin">Login</button>
+        </div>
     </div>
 
-    <!-- Script Firebase Auth -->
+    <!-- Sheet Modal Input Login (Pop-Up Bawah) -->
+    <div class="login-sheet-overlay" id="loginSheetOverlay">
+        <div class="login-sheet-card">
+            <div class="sheet-header">
+                <h2 class="sheet-title">Login</h2>
+                <button class="btn-close-sheet" id="btnCloseSheet">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+
+            <!-- Form Login -->
+            <form class="login-form" id="loginForm">
+                <div class="form-group">
+                    <label class="form-label" for="email">Username / Email</label>
+                    <input type="email" id="email" class="form-input" placeholder="Email" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <div class="password-container">
+                        <input type="password" id="password" class="form-input form-input-password" placeholder="Password" required>
+                        <button type="button" class="toggle-password" id="btnTogglePassword">
+                            <span class="material-icons" id="eyeIcon">visibility_off</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="options-row">
+                    <div style="max-width: 60%;">
+                        <span class="text-muted">Belum punya akun? Hubungi Admin BUMKal.</span>
+                    </div>
+                    <a href="#" class="link-blue" id="linkLupaPassword">Lupa Username/Password?</a>
+                </div>
+
+                <div class="auth-error" id="authError">Email atau password salah!</div>
+
+                <button type="submit" class="btn-submit">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script Kontrol UI & Firebase Auth -->
     <script type="module">
-        import { auth } from '../assets/js/firebase-config.js';
+        import { auth, db } from '../assets/js/firebase-config.js';
         import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const welcomeBumkalName = document.getElementById('welcomeBumkalName');
+        const btnOpenLogin = document.getElementById('btnOpenLogin');
+        const btnCloseSheet = document.getElementById('btnCloseSheet');
+        const loginSheetOverlay = document.getElementById('loginSheetOverlay');
 
         const loginForm = document.getElementById('loginForm');
         const emailInput = document.getElementById('email');
@@ -241,7 +437,36 @@
         const btnTogglePassword = document.getElementById('btnTogglePassword');
         const eyeIcon = document.getElementById('eyeIcon');
 
-        // Toggle Password
+        // Memuat Nama Profil / BUMKal dari Firestore Database
+        async function loadBumkalName() {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists() && docSnap.data().namaProfil) {
+                    welcomeBumkalName.textContent = `Selamat datang di Sistem Akuntansi ${docSnap.data().namaProfil}`;
+                }
+            } catch (err) {
+                console.warn("Gagal memuat nama BUMKal dari database:", err);
+            }
+        }
+
+        // Buka Sheet Login
+        btnOpenLogin?.addEventListener('click', () => {
+            loginSheetOverlay?.classList.add('active');
+        });
+
+        // Tutup Sheet Login
+        function closeSheet() {
+            loginSheetOverlay?.classList.remove('active');
+        }
+
+        btnCloseSheet?.addEventListener('click', closeSheet);
+        loginSheetOverlay?.addEventListener('click', (e) => {
+            if (e.target === loginSheetOverlay) closeSheet();
+        });
+
+        // Toggle Password Visibility
         btnTogglePassword?.addEventListener('click', () => {
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
@@ -252,7 +477,7 @@
             }
         });
 
-        // Proses Login
+        // Submit Form Login ke Firebase Auth
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             authError.style.display = 'none';
@@ -279,6 +504,9 @@
                 authError.style.display = 'block';
             }
         });
+
+        // Jalankan pemuatan nama BUMKal saat halaman dibuka
+        loadBumkalName();
     </script>
 </body>
 </html>
