@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAPORAN LABA/RUGI</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* Hide Scrollbar Visual */
+        html, body, *, .page-container, .report-content {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+
+        ::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            background: transparent !important;
+        }
+
+        body {
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header Utama */
+        .page-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .btn-back {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Filter Periode Section */
+        .filter-section {
+            padding: 10px 14px;
+            background-color: #ffffff;
+            border-bottom: 2px solid #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 11px;
+            color: #334155;
+            font-weight: 600;
+        }
+
+        .input-date-inline {
+            border: none;
+            border-bottom: 1px solid #5114B9;
+            font-size: 11px;
+            font-weight: 700;
+            color: #5114B9;
+            outline: none;
+            background: transparent;
+            padding: 2px 0;
+            text-align: center;
+            width: 100px;
+        }
+
+        /* Main Report Paper Container */
+        .report-wrapper {
+            padding: 12px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .report-paper {
+            border: 1px solid #cbd5e1;
+            padding: 16px 14px;
+            background-color: #ffffff;
+            border-radius: 2px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Laporan Kertas */
+        .report-header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .company-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .report-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-top: 2px;
+            letter-spacing: 0.5px;
+        }
+
+        .period-subtitle {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 2px;
+        }
+
+        /* Tampilan Tabel Baris Laba Rugi */
+        .lr-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #0f172a;
+            text-transform: uppercase;
+            margin-top: 10px;
+            margin-bottom: 4px;
+        }
+
+        .lr-row-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0 2px 12px;
+            font-size: 11px;
+            color: #334155;
+        }
+
+        .lr-row-summary {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 11px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .lr-row-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 11px;
+            font-weight: 700;
+            color: #0f172a;
+            border-top: 1px solid #0f172a;
+            margin-top: 8px;
+        }
+
+        .val-num {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <!-- Header Atas -->
+        <header class="page-header">
+            <div class="header-left">
+                <a href="../index.html" class="btn-back">
+                    <span class="material-icons">arrow_back</span>
+                </a>
+                <h1>LAPORAN LABA/RUGI</h1>
+            </div>
+            <div>
+                <span class="material-icons" style="font-size: 20px; cursor: pointer;">more_vert</span>
+            </div>
+        </header>
+
+        <!-- Baris Filter Periode -->
+        <div class="filter-section">
+            <span class="filter-label">Periode</span>
+            <input type="date" id="startDate" class="input-date-inline">
+            <span class="filter-label">s.d</span>
+            <input type="date" id="endDate" class="input-date-inline">
+        </div>
+
+        <!-- Area Isi Laporan Laba Rugi -->
+        <div class="report-wrapper">
+            <div class="report-paper">
+                <!-- Header Dokumen Laporan -->
+                <div class="report-header">
+                    <div class="company-title" id="profileNameDisplay">BUMKal</div>
+                    <div class="report-title">LABA/RUGI</div>
+                    <div class="period-subtitle" id="periodTextDisplay">01 Okt 2026 - 31 Okt 2026</div>
+                </div>
+
+                <!-- Section 1: Pendapatan Usaha -->
+                <div class="lr-section-title">PENDAPATAN USAHA</div>
+                <div id="pendapatanUsahaList">
+                    <!-- Rincian Akun Pendapatan Usaha via JS -->
+                </div>
+                <div class="lr-row-summary">
+                    <span>Total Pendapatan Usaha</span>
+                    <span class="val-num" id="totalPendapatanUsaha">0</span>
+                </div>
+
+                <!-- Section 2: Beban Usaha -->
+                <div class="lr-section-title" style="margin-top: 14px;">BEBAN USAHA</div>
+                <div id="bebanUsahaList">
+                    <!-- Rincian Akun Beban Usaha via JS -->
+                </div>
+                <div class="lr-row-summary">
+                    <span>Total Beban Usaha</span>
+                    <span class="val-num" id="totalBebanUsaha">0</span>
+                </div>
+
+                <!-- Total Laba Usaha -->
+                <div class="lr-row-summary" style="margin-top: 4px;">
+                    <span>LABA USAHA</span>
+                    <span class="val-num" id="labaUsaha">0</span>
+                </div>
+
+                <!-- Section 3: Pendapatan Non Usaha -->
+                <div class="lr-section-title" style="margin-top: 14px;">PENDAPATAN NON USAHA</div>
+                <div id="pendapatanNonUsahaList">
+                    <!-- Rincian Akun Pendapatan Non Usaha via JS -->
+                </div>
+                <div class="lr-row-summary">
+                    <span>Total Pendapatan Non Usaha</span>
+                    <span class="val-num" id="totalPendapatanNonUsaha">0</span>
+                </div>
+
+                <!-- Section 4: Beban Non Usaha -->
+                <div class="lr-section-title" style="margin-top: 14px;">BEBAN NON USAHA</div>
+                <div id="bebanNonUsahaList">
+                    <!-- Rincian Akun Beban Non Usaha via JS -->
+                </div>
+                <div class="lr-row-summary">
+                    <span>Total Beban Non Usaha</span>
+                    <span class="val-num" id="totalBebanNonUsaha">0</span>
+                </div>
+
+                <!-- Total Laba Non Usaha -->
+                <div class="lr-row-summary" style="margin-top: 4px;">
+                    <span>TOTAL LABA NON USAHA</span>
+                    <span class="val-num" id="totalLabaNonUsaha">0</span>
+                </div>
+
+                <!-- TOTAL AKHIR LABA/RUGI -->
+                <div class="lr-row-total" style="margin-top: 16px;">
+                    <span>LABA/RUGI</span>
+                    <span class="val-num" id="totalLabaRugiAkhir">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Firestore Integrasi Real-Time -->
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import { doc, getDoc, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+
+        const profileNameDisplay = document.getElementById('profileNameDisplay');
+        const periodTextDisplay = document.getElementById('periodTextDisplay');
+
+        // Containers
+        const pendapatanUsahaList = document.getElementById('pendapatanUsahaList');
+        const totalPendapatanUsaha = document.getElementById('totalPendapatanUsaha');
+
+        const bebanUsahaList = document.getElementById('bebanUsahaList');
+        const totalBebanUsaha = document.getElementById('totalBebanUsaha');
+        const labaUsaha = document.getElementById('labaUsaha');
+
+        const pendapatanNonUsahaList = document.getElementById('pendapatanNonUsahaList');
+        const totalPendapatanNonUsaha = document.getElementById('totalPendapatanNonUsaha');
+
+        const bebanNonUsahaList = document.getElementById('bebanNonUsahaList');
+        const totalBebanNonUsaha = document.getElementById('totalBebanNonUsaha');
+        const totalLabaNonUsaha = document.getElementById('totalLabaNonUsaha');
+
+        const totalLabaRugiAkhir = document.getElementById('totalLabaRugiAkhir');
+
+        function initDates() {
+            const now = new Date();
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+            startDateInput.value = firstDay.toISOString().split('T')[0];
+            endDateInput.value = lastDay.toISOString().split('T')[0];
+
+            updatePeriodDisplay();
+        }
+
+        function formatDateDisplay(dateStr) {
+            if (!dateStr) return '';
+            const [y, m, d] = dateStr.split('-');
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            return `${d} ${months[parseInt(m, 10) - 1]} ${y}`;
+        }
+
+        function updatePeriodDisplay() {
+            const s = formatDateDisplay(startDateInput.value);
+            const e = formatDateDisplay(endDateInput.value);
+            periodTextDisplay.textContent = `${s} - ${e}`;
+        }
+
+        async function loadProfileName() {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    profileNameDisplay.textContent = docSnap.data().namaProfil || 'BUMKal';
+                }
+            } catch (err) {
+                console.error("Gagal memuat profil BUMKal:", err);
+            }
+        }
+
+        async function generateLabaRugiReport() {
+            updatePeriodDisplay();
+
+            const sDate = startDateInput.value;
+            const eDate = endDateInput.value;
+
+            try {
+                // 1. Fetch Accounts Map
+                const accSnap = await getDocs(collection(db, 'accounts'));
+                const accountsMap = {};
+                accSnap.forEach(d => {
+                    const data = d.data();
+                    accountsMap[String(data.accCode)] = {
+                        name: data.accName || '',
+                        category: data.category || '',
+                        accCode: String(data.accCode)
+                    };
+                });
+
+                // 2. Fetch Journals within Date Range
+                const qJurnal = query(
+                    collection(db, 'journals'),
+                    where('date', '>=', sDate),
+                    where('date', '<=', eDate),
+                    orderBy('date', 'asc')
+                );
+
+                const jSnap = await getDocs(qJurnal);
+
+                // Object Penampung Saldo
+                const pendUsahaAccounts = {};
+                const bebanUsahaAccounts = {};
+                const pendNonUsahaAccounts = {};
+                const bebanNonUsahaAccounts = {};
+
+                let sumPendUsaha = 0;
+                let sumBebanUsaha = 0;
+                let sumPendNonUsaha = 0;
+                let sumBebanNonUsaha = 0;
+
+                jSnap.forEach(d => {
+                    const journal = d.data();
+                    if (journal.items && Array.isArray(journal.items)) {
+                        journal.items.forEach(item => {
+                            const code = String(item.accCode || '').trim();
+                            const debit = parseFloat(item.debit) || 0;
+                            const kredit = parseFloat(item.kredit) || 0;
+
+                            const accInfo = accountsMap[code] || {};
+                            const cat = (accInfo.category || '').toLowerCase();
+                            const name = (accInfo.name || '').toLowerCase();
+
+                            // Pendapatan Usaha (Format 4.01... / 4.1...)
+                            if (code.startsWith('4.01') || code.startsWith('4.1') || cat.includes('pendapatan usaha')) {
+                                const val = kredit - debit;
+                                pendUsahaAccounts[code] = (pendUsahaAccounts[code] || 0) + val;
+                                sumPendUsaha += val;
+                            } 
+                            // Pendapatan Non-Usaha (Format 4.02... / 4.2...)
+                            else if (code.startsWith('4.02') || code.startsWith('4.2') || cat.includes('pendapatan non') || cat.includes('pendapatan lain')) {
+                                const val = kredit - debit;
+                                pendNonUsahaAccounts[code] = (pendNonUsahaAccounts[code] || 0) + val;
+                                sumPendNonUsaha += val;
+                            }
+                            // Beban/Biaya Usaha (Format 5.01... / 5.1... / 6.01...)
+                            else if (code.startsWith('5.01') || code.startsWith('5.1') || code.startsWith('6.01') || cat.includes('beban usaha') || cat.includes('biaya usaha')) {
+                                const val = debit - kredit;
+                                bebanUsahaAccounts[code] = (bebanUsahaAccounts[code] || 0) + val;
+                                sumBebanUsaha += val;
+                            }
+                            // Beban/Biaya Non-Usaha (Format 5.02... / 5.2... / 6.02...)
+                            else if (code.startsWith('5.02') || code.startsWith('5.2') || code.startsWith('6.02') || cat.includes('beban non') || cat.includes('biaya lain')) {
+                                const val = debit - kredit;
+                                bebanNonUsahaAccounts[code] = (bebanNonUsahaAccounts[code] || 0) + val;
+                                sumBebanNonUsaha += val;
+                            }
+                        });
+                    }
+                });
+
+                // Helper Render List
+                const renderList = (container, dataObj) => {
+                    container.innerHTML = '';
+                    Object.keys(dataObj).forEach(code => {
+                        const accName = accountsMap[code]?.name || code;
+                        const row = document.createElement('div');
+                        row.className = 'lr-row-item';
+                        row.innerHTML = `
+                            <span>${code} - ${accName}</span>
+                            <span class="val-num">${dataObj[code].toLocaleString('id-ID')}</span>
+                        `;
+                        container.appendChild(row);
+                    });
+                };
+
+                renderList(pendapatanUsahaList, pendUsahaAccounts);
+                renderList(bebanUsahaList, bebanUsahaAccounts);
+                renderList(pendapatanNonUsahaList, pendNonUsahaAccounts);
+                renderList(bebanNonUsahaList, bebanNonUsahaAccounts);
+
+                // Render Totals
+                const valLabaUsaha = sumPendUsaha - sumBebanUsaha;
+                const valLabaNonUsaha = sumPendNonUsaha - sumBebanNonUsaha;
+                const valLabaRugiAkhir = valLabaUsaha + valLabaNonUsaha;
+
+                totalPendapatanUsaha.textContent = sumPendUsaha.toLocaleString('id-ID');
+                totalBebanUsaha.textContent = sumBebanUsaha.toLocaleString('id-ID');
+                labaUsaha.textContent = valLabaUsaha.toLocaleString('id-ID');
+
+                totalPendapatanNonUsaha.textContent = sumPendNonUsaha.toLocaleString('id-ID');
+                totalBebanNonUsaha.textContent = sumBebanNonUsaha.toLocaleString('id-ID');
+                totalLabaNonUsaha.textContent = valLabaNonUsaha.toLocaleString('id-ID');
+
+                totalLabaRugiAkhir.textContent = valLabaRugiAkhir.toLocaleString('id-ID');
+
+            } catch (err) {
+                console.error("Gagal menghitung Laporan Laba Rugi:", err);
+            }
+        }
+
+        // Listeners
+        startDateInput.addEventListener('change', generateLabaRugiReport);
+        endDateInput.addEventListener('change', generateLabaRugiReport);
+
+        initDates();
+        await loadProfileName();
+        generateLabaRugiReport();
+    </script>
+</body>
+</html>
