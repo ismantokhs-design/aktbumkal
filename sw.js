@@ -1,66 +1,56 @@
-const CACHE_NAME = 'akt-bumkal-v4';
-
-// Daftar aset utama yang disimpan ke cache awal
-const PRECACHE_ASSETS = [
+const CACHE_NAME = 'bumkal-pwa-v4';
+const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
   './assets/css/style.css',
-  './pages/dashboard.html',
-  './pages/kalender.html',
-  './pages/login.html',
-  './pages/pohon-tambah.html',
+  './assets/js/app.js',
+  './assets/js/firebase-config.js',
   './pages/setting.html',
-  'https://fonts.googleapis.com/icon?family=Material+Icons'
+  './pages/setting-user.html',
+  './pages/hak-akses.html',
+  './pages/tutup-buku.html',
+  './pages/login.html',
+  './pages/akun.html',
+  './pages/saldo-awal.html',
+  './pages/input-jurnal.html'
 ];
 
-// 1. Install: Simpan aset ke cache
+// Install Event - Caching Aman tanpa gagal total
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('[Service Worker] Caching app shell...');
-        return cache.addAll(PRECACHE_ASSETS);
-      })
-      .then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('[Service Worker] Caching app shell...');
+      return Promise.allSettled(
+        ASSETS_TO_CACHE.map(url => cache.add(url).catch(err => console.warn(`Gagal cache file: ${url}`, err)))
+      );
+    })
   );
+  self.skipWaiting();
 });
 
-// 2. Activate: Hapus cache versi lama (v1) secara otomatis
+// Activate Event - Hapus Cache Lama
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            console.log('[Service Worker] Deleting old cache:', cache);
-            return caches.delete(cache);
-          }
+            if (cache !== CACHE_NAME) {
+                console.log('[Service Worker] Hapus cache lama:', cache);
+                return caches.delete(cache);
+            }
         })
       );
-    }).then(() => self.clients.claim())
+    })
   );
+  self.clients.claim();
 });
 
-// 3. Fetch: Ambil dari jaringan/cache dengan fallback
+// Fetch Event
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      const fetchPromise = fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-        }
-        return networkResponse;
-      }).catch(() => {
-        // Mode offline
-      });
-
-      return cachedResponse || fetchPromise;
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request);
     })
   );
 });

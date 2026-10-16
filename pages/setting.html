@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PENGATURAN</title>
+    <title>PENGATURAN PROFIL</title>
     
     <!-- Link Manifest -->
     <link rel="manifest" href="../manifest.json">
@@ -44,7 +44,7 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
-        /* Top Header Area */
+        /* Header Utama */
         .page-header {
             background-color: #5114B9;
             color: #ffffff;
@@ -82,14 +82,53 @@
             cursor: pointer;
         }
 
-        /* Form Container Body */
+        /* Navigation Tab Header Bar (Sticky) */
+        .tabs-header {
+            display: flex;
+            background-color: #ffffff;
+            border-bottom: 2px solid #e2e8f0;
+            position: sticky;
+            top: 50px;
+            z-index: 90;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 4px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            color: #5114B9;
+            border-bottom-color: #5114B9;
+        }
+
+        /* Container Body */
         .content-body {
             padding: 20px 16px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
             flex-grow: 1;
-            padding-bottom: 100px;
+            padding-bottom: 40px;
+        }
+
+        /* Tab Content Panel */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
 
         .form-section-header {
@@ -113,14 +152,14 @@
             background-color: #5114B9;
             color: #ffffff;
             border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 10px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
             font-weight: 700;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 2px;
+            gap: 4px;
         }
 
         .form-group {
@@ -157,13 +196,22 @@
             min-height: 70px;
         }
 
+        select.form-control {
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24' viewBox='0 0 24 24' width='24'%3E%3Cpath d='M7 10l5 5 5-5z' fill='%3C475569'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            padding-right: 32px;
+            appearance: none;
+        }
+
         .form-row-2col {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
 
-        /* Daftar Unit List */
+        /* List Unit Usaha */
         .unit-list-box {
             display: flex;
             flex-direction: column;
@@ -175,8 +223,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 12px;
-            background-color: #f1f5f9;
+            padding: 12px;
+            background-color: #f8fafc;
             border-radius: 8px;
             border: 1px solid #e2e8f0;
         }
@@ -187,21 +235,43 @@
             gap: 2px;
         }
 
+        .unit-name-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         .unit-name {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 700;
             color: #1e293b;
         }
 
+        .badge-default {
+            background-color: #10b981;
+            color: #ffffff;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
         .unit-code {
-            font-size: 10px;
+            font-size: 11px;
             color: #64748b;
             font-weight: 600;
         }
 
+        .unit-address {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 2px;
+        }
+
         .unit-actions {
             display: flex;
-            gap: 4px;
+            gap: 6px;
         }
 
         .btn-unit-action {
@@ -220,12 +290,14 @@
             color: #5114B9;
         }
 
-        /* Group Tombol Aksi */
+        /* Bottom Action Footer */
         .btn-group-footer {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
-            margin-top: 16px;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
         }
 
         .btn-save-setting {
@@ -244,8 +316,8 @@
 
         .btn-cancel-setting {
             background-color: #ffffff;
-            color: #64748b;
-            border: 1px solid #cbd5e1;
+            color: #5114B9;
+            border: 1.5px solid #5114B9;
             padding: 12px;
             border-radius: 8px;
             font-size: 12px;
@@ -259,7 +331,7 @@
             transform: scale(0.98);
         }
 
-        /* Modal Popup Unit */
+        /* Modal Overlay & Box */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -324,7 +396,7 @@
 <body>
 
     <div class="page-container">
-        <!-- Header Halaman -->
+        <!-- Header Halaman Utama -->
         <header class="page-header">
             <div class="header-title-box">
                 <a href="../index.html" class="btn-back">
@@ -335,66 +407,117 @@
             <span class="material-icons icon-menu">more_vert</span>
         </header>
 
+        <!-- Navigation Tab Header Bar -->
+        <div class="tabs-header">
+            <button type="button" class="tab-btn active" id="btnTabProfil">1. PROFIL</button>
+            <button type="button" class="tab-btn" id="btnTabUnit">2. UNIT USAHA</button>
+            <button type="button" class="tab-btn" id="btnTabMapping">3. MAPPING AKUN</button>
+        </div>
+
         <!-- Body Form Pengaturan -->
         <div class="content-body">
             <form id="settingForm">
-                <!-- SEKSI BUMKAL -->
-                <div class="form-section-header">
-                    <span class="form-section-title">Informasi Utama BUMKal</span>
-                </div>
 
-                <div class="form-group" style="margin-top: 10px;">
-                    <label class="form-label" for="namaProfil">Nama BUMKal / Induk</label>
-                    <input type="text" id="namaProfil" class="form-control" placeholder="Contoh: BUMKal Murni Mandiri" required>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="telepon">No. Telepon / Whatsapp</label>
-                    <input type="text" id="telepon" class="form-control" placeholder="Contoh: 081234567890">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="alamat">Alamat Lengkap</label>
-                    <textarea id="alamat" class="form-control" placeholder="Alamat kantor / unit usaha..."></textarea>
-                </div>
-
-                <!-- SEKSI MANAJEMEN UNIT USAHA -->
-                <div class="form-section-header" style="margin-top: 16px;">
-                    <span class="form-section-title">Daftar Unit Usaha</span>
-                    <button type="button" class="btn-add-unit" id="btnOpenAddUnitModal">
-                        <span class="material-icons" style="font-size: 14px;">add</span>
-                        <span>Tambah Unit</span>
-                    </button>
-                </div>
-
-                <div class="unit-list-box" id="unitListBox">
-                    <div style="text-align: center; padding: 12px; color: #94a3b8; font-size: 11px;">
-                        Belum ada unit usaha.
-                    </div>
-                </div>
-
-                <!-- SEKSI PERIODE -->
-                <div class="form-section-header" style="margin-top: 16px;">
-                    <span class="form-section-title">Periode Akuntansi</span>
-                </div>
-
-                <div class="form-row-2col" style="margin-top: 10px;">
-                    <div class="form-group">
-                        <label class="form-label" for="tglMulai">Tanggal Mulai</label>
-                        <input type="date" id="tglMulai" class="form-control" required>
+                <!-- TAB 1: PROFIL BUMKAL -->
+                <div id="tab-profil" class="tab-content active">
+                    <div class="form-section-header">
+                        <span class="form-section-title">Informasi Utama BUMKal</span>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label" for="tglSelesai">Tanggal Selesai</label>
-                        <input type="date" id="tglSelesai" class="form-control" required>
+                        <label class="form-label" for="namaProfil">Nama BUMKal / Induk</label>
+                        <input type="text" id="namaProfil" class="form-control" placeholder="Contoh: BUMKal Sinar Mitra Desa" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="direktur">Nama Direktur / Direktur Utama</label>
+                        <input type="text" id="direktur" class="form-control" placeholder="Nama Direktur BUMKal">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="pengawas">Nama Pengawas BUMKal</label>
+                        <input type="text" id="pengawas" class="form-control" placeholder="Nama Pengawas / Ketua Pengawas">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="telepon">No. Telepon / Whatsapp</label>
+                        <input type="text" id="telepon" class="form-control" placeholder="Contoh: 081234567890">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="alamat">Alamat Lengkap</label>
+                        <textarea id="alamat" class="form-control" placeholder="Srihardono, Pundong, Bantul, Yogyakarta 55771"></textarea>
+                    </div>
+
+                    <div class="form-section-header" style="margin-top: 10px;">
+                        <span class="form-section-title">Periode Akuntansi</span>
+                    </div>
+
+                    <div class="form-row-2col">
+                        <div class="form-group">
+                            <label class="form-label" for="tglMulai">Tanggal Mulai</label>
+                            <input type="date" id="tglMulai" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="tglSelesai">Tanggal Selesai</label>
+                            <input type="date" id="tglSelesai" class="form-control" required>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Tombol Aksi -->
+                <!-- TAB 2: UNIT USAHA -->
+                <div id="tab-unit" class="tab-content">
+                    <div class="form-section-header">
+                        <span class="form-section-title">Daftar Unit Usaha</span>
+                        <button type="button" class="btn-add-unit" id="btnOpenAddUnitModal">
+                            <span class="material-icons" style="font-size: 14px;">add</span>
+                            <span>Tambah Unit</span>
+                        </button>
+                    </div>
+
+                    <div class="unit-list-box" id="unitListBox">
+                        <div style="text-align: center; padding: 16px; color: #94a3b8; font-size: 11px;">
+                            Belum ada unit usaha terdaftar.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: MAPPING AKUN TRANSAKSI -->
+                <div id="tab-mapping" class="tab-content">
+                    <div class="form-section-header">
+                        <span class="form-section-title">Mapping Akun Otomatis</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="akunKasUtama">Akun Kas Utama</label>
+                        <select id="akunKasUtama" class="form-control">
+                            <option value="1-1001">[1-1001] Kas Induk BUMKal</option>
+                            <option value="1-1002">[1-1002] Bank BPD DIY</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="akunPiutang">Akun Piutang Usaha</label>
+                        <select id="akunPiutang" class="form-control">
+                            <option value="1-1201">[1-1201] Piutang Unit Dagang</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="akunPendapatan">Akun Pendapatan Utama</label>
+                        <select id="akunPendapatan" class="form-control">
+                            <option value="4-1001">[4-1001] Pendapatan Operasional Unit</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tombol Aksi Simpan & Batal -->
                 <div class="btn-group-footer">
                     <button type="submit" class="btn-save-setting" id="btnSaveSetting">SIMPAN</button>
                     <button type="button" class="btn-cancel-setting" id="btnResetSetting">BATAL</button>
                 </div>
+
             </form>
         </div>
     </div>
@@ -410,14 +533,34 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="unitIndex">
+                
                 <div class="form-group">
-                    <label class="form-label" for="kodeUnit">Kode Unit</label>
-                    <input type="text" id="kodeUnit" class="form-control" placeholder="Contoh: U-01, JASA, DAGANG" required>
+                    <label class="form-label" for="kodeUnit">Kode Unit *</label>
+                    <input type="text" id="kodeUnit" class="form-control" placeholder="Contoh: 00, 01, DAGANG" required>
                 </div>
+                
                 <div class="form-group">
-                    <label class="form-label" for="namaUnit">Nama Unit Usaha</label>
-                    <input type="text" id="namaUnit" class="form-control" placeholder="Contoh: Unit Toko Kelontong" required>
+                    <label class="form-label" for="namaUnit">Nama Unit Usaha *</label>
+                    <input type="text" id="namaUnit" class="form-control" placeholder="Contoh: Kantor Pusat, Unit Toko Kelontong" required>
                 </div>
+
+                <!-- ALAMAT UNIT USAHA -->
+                <div class="form-group">
+                    <label class="form-label" for="alamatUnit">Alamat Unit Usaha</label>
+                    <textarea id="alamatUnit" class="form-control" rows="2" placeholder="Masukkan alamat lokasi unit usaha..."></textarea>
+                </div>
+
+                <!-- STATUS DEFAULT -->
+                <div class="form-group" style="margin-top: 4px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #334155; cursor: pointer; font-weight: 600;">
+                        <input type="checkbox" id="isDefaultUnit" style="accent-color: #5114B9; width: 16px; height: 16px;">
+                        <span>Jadikan Unit Default</span>
+                    </label>
+                    <span style="font-size: 10px; color: #64748b; margin-left: 24px;">
+                        Unit default akan otomatis terpilih saat entri jurnal transaksi baru.
+                    </span>
+                </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn-save-setting" id="btnSaveUnitItem">SIMPAN UNIT</button>
                     <button type="button" class="btn-cancel-setting" id="btnCancelUnitItem">BATAL</button>
@@ -426,19 +569,37 @@
         </div>
     </div>
 
-    <!-- Script Integrasi Firestore -->
+    <!-- Script Integrasi Firestore & Logika Tab -->
     <script type="module">
         import { db } from '../assets/js/firebase-config.js';
         import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+        // Tab Navigation Elements
+        const btnTabProfil = document.getElementById('btnTabProfil');
+        const btnTabUnit = document.getElementById('btnTabUnit');
+        const btnTabMapping = document.getElementById('btnTabMapping');
+
+        const tabProfil = document.getElementById('tab-profil');
+        const tabUnit = document.getElementById('tab-unit');
+        const tabMapping = document.getElementById('tab-mapping');
+
+        // Form Elements
         const settingForm = document.getElementById('settingForm');
         const namaProfilInput = document.getElementById('namaProfil');
+        const direkturInput = document.getElementById('direktur');
+        const pengawasInput = document.getElementById('pengawas');
         const teleponInput = document.getElementById('telepon');
         const alamatInput = document.getElementById('alamat');
         const tglMulaiInput = document.getElementById('tglMulai');
         const tglSelesaiInput = document.getElementById('tglSelesai');
         const btnResetSetting = document.getElementById('btnResetSetting');
 
+        // Mapping Elements
+        const akunKasUtamaSelect = document.getElementById('akunKasUtama');
+        const akunPiutangSelect = document.getElementById('akunPiutang');
+        const akunPendapatanSelect = document.getElementById('akunPendapatan');
+
+        // Modal Unit Elements
         const unitListBox = document.getElementById('unitListBox');
         const modalUnit = document.getElementById('modalUnit');
         const modalUnitTitle = document.getElementById('modalUnitTitle');
@@ -450,11 +611,26 @@
         const unitIndexInput = document.getElementById('unitIndex');
         const kodeUnitInput = document.getElementById('kodeUnit');
         const namaUnitInput = document.getElementById('namaUnit');
+        const alamatUnitInput = document.getElementById('alamatUnit');
+        const isDefaultUnitCheckbox = document.getElementById('isDefaultUnit');
 
         let originalSettingData = {};
         let unitList = [];
 
-        // Load Settings
+        // Kontrol Perpindahan Tab
+        function switchTab(activeBtn, activeTab) {
+            [btnTabProfil, btnTabUnit, btnTabMapping].forEach(btn => btn.classList.remove('active'));
+            [tabProfil, tabUnit, tabMapping].forEach(tab => tab.classList.remove('active'));
+
+            activeBtn.classList.add('active');
+            activeTab.classList.add('active');
+        }
+
+        btnTabProfil.addEventListener('click', () => switchTab(btnTabProfil, tabProfil));
+        btnTabUnit.addEventListener('click', () => switchTab(btnTabUnit, tabUnit));
+        btnTabMapping.addEventListener('click', () => switchTab(btnTabMapping, tabMapping));
+
+        // Load Settings dari Firestore
         async function loadSettings() {
             try {
                 const docRef = doc(db, 'settings', 'profile');
@@ -466,15 +642,22 @@
                     populateForm(originalSettingData);
                 } else {
                     const defaultData = {
-                        namaProfil: 'BUMKal Murni Mandiri',
+                        namaProfil: 'BUMKal Sinar Mitra Desa',
+                        direktur: '',
+                        pengawas: '',
                         telepon: '',
-                        alamat: '',
+                        alamat: 'Srihardono, Pundong, Bantul, Yogyakarta 55771',
                         tglMulai: '2026-01-01',
                         tglSelesai: '2026-12-31',
-                        unitList: []
+                        akunKasUtama: '1-1001',
+                        akunPiutang: '1-1201',
+                        akunPendapatan: '4-1001',
+                        unitList: [
+                            { kodeUnit: '00', namaUnit: 'Kantor Pusat', alamatUnit: '', isDefault: true }
+                        ]
                     };
                     originalSettingData = { ...defaultData };
-                    unitList = [];
+                    unitList = [...defaultData.unitList];
                     populateForm(defaultData);
                 }
             } catch (error) {
@@ -484,10 +667,17 @@
 
         function populateForm(data) {
             namaProfilInput.value = data.namaProfil || '';
+            direkturInput.value = data.direktur || '';
+            pengawasInput.value = data.pengawas || '';
             teleponInput.value = data.telepon || '';
             alamatInput.value = data.alamat || '';
             tglMulaiInput.value = data.tglMulai || '2026-01-01';
             tglSelesaiInput.value = data.tglSelesai || '2026-12-31';
+
+            if (data.akunKasUtama) akunKasUtamaSelect.value = data.akunKasUtama;
+            if (data.akunPiutang) akunPiutangSelect.value = data.akunPiutang;
+            if (data.akunPendapatan) akunPendapatanSelect.value = data.akunPendapatan;
+
             renderUnitList();
         }
 
@@ -497,7 +687,7 @@
 
             if (unitList.length === 0) {
                 unitListBox.innerHTML = `
-                    <div style="text-align: center; padding: 12px; color: #94a3b8; font-size: 11px;">
+                    <div style="text-align: center; padding: 16px; color: #94a3b8; font-size: 11px;">
                         Belum ada unit usaha terdaftar.
                     </div>`;
                 return;
@@ -507,17 +697,24 @@
                 const item = document.createElement('div');
                 item.className = 'unit-card-item';
 
+                const defaultBadge = unit.isDefault ? `<span class="badge-default">Default</span>` : '';
+                const addressText = unit.alamatUnit ? `<span class="unit-address">${unit.alamatUnit}</span>` : '';
+
                 item.innerHTML = `
                     <div class="unit-info">
-                        <span class="unit-name">${unit.namaUnit}</span>
+                        <div class="unit-name-row">
+                            <span class="unit-name">${unit.namaUnit}</span>
+                            ${defaultBadge}
+                        </div>
                         <span class="unit-code">Kode: ${unit.kodeUnit}</span>
+                        ${addressText}
                     </div>
                     <div class="unit-actions">
                         <button type="button" class="btn-unit-action btn-edit-unit" data-idx="${idx}">
-                            <span class="material-icons" style="font-size: 16px;">edit</span>
+                            <span class="material-icons" style="font-size: 18px;">edit</span>
                         </button>
                         <button type="button" class="btn-unit-action btn-delete-unit" data-idx="${idx}">
-                            <span class="material-icons" style="font-size: 16px; color: #ef4444;">delete</span>
+                            <span class="material-icons" style="font-size: 18px; color: #ef4444;">delete</span>
                         </button>
                     </div>
                 `;
@@ -532,8 +729,10 @@
                     const item = unitList[idx];
 
                     unitIndexInput.value = idx;
-                    kodeUnitInput.value = item.kodeUnit;
-                    namaUnitInput.value = item.namaUnit;
+                    kodeUnitInput.value = item.kodeUnit || '';
+                    namaUnitInput.value = item.namaUnit || '';
+                    alamatUnitInput.value = item.alamatUnit || '';
+                    isDefaultUnitCheckbox.checked = !!item.isDefault;
 
                     modalUnitTitle.textContent = 'Edit Unit Usaha';
                     modalUnit.classList.add('active');
@@ -554,6 +753,8 @@
             unitIndexInput.value = '';
             kodeUnitInput.value = '';
             namaUnitInput.value = '';
+            alamatUnitInput.value = '';
+            isDefaultUnitCheckbox.checked = unitList.length === 0; // Otomatis checked jika unit pertama
             modalUnitTitle.textContent = 'Tambah Unit Usaha';
             modalUnit.classList.add('active');
         });
@@ -565,10 +766,12 @@
         btnCloseUnitModal.addEventListener('click', closeUnitModal);
         btnCancelUnitItem.addEventListener('click', closeUnitModal);
 
-        // Save Unit ke variabel temporary
+        // Save Unit ke variabel sementara
         btnSaveUnitItem.addEventListener('click', () => {
             const kode = kodeUnitInput.value.trim();
             const nama = namaUnitInput.value.trim();
+            const alamat = alamatUnitInput.value.trim();
+            const isDefault = isDefaultUnitCheckbox.checked;
             const idx = unitIndexInput.value;
 
             if (!kode || !nama) {
@@ -576,10 +779,22 @@
                 return;
             }
 
+            // Jika diset sebagai default, reset status default unit lainnya
+            if (isDefault) {
+                unitList = unitList.map(u => ({ ...u, isDefault: false }));
+            }
+
+            const unitData = {
+                kodeUnit: kode,
+                namaUnit: nama,
+                alamatUnit: alamat,
+                isDefault: isDefault
+            };
+
             if (idx !== '') {
-                unitList[idx] = { kodeUnit: kode, namaUnit: nama };
+                unitList[idx] = unitData;
             } else {
-                unitList.push({ kodeUnit: kode, namaUnit: nama });
+                unitList.push(unitData);
             }
 
             renderUnitList();
@@ -588,11 +803,11 @@
 
         // Batal / Reset
         btnResetSetting.addEventListener('click', () => {
-            unitList = originalSettingData.unitList ? [...originalSettingData.unitList] : [];
+            unitList = originalSettingData.unitList ? JSON.parse(JSON.stringify(originalSettingData.unitList)) : [];
             populateForm(originalSettingData);
         });
 
-        // Save All Settings
+        // Save All Settings ke Firestore
         settingForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -603,7 +818,7 @@
 
             const confirmResult = await Swal.fire({
                 title: 'Simpan Pengaturan?',
-                text: 'Apakah Anda yakin ingin memperbarui data profil & unit usaha BUMKal?',
+                text: 'Apakah Anda yakin ingin memperbarui data profil, unit usaha, dan mapping akun BUMKal?',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#5114B9',
@@ -616,10 +831,15 @@
 
             const payload = {
                 namaProfil: namaProfilInput.value.trim(),
+                direktur: direkturInput.value.trim(),
+                pengawas: pengawasInput.value.trim(),
                 telepon: teleponInput.value.trim(),
                 alamat: alamatInput.value.trim(),
                 tglMulai: tglMulaiInput.value,
                 tglSelesai: tglSelesaiInput.value,
+                akunKasUtama: akunKasUtamaSelect.value,
+                akunPiutang: akunPiutangSelect.value,
+                akunPendapatan: akunPendapatanSelect.value,
                 unitList: unitList,
                 updatedAt: serverTimestamp()
             };
@@ -628,12 +848,12 @@
                 const docRef = doc(db, 'settings', 'profile');
                 await setDoc(docRef, payload, { merge: true });
 
-                originalSettingData = { ...payload };
+                originalSettingData = JSON.parse(JSON.stringify(payload));
 
                 Swal.fire({
                     icon: 'success',
                     title: 'Berhasil!',
-                    text: 'Data profil & unit usaha berhasil disimpan.',
+                    text: 'Data profil, direktur, pengawas, unit usaha, dan mapping akun berhasil disimpan.',
                     timer: 1500,
                     showConfirmButton: false
                 });
