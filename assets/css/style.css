@@ -16,15 +16,13 @@ body {
     min-height: 100vh;
 }
 
-/* Kunci scroll background saat modal/menu aktif */
 body.no-scroll {
     overflow: hidden;
 }
 
-/* Sembunyikan scrollbar di semua browser */
 html, body, main, .drawer-menu, .option-menu-popup, .modal-body {
-    -ms-overflow-style: none;  /* IE dan Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 html::-webkit-scrollbar,
@@ -33,7 +31,9 @@ main::-webkit-scrollbar,
 .drawer-menu::-webkit-scrollbar,
 .option-menu-popup::-webkit-scrollbar,
 .modal-body::-webkit-scrollbar {
-    display: none;  /* Chrome, Safari, Opera */
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
 }
 
 /* ==========================================
@@ -69,11 +69,6 @@ header {
 header h1 {
     font-size: 16px;
     font-weight: 600;
-}
-
-header .date {
-    font-size: 12px;
-    opacity: 0.9;
 }
 
 .period-bar {
@@ -278,7 +273,7 @@ main {
 }
 
 /* ==========================================
-   9. SIDEBAR DRAWER MENU & OVERLAY
+   9. SIDEBAR DRAWER MENU & ACCORDION (KONSISTEN)
    ========================================== */
 .drawer-overlay {
     position: fixed;
@@ -302,80 +297,171 @@ main {
     position: fixed;
     top: 0;
     left: -85%;
-    width: 70%;
+    width: 75%;
     max-width: 320px;
     height: 100vh;
     background-color: #ffffff;
     z-index: 201;
     transition: left 0.3s ease;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden !important;
 }
 
 .drawer-menu.active {
     left: 0;
 }
 
+/* Header Drawer */
 .drawer-header {
     background-color: #5114B9;
     color: #ffffff;
-    padding: 16px 14px 12px 14px;
+    padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .drawer-header-title {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
     text-transform: uppercase;
+    opacity: 0.8;
 }
 
 .drawer-profile-info {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    align-items: center;
+    gap: 10px;
 }
 
 .drawer-profile-info .material-icons {
-    font-size: 26px;
+    font-size: 24px;
 }
 
 .profile-name {
     font-size: 13px;
     font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.profile-sub {
-    font-size: 11px;
-    opacity: 0.85;
-}
-
+/* Konten Menu Tengah */
 .drawer-content {
-    padding: 4px 0 30px 0;
+    flex: 1 1 auto;
+    overflow-y: auto !important;
+    background-color: #ffffff;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
 }
 
-.menu-category {
-    font-size: 10px;
+.drawer-content::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+/* Footer User Login di Bawah */
+.drawer-footer-user {
+    background-color: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.drawer-footer-user .material-icons {
+    font-size: 22px;
+    color: #5114B9;
+}
+
+.drawer-user-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.drawer-user-label {
+    font-size: 9px;
+    color: #64748b;
     font-weight: bold;
-    color: #888888;
-    padding: 10px 16px 4px 16px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+.drawer-user-name {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Accordion Header */
+.menu-category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    font-weight: bold;
+    color: #334155;
+    padding: 12px 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s;
+}
+
+.menu-category-header:hover {
+    background-color: #f1f5f9;
+}
+
+.menu-category-header .material-icons {
+    font-size: 18px;
+    color: #64748b;
+    transition: transform 0.3s ease;
+}
+
+/* Perbaikan Akordion agar tertutup secara default dan terbuka mulus saat .active */
+.menu-items-group {
+    display: none;
+    flex-direction: column;
+    background-color: #ffffff;
+}
+
+.menu-section.active .menu-items-group {
+    display: flex;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.menu-section.active .menu-category-header .material-icons {
+    transform: rotate(180deg);
+    color: #5114B9;
 }
 
 .menu-item {
     display: flex;
     align-items: center;
-    padding: 8px 16px;
+    padding: 10px 16px 10px 24px;
     color: #5114B9;
     text-decoration: none;
     font-size: 11.5px;
     font-weight: 600;
     gap: 12px;
     transition: background 0.2s;
+    border-bottom: 1px solid #f8fafc;
 }
 
 .menu-item:hover {
@@ -385,12 +471,6 @@ main {
 .menu-item .material-icons {
     font-size: 18px;
     color: #5114B9;
-}
-
-.drawer-divider {
-    height: 1px;
-    background-color: #e0e0e0;
-    margin: 4px 0;
 }
 
 /* ==========================================
@@ -577,7 +657,6 @@ main {
     border: none;
 }
 
-/* Switch Toggle Styling */
 .switch {
     position: relative;
     display: inline-block;
@@ -623,7 +702,6 @@ input:checked + .slider:before {
     transform: translateX(16px);
 }
 
-/* Modal Actions Buttons */
 .modal-footer-btn-group {
     display: grid;
     grid-template-columns: 1fr 1fr;

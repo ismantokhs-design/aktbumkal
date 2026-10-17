@@ -110,7 +110,7 @@
             background: transparent;
             padding: 2px 0;
             text-align: center;
-            width: 100px;
+            width: 120px;
         }
 
         /* Paper Container */
@@ -216,12 +216,10 @@
             </div>
         </header>
 
-        <!-- Baris Filter Periode -->
+        <!-- Baris Filter Tanggal Per 31 / Akhir Bulan -->
         <div class="filter-section">
-            <span class="filter-label">Periode</span>
-            <input type="date" id="startDate" class="input-date-inline">
-            <span class="filter-label">s.d</span>
-            <input type="date" id="endDate" class="input-date-inline">
+            <span class="filter-label">Per Tanggal</span>
+            <input type="date" id="targetDate" class="input-date-inline">
         </div>
 
         <!-- Area Isi Laporan Neraca -->
@@ -231,7 +229,7 @@
                 <div class="report-header">
                     <div class="company-title" id="profileNameDisplay">BUMKal</div>
                     <div class="report-title">NERACA</div>
-                    <div class="period-subtitle" id="periodTextDisplay">01 Okt 2026 - 31 Okt 2026</div>
+                    <div class="period-subtitle" id="periodTextDisplay">Per 31 Oktober 2026</div>
                 </div>
 
                 <!-- Section 1: ASET -->
@@ -260,7 +258,7 @@
                     <!-- Rincian Akun Modal via JS -->
                 </div>
                 <div class="neraca-row-item">
-                    <span>LABA/RUGI</span>
+                    <span>LABA/RUGI TAHUN BERJALAN</span>
                     <span class="val-num" id="valLabaRugi">0</span>
                 </div>
                 <div class="neraca-row-summary" style="margin-top: 4px;">
@@ -282,9 +280,7 @@
         import { db } from '../assets/js/firebase-config.js';
         import { doc, getDoc, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-        const startDateInput = document.getElementById('startDate');
-        const endDateInput = document.getElementById('endDate');
-
+        const targetDateInput = document.getElementById('targetDate');
         const profileNameDisplay = document.getElementById('profileNameDisplay');
         const periodTextDisplay = document.getElementById('periodTextDisplay');
 
@@ -300,17 +296,6 @@
 
         const totalKewajibanDanModal = document.getElementById('totalKewajibanDanModal');
 
-        function initDates() {
-            const now = new Date();
-            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-            startDateInput.value = firstDay.toISOString().split('T')[0];
-            endDateInput.value = lastDay.toISOString().split('T')[0];
-
-            updatePeriodDisplay();
-        }
-
         function formatDateDisplay(dateStr) {
             if (!dateStr) return '';
             const [y, m, d] = dateStr.split('-');
@@ -319,29 +304,61 @@
         }
 
         function updatePeriodDisplay() {
-            const s = formatDateDisplay(startDateInput.value);
-            const e = formatDateDisplay(endDateInput.value);
-            periodTextDisplay.textContent = `${s} - ${e}`;
+            const dStr = targetDateInput.value;
+            periodTextDisplay.textContent = `Per ${formatDateDisplay(dStr)}`;
         }
 
-        async function loadProfileName() {
+        // Ambil tanggal akhir bulan dari activeMonthCode (misal: "2026-10" -> "2026-10-31")
+        async function initTargetDate() {
             try {
                 const docRef = doc(db, 'settings', 'profile');
                 const docSnap = await getDoc(docRef);
 
+                let targetDateStr = '';
+
                 if (docSnap.exists()) {
-                    profileNameDisplay.textContent = docSnap.data().namaProfil || 'BUMKal';
+                    const data = docSnap.data();
+                    profileNameDisplay.textContent = data.namaProfil || 'BUMKal';
+
+                    if (data.activeMonthCode && data.activeMonthCode.includes('-')) {
+                        const [y, m] = data.activeMonthCode.split('-');
+                        // Cari tanggal terakhir dari bulan tersebut (hari ke-0 dari bulan berikutnya)
+                        const lastDay = new Date(parseInt(y, 10), parseInt(m, 10), 0);
+                        const yyyy = lastDay.getFullYear();
+                        const mm = String(lastDay.getMonth() + 1).padStart(2, '0');
+                        const dd = String(lastDay.getDate()).padStart(2, '0');
+                        targetDateStr = `${yyyy}-${mm}-${dd}`;
+                    }
                 }
+
+                // Fallback jika setting profile kosong
+                if (!targetDateStr) {
+                    const now = new Date();
+                    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                    targetDateStr = lastDay.toISOString().split('T')[0];
+                }
+
+                targetDateInput.value = targetDateStr;
+                updatePeriodDisplay();
+                await generateNeracaReport();
+
             } catch (err) {
-                console.error("Gagal memuat profil BUMKal:", err);
+                console.error("Gagal memuat profil / tanggal aktif:", err);
+                const now = new Date();
+                const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                targetDateInput.value = lastDay.toISOString().split('T')[0];
+                updatePeriodDisplay();
+                await generateNeracaReport();
             }
         }
 
         async function generateNeracaReport() {
             updatePeriodDisplay();
+            const eDate = targetDateInput.value; // Tanggal akhir neraca
 
-            const sDate = startDateInput.value;
-            const eDate = endDateInput.value;
+            // Tentukan awal tahun dari tanggal terpilih (untuk menghitung laba rugi tahun berjalan)
+            const yearStr = eDate.split('-')[0];
+            const sDateYear = `${yearStr}-01-01`;
 
             try {
                 // 1. Fetch Accounts Map
@@ -356,7 +373,7 @@
                     };
                 });
 
-                // 2. Fetch Journals s.d Tanggal Akhir
+                // 2. Fetch Journals s.d Tanggal Terpilih (Komulatif untuk Akun Neraca)
                 const qJurnal = query(
                     collection(db, 'journals'),
                     where('date', '<=', eDate),
@@ -407,8 +424,8 @@
                                 modalAccounts[code] = (modalAccounts[code] || 0) + val;
                                 sumModalPure += val;
                             } 
-                            // Perhitungan Laba/Rugi Periode Berjalan
-                            else if (jDate >= sDate && jDate <= eDate) {
+                            // Perhitungan Laba/Rugi Tahun Berjalan (dari awal tahun s.d tanggal neraca)
+                            else if (jDate >= sDateYear && jDate <= eDate) {
                                 if (code.startsWith('4') || cat.includes('pendapatan')) {
                                     sumPendapatan += (kredit - debit);
                                 } 
@@ -420,7 +437,7 @@
                     }
                 });
 
-                // Calculate Laba / Rugi
+                // Calculate Laba / Rugi Tahun Berjalan
                 const sumLabaRugi = sumPendapatan - sumBeban;
 
                 // Render List Helper dengan Sorting Kode Akun (Ascending)
@@ -463,13 +480,11 @@
             }
         }
 
-        // Listeners
-        startDateInput.addEventListener('change', generateNeracaReport);
-        endDateInput.addEventListener('change', generateNeracaReport);
+        // Listener jika tanggal diubah manual oleh user
+        targetDateInput.addEventListener('change', generateNeracaReport);
 
-        initDates();
-        await loadProfileName();
-        generateNeracaReport();
+        // Inisialisasi awal saat halaman dibuka
+        initTargetDate();
     </script>
 </body>
 </html>

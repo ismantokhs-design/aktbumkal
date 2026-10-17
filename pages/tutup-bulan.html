@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tutup Akhir Bulan</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #f8fafc;
+            color: #1e293b;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        /* Top Header Bar */
+        .page-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            flex-shrink: 0;
+        }
+
+        .header-title-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-back {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Content Body Scrollable & Sembunyikan Scrollbar */
+        .content-body {
+            flex: 1;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background-color: #f8fafc;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            
+            /* Sembunyikan Scrollbar di Seluruh Browser */
+            -ms-overflow-style: none;  /* IE dan Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
+        /* Chrome, Safari, dan Opera */
+        .content-body::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+
+        /* Card Section Styling */
+        .card-section {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        }
+
+        .card-header-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .dot-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .dot-cyan { background-color: #0ea5e9; }
+        .dot-green { background-color: #16a34a; }
+        .dot-yellow { background-color: #eab308; }
+
+        .card-desc {
+            font-size: 11px;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        /* Inner Active Month Display */
+        .active-month-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .active-month-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #64748b;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .active-month-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #2563eb;
+        }
+
+        .active-month-code {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        /* Warning Box */
+        .alert-warning-box {
+            background-color: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 11px;
+            color: #92400e;
+            line-height: 1.4;
+        }
+
+        .alert-warning-box .material-icons {
+            font-size: 18px;
+            color: #d97706;
+            flex-shrink: 0;
+        }
+
+        /* Alert Danger Box (Khusus Bulan 12) */
+        .alert-danger-box {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 11px;
+            color: #991b1b;
+            line-height: 1.4;
+        }
+
+        .alert-danger-box .material-icons {
+            font-size: 18px;
+            color: #dc2626;
+            flex-shrink: 0;
+        }
+
+        /* Input Controls */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #475569;
+        }
+
+        .form-control {
+            width: 100%;
+            height: 38px;
+            padding: 0 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 12px;
+            outline: none;
+            background-color: #ffffff;
+            color: #0f172a;
+        }
+
+        .form-control:read-only {
+            background-color: #f1f5f9;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        textarea.form-control {
+            height: 70px;
+            padding: 8px 12px;
+            resize: none;
+        }
+
+        .input-hint {
+            font-size: 10px;
+            color: #94a3b8;
+        }
+
+        /* Action Buttons */
+        .btn-submit-red {
+            width: 100%;
+            height: 42px;
+            background-color: #dc2626;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            box-shadow: 0 3px 8px rgba(220, 38, 38, 0.25);
+            transition: opacity 0.2s;
+        }
+
+        .btn-submit-red:disabled {
+            background-color: #94a3b8 !important;
+            cursor: not-allowed;
+            box-shadow: none;
+            opacity: 0.7;
+        }
+
+        .btn-submit-red:active:not(:disabled) {
+            opacity: 0.85;
+        }
+
+        .reopen-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-submit-yellow {
+            height: 38px;
+            background-color: #eab308;
+            color: #1e293b;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 0 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: 0 2px 6px rgba(234, 179, 8, 0.25);
+            transition: opacity 0.2s;
+        }
+
+        .btn-submit-yellow:active {
+            opacity: 0.85;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="page-header">
+            <div class="header-title-box">
+                <a href="../index.html" class="btn-back">
+                    <span class="material-icons">arrow_back</span>
+                </a>
+                <h1>TUTUP AKHIR BULAN</h1>
+            </div>
+            <span class="material-icons">event_repeat</span>
+        </header>
+
+        <!-- Body Content -->
+        <main class="content-body">
+            <!-- 1. Card Status Periode Aktif -->
+            <div class="card-section">
+                <div class="card-header-title">
+                    <span class="dot-indicator dot-cyan"></span>
+                    <span>Status Periode Aktif</span>
+                </div>
+
+                <p class="card-desc">
+                    Periode akuntansi yang sedang terbuka saat ini. Seluruh transaksi harian hanya dapat diinput pada bulan yang aktif.
+                </p>
+
+                <div class="active-month-box">
+                    <span class="active-month-label">BULAN AKTIF SAAT INI</span>
+                    <span class="active-month-title" id="displayMonthText">Memuat...</span>
+                    <span class="active-month-code" id="displayMonthCode">(--)</span>
+                </div>
+
+                <div class="alert-warning-box" id="warningBoxNormal">
+                    <span class="material-icons">warning</span>
+                    <div>
+                        <b>Perhatian:</b> Melakukan tutup buku bulanan akan mengunci transaksi pada bulan ini. Pastikan seluruh pencatatan sudah beres.
+                    </div>
+                </div>
+
+                <!-- Peringatan Khusus Jika Bulan 12 -->
+                <div class="alert-danger-box" id="warningBoxMonth12" style="display: none;">
+                    <span class="material-icons">block</span>
+                    <div>
+                        <b>Bulan Akhir Tahun (Desember):</b> Penutupan bulan terakhir tidak dapat dilakukan melalui menu ini. Silakan gunakan menu <b>Tutup Buku Akhir Tahun</b> untuk menutup tahun fiskal ini.
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Card Proses Tutup Buku Bulanan -->
+            <div class="card-section">
+                <div class="card-header-title">
+                    <span class="dot-indicator dot-green"></span>
+                    <span>Proses Tutup Buku Bulanan</span>
+                </div>
+
+                <p class="card-desc">
+                    Pindahkan periode operasional ke bulan berikutnya. Sistem akan otomatis menghitung bulan baru berdasarkan periode aktif saat ini.
+                </p>
+
+                <div class="form-group">
+                    <label class="form-label">Periode Berikutnya yang Akan Dibuka</label>
+                    <input type="text" class="form-control" id="inputNextMonthCode" readonly value="--">
+                    <span class="input-hint">Dihitung otomatis oleh sistem (Format: YYYY-MM).</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Catatan / Keterangan (Opsional)</label>
+                    <textarea class="form-control" id="inputCatatan" placeholder="Contoh: Tutup buku akhir bulan berjalan, semua rekonsiliasi selesai."></textarea>
+                </div>
+
+                <button type="button" class="btn-submit-red" id="btnProsesTutupBulan">
+                    <span class="material-icons" style="font-size: 16px;">lock</span>
+                    <span>Proses Tutup Buku & Kunci Periode Ini</span>
+                </button>
+            </div>
+
+            <!-- 3. Card Buka Kembali Periode Lampau (Revisi) -->
+            <div class="card-section" style="margin-bottom: 20px;">
+                <div class="card-header-title">
+                    <span class="dot-indicator dot-yellow"></span>
+                    <span>Buka Kembali Periode Lampau (Revisi)</span>
+                </div>
+
+                <p class="card-desc">
+                    Gunakan fitur ini jika Anda perlu merevisi transaksi pada bulan lampau di tahun yang sama. <i>Catatan: Tidak dapat membuka bulan yang tahunnya berbeda dari tahun aktif. Buka tahunnya terlebih dahulu melalui menu Tutup Buku Akhir Tahun.</i>
+                </p>
+
+                <div class="reopen-row">
+                    <input type="text" class="form-control" id="inputReopenCode" placeholder="Format: YYYY-MM (Cth: 2020-01)">
+                    <button type="button" class="btn-submit-yellow" id="btnProsesBukaPeriode">
+                        <span class="material-icons" style="font-size: 16px;">lock_open</span>
+                        <span>Buka Periode</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase Script Logic -->
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import {  
+            doc,  
+            getDoc,  
+            updateDoc,  
+            serverTimestamp  
+        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const displayMonthText = document.getElementById('displayMonthText');
+        const displayMonthCode = document.getElementById('displayMonthCode');
+        const inputNextMonthCode = document.getElementById('inputNextMonthCode');
+        const inputCatatan = document.getElementById('inputCatatan');
+        const inputReopenCode = document.getElementById('inputReopenCode');
+
+        const btnProsesTutupBulan = document.getElementById('btnProsesTutupBulan');
+        const btnProsesBukaPeriode = document.getElementById('btnProsesBukaPeriode');
+        
+        const warningBoxNormal = document.getElementById('warningBoxNormal');
+        const warningBoxMonth12 = document.getElementById('warningBoxMonth12');
+
+        const monthNamesIndo = [
+            "Januari", "Februari", "Maret", "April", "Mei", "Juni",  
+            "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+        ];
+
+        let activeYear = new Date().getFullYear();
+        let activeMonth = new Date().getMonth() + 1;
+        let currentActiveCode = `${activeYear}-${String(activeMonth).padStart(2, '0')}`;
+
+        async function loadActivePeriodStatus() {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.activeMonthCode) {
+                        currentActiveCode = data.activeMonthCode;
+                        const parts = currentActiveCode.split('-');
+                        activeYear = parseInt(parts[0], 10);
+                        activeMonth = parseInt(parts[1], 10);
+                    } else if (data.tglMulai) {
+                        const startDate = new Date(data.tglMulai);
+                        activeYear = startDate.getFullYear();
+                        activeMonth = startDate.getMonth() + 1;
+                        currentActiveCode = `${activeYear}-${String(activeMonth).padStart(2, '0')}`;
+                    }
+                }
+
+                updateUI();
+
+            } catch (err) {
+                console.error("Gagal memuat status bulan:", err);
+                displayMonthText.textContent = "Gagal memuat";
+            }
+        }
+
+        function updateUI() {
+            const monthText = monthNamesIndo[activeMonth - 1] || 'Bulan';
+            displayMonthText.textContent = `${monthText} ${activeYear}`;
+            displayMonthCode.textContent = `(${currentActiveCode})`;
+
+            // PENGAMAN BULAN 12 (DESEMBER)
+            if (activeMonth === 12) {
+                btnProsesTutupBulan.disabled = true;
+                btnProsesTutupBulan.style.backgroundColor = "#94a3b8";
+                btnProsesTutupBulan.style.cursor = "not-allowed";
+                inputNextMonthCode.value = "Tutup Buku Akhir Tahun";
+                
+                if (warningBoxNormal) warningBoxNormal.style.display = "none";
+                if (warningBoxMonth12) warningBoxMonth12.style.display = "flex";
+            } else {
+                btnProsesTutupBulan.disabled = false;
+                btnProsesTutupBulan.style.backgroundColor = "#dc2626";
+                btnProsesTutupBulan.style.cursor = "pointer";
+
+                let nextM = activeMonth + 1;
+                let nextY = activeYear;
+                if (nextM > 12) {
+                    nextM = 1;
+                    nextY += 1;
+                }
+                const nextCode = `${nextY}-${String(nextM).padStart(2, '0')}`;
+                inputNextMonthCode.value = nextCode;
+
+                if (warningBoxNormal) warningBoxNormal.style.display = "flex";
+                if (warningBoxMonth12) warningBoxMonth12.style.display = "none";
+            }
+        }
+
+        btnProsesTutupBulan.addEventListener('click', async () => {
+            if (activeMonth === 12) {
+                Swal.fire(
+                    'Tidak Dapat Diproses', 
+                    'Bulan aktif berada di bulan Desember (Bulan 12). Penutupan akhir tahun harus dilakukan melalui menu Tutup Buku Akhir Tahun.', 
+                    'error'
+                );
+                return;
+            }
+
+            const nextCode = inputNextMonthCode.value;
+            const catatan = inputCatatan.value;
+
+            const confirm = await Swal.fire({
+                title: 'Konfirmasi Tutup Bulan',
+                text: `Apakah Anda yakin ingin menutup periode ${currentActiveCode} dan membuka periode ${nextCode}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Tutup & Kunci',
+                cancelButtonText: 'Batal'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            Swal.fire({
+                title: 'Memproses...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                await updateDoc(docRef, {
+                    activeMonthCode: nextCode,
+                    lastClosedMonthCode: currentActiveCode,
+                    lastClosingNote: catatan || '',
+                    updatedAt: serverTimestamp()
+                });
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: `Periode ${currentActiveCode} berhasil ditutup. Periode aktif sekarang: ${nextCode}`,
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                const parts = nextCode.split('-');
+                activeYear = parseInt(parts[0], 10);
+                activeMonth = parseInt(parts[1], 10);
+                currentActiveCode = nextCode;
+                inputCatatan.value = '';
+                updateUI();
+
+            } catch (err) {
+                console.error("Gagal tutup bulan:", err);
+                Swal.fire('Gagal', err.message, 'error');
+            }
+        });
+
+        btnProsesBukaPeriode.addEventListener('click', async () => {
+            const targetCode = inputReopenCode.value.trim();
+
+            if (!/^\d{4}-\d{2}$/.test(targetCode)) {
+                Swal.fire('Format Salah', 'Gunakan format YYYY-MM (Contoh: 2020-01)', 'warning');
+                return;
+            }
+
+            const parts = targetCode.split('-');
+            const targetYear = parseInt(parts[0], 10);
+            const targetMonth = parseInt(parts[1], 10);
+
+            if (targetMonth < 1 || targetMonth > 12) {
+                Swal.fire('Peringatan', 'Bulan harus di antara 01 sampai 12', 'warning');
+                return;
+            }
+
+            // PENGAMAN: Hanya bisa membuka bulan di tahun yang aktif saat ini
+            if (targetYear !== activeYear) {
+                Swal.fire(
+                    'Akses Ditolak', 
+                    `Anda tidak dapat membuka bulan di tahun ${targetYear} karena tahun aktif saat ini adalah ${activeYear}. Jika ingin membuka tahun tersebut, silakan gunakan menu <b>Tutup Buku Akhir Tahun</b> untuk membuka tahunnya terlebih dahulu.`, 
+                    'error'
+                );
+                return;
+            }
+
+            const confirm = await Swal.fire({
+                title: 'Buka Periode Lampau?',
+                text: `Membuka kembali periode ${targetCode} memungkinkan pengeditan transaksi pada bulan tersebut. Yakin ingin melanjutkan?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#eab308',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Buka Periode',
+                cancelButtonText: 'Batal'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            Swal.fire({
+                title: 'Memproses...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                await updateDoc(docRef, {
+                    activeMonthCode: targetCode,
+                    updatedAt: serverTimestamp()
+                });
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: `Periode ${targetCode} berhasil dibuka kembali sebagai periode aktif.`,
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                activeYear = targetYear;
+                activeMonth = targetMonth;
+                currentActiveCode = targetCode;
+                inputReopenCode.value = '';
+                updateUI();
+
+            } catch (err) {
+                console.error("Gagal buka periode:", err);
+                Swal.fire('Gagal', err.message, 'error');
+            }
+        });
+
+        loadActivePeriodStatus();
+    </script>
+</body>
+</html>

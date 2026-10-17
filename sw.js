@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bumkal-pwa-v4';
+const CACHE_NAME = 'bumkal-pwa-v6';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -12,8 +12,19 @@ const ASSETS_TO_CACHE = [
   './pages/tutup-buku.html',
   './pages/login.html',
   './pages/akun.html',
+  './pages/barang.html',
+  './pages/aset.html',
+  './pages/produksi.html',
+  './pages/penjualan.html',
   './pages/saldo-awal.html',
-  './pages/input-jurnal.html'
+  './pages/input-jurnal.html',
+  './pages/jurnal.html',
+  './pages/buku-besar.html',
+  './pages/neraca-saldo.html',
+  './pages/laba-rugi.html',
+  './pages/neraca.html',
+  './pages/arus-kas.html',
+  './pages/perubahan-modal.html'
 ];
 
 // Install Event - Caching Aman tanpa gagal total
@@ -35,10 +46,10 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
-            if (cache !== CACHE_NAME) {
-                console.log('[Service Worker] Hapus cache lama:', cache);
-                return caches.delete(cache);
-            }
+          if (cache !== CACHE_NAME) {
+            console.log('[Service Worker] Hapus cache lama:', cache);
+            return caches.delete(cache);
+          }
         })
       );
     })
@@ -46,11 +57,22 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch Event
+// Fetch Event - Menggunakan strategi Cache First, fallback ke Network
 self.addEventListener('fetch', (event) => {
+  // Lewatkan request dari ekstensi browser atau selain GET (seperti Firestore API)
+  if (!event.request.url.startsWith('http')) return;
+
+  event.respondwWith ? null : null; // standard pass
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      return fetch(event.request).then((networkResponse) => {
+        return networkResponse;
+      }).catch(() => {
+        // Fallback offline jika diperlukan
+      });
     })
   );
 });

@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAPORAN NERACA SALDO</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* Hide Scrollbar Visual */
+        html, body, *, .page-container, .report-wrapper {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+
+        ::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            background: transparent !important;
+        }
+
+        body {
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header Utama */
+        .page-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .btn-back {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Filter Periode Section */
+        .filter-section {
+            padding: 10px 14px;
+            background-color: #ffffff;
+            border-bottom: 2px solid #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 11px;
+            color: #334155;
+            font-weight: 600;
+        }
+
+        .input-date-inline {
+            border: none;
+            border-bottom: 1px solid #5114B9;
+            font-size: 11px;
+            font-weight: 700;
+            color: #5114B9;
+            outline: none;
+            background: transparent;
+            padding: 2px 0;
+            text-align: center;
+            width: 110px;
+        }
+
+        /* Paper Container */
+        .report-wrapper {
+            padding: 12px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .report-paper {
+            border: 1px solid #cbd5e1;
+            padding: 16px 14px;
+            background-color: #ffffff;
+            border-radius: 2px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Laporan Kertas */
+        .report-header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .company-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .report-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-top: 2px;
+            letter-spacing: 0.5px;
+        }
+
+        .period-subtitle {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 2px;
+        }
+
+        /* Tabel Neraca Saldo */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 8px;
+            flex-grow: 1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            font-weight: 700;
+            text-align: left;
+            padding: 6px 4px;
+            border-bottom: 2px solid #cbd5e1;
+            border-top: 1px solid #cbd5e1;
+        }
+
+        td {
+            padding: 6px 4px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #334155;
+            vertical-align: top;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        /* Baris Total */
+        .table-total-row {
+            font-weight: 700;
+            color: #0f172a;
+            background-color: #f8fafc;
+            border-top: 2px solid #0f172a;
+            border-bottom: 2px solid #0f172a;
+        }
+
+        .table-total-row td {
+            padding: 8px 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <!-- Header Atas -->
+        <header class="page-header">
+            <div class="header-left">
+                <a href="../index.html" class="btn-back">
+                    <span class="material-icons">arrow_back</span>
+                </a>
+                <h1>NERACA SALDO</h1>
+            </div>
+            <div>
+                <span class="material-icons" style="font-size: 20px; cursor: pointer;">more_vert</span>
+            </div>
+        </header>
+
+        <!-- Baris Filter Periode -->
+        <div class="filter-section">
+            <span class="filter-label">Periode</span>
+            <input type="date" id="startDate" class="input-date-inline">
+            <span class="filter-label">s.d</span>
+            <input type="date" id="endDate" class="input-date-inline">
+        </div>
+
+        <!-- Area Isi Laporan Neraca Saldo -->
+        <div class="report-wrapper">
+            <div class="report-paper">
+                <!-- Header Dokumen Laporan -->
+                <div class="report-header">
+                    <div class="company-title" id="profileNameDisplay">BUMKal</div>
+                    <div class="report-title">NERACA SALDO</div>
+                    <div class="period-subtitle" id="periodTextDisplay">--</div>
+                </div>
+
+                <!-- Tabel Data Neraca Saldo -->
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 22%;">Kode</th>
+                                <th style="width: 38%;">Nama Akun</th>
+                                <th class="text-right" style="width: 20%;">Debit (Rp)</th>
+                                <th class="text-right" style="width: 20%;">Kredit (Rp)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="neracaSaldoTableBody">
+                            <tr>
+                                <td colspan="4" class="text-center" style="color: #94a3b8; padding: 20px;">Memuat data neraca saldo...</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-total-row">
+                                <td colspan="2" class="text-right">TOTAL:</td>
+                                <td class="text-right" id="totalDebit">0</td>
+                                <td class="text-right" id="totalKredit">0</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Firestore Integrasi Real-Time -->
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import { doc, getDoc, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+
+        const profileNameDisplay = document.getElementById('profileNameDisplay');
+        const periodTextDisplay = document.getElementById('periodTextDisplay');
+        const neracaSaldoTableBody = document.getElementById('neracaSaldoTableBody');
+        const totalDebitEl = document.getElementById('totalDebit');
+        const totalKreditEl = document.getElementById('totalKredit');
+
+        function formatDateDisplay(dateStr) {
+            if (!dateStr) return '';
+            const [y, m, d] = dateStr.split('-');
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            return `${d} ${months[parseInt(m, 10) - 1]} ${y}`;
+        }
+
+        function updatePeriodDisplay() {
+            const s = formatDateDisplay(startDateInput.value);
+            const e = formatDateDisplay(endDateInput.value);
+            periodTextDisplay.textContent = `${s} - ${e}`;
+        }
+
+        // Inisialisasi tanggal awal (Tanggal 1) dan tanggal akhir bulan aktif dari database
+        async function initActiveDates() {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                let startStr = '';
+                let endStr = '';
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    profileNameDisplay.textContent = data.namaProfil || 'BUMKal';
+
+                    if (data.activeMonthCode && data.activeMonthCode.includes('-')) {
+                        const [y, m] = data.activeMonthCode.split('-');
+                        const yearNum = parseInt(y, 10);
+                        const monthNum = parseInt(m, 10);
+
+                        // Tanggal 1 di awal bulan aktif
+                        const firstDay = new Date(yearNum, monthNum - 1, 1);
+                        // Tanggal terakhir di bulan aktif
+                        const lastDay = new Date(yearNum, monthNum, 0);
+
+                        const fY = firstDay.getFullYear();
+                        const fM = String(firstDay.getMonth() + 1).padStart(2, '0');
+                        const fD = String(firstDay.getDate()).padStart(2, '0');
+                        startStr = `${fY}-${fM}-${fD}`;
+
+                        const lY = lastDay.getFullYear();
+                        const lM = String(lastDay.getMonth() + 1).padStart(2, '0');
+                        const lD = String(lastDay.getDate()).padStart(2, '0');
+                        endStr = `${lY}-${lM}-${lD}`;
+                    }
+                }
+
+                // Fallback jika profil kosong
+                if (!startStr || !endStr) {
+                    const now = new Date();
+                    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                    startStr = firstDay.toISOString().split('T')[0];
+                    endStr = lastDay.toISOString().split('T')[0];
+                }
+
+                    startDateInput.value = startStr;
+                endDateInput.value = endStr;
+
+                updatePeriodDisplay();
+                await generateNeracaSaldoReport();
+
+            } catch (err) {
+                console.error("Gagal memuat profil / tanggal aktif:", err);
+                const now = new Date();
+                startDateInput.value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+                endDateInput.value = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+                updatePeriodDisplay();
+                await generateNeracaSaldoReport();
+            }
+        }
+
+        async function generateNeracaSaldoReport() {
+            updatePeriodDisplay();
+            const eDate = endDateInput.value;
+
+            try {
+                // 1. Ambil seluruh data master akun
+                const accSnap = await getDocs(collection(db, 'accounts'));
+                const accountsMap = {};
+                
+                accSnap.forEach(d => {
+                    const data = d.data();
+                    const code = String(data.accCode || '').trim();
+                    if (code) {
+                        accountsMap[code] = {
+                            code: code,
+                            name: data.accName || '',
+                            category: data.category || '',
+                            netBalance: 0
+                        };
+                    }
+                });
+
+                // 2. Ambil seluruh jurnal s.d tanggal akhir periode aktif untuk saldo kumulatif
+                const qJurnal = query(
+                    collection(db, 'journals'),
+                    where('date', '<=', eDate),
+                    orderBy('date', 'asc')
+                );
+
+                const jSnap = await getDocs(qJurnal);
+
+                jSnap.forEach(docItem => {
+                    const journal = docItem.data();
+                    if (journal.items && Array.isArray(journal.items)) {
+                        journal.items.forEach(item => {
+                            const code = String(item.accCode || '').trim();
+                            const debit = parseFloat(item.debit) || 0;
+                            const kredit = parseFloat(item.kredit) || 0;
+
+                            if (!accountsMap[code]) {
+                                accountsMap[code] = {
+                                    code: code,
+                                    name: item.accName || code,
+                                    category: '',
+                                    netBalance: 0
+                                };
+                            }
+
+                            // Akun berawalan 1 dan 5/6 bersaldo normal Debit, sisanya Kredit
+                            const isNormalDebit = code.startsWith('1') || code.startsWith('5') || code.startsWith('6');
+                            
+                            if (isNormalDebit) {
+                                accountsMap[code].netBalance += (debit - kredit);
+                            } else {
+                                accountsMap[code].netBalance += (kredit - debit);
+                            }
+                        });
+                    }
+                });
+
+                neracaSaldoTableBody.innerHTML = '';
+                const sortedCodes = Object.keys(accountsMap).sort((a, b) => 
+                    a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+                );
+
+                let grandTotalDebit = 0;
+                let grandTotalKredit = 0;
+                let hasData = false;
+
+                sortedCodes.forEach(code => {
+                    const acc = accountsMap[code];
+                    const balance = acc.netBalance;
+
+                    // Hanya tampilkan akun yang memiliki saldo != 0 atau ada aktivitas
+                    if (balance !== 0) {
+                        hasData = true;
+                        const isNormalDebit = code.startsWith('1') || code.startsWith('5') || code.startsWith('6');
+                        
+                        let debitVal = 0;
+                        let kreditVal = 0;
+
+                        if (isNormalDebit) {
+                            if (balance >= 0) debitVal = balance;
+                            else kreditVal = Math.abs(balance);
+                        } else {
+                            if (balance >= 0) kreditVal = balance;
+                            else debitVal = Math.abs(balance);
+                        }
+
+                        grandTotalDebit += debitVal;
+                        grandTotalKredit += kreditVal;
+
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><b>${acc.code}</b></td>
+                            <td>${acc.name}</td>
+                            <td class="text-right">${debitVal > 0 ? debitVal.toLocaleString('id-ID') : '0'}</td>
+                            <td class="text-right">${kreditVal > 0 ? kreditVal.toLocaleString('id-ID') : '0'}</td>
+                        `;
+                        neracaSaldoTableBody.appendChild(row);
+                    }
+                });
+
+                if (!hasData) {
+                    neracaSaldoTableBody.innerHTML = `<tr><td colspan="4" class="text-center" style="color: #94a3b8; padding: 20px;">Tidak ada data transaksi untuk ditampilkan pada periode ini.</td></tr>`;
+                }
+
+                totalDebitEl.textContent = grandTotalDebit.toLocaleString('id-ID');
+                totalKreditEl.textContent = grandTotalKredit.toLocaleString('id-ID');
+
+            } catch (err) {
+                console.error("Gagal memuat Laporan Neraca Saldo:", err);
+                neracaSaldoTableBody.innerHTML = `<tr><td colspan="4" class="text-center" style="color: #dc2626; padding: 20px;">Gagal memuat laporan neraca saldo.</td></tr>`;
+            }
+        }
+
+        startDateInput.addEventListener('change', generateNeracaSaldoReport);
+        endDateInput.addEventListener('change', generateNeracaSaldoReport);
+
+        // Inisialisasi awal saat halaman dimuat
+        initActiveDates();
+    </script>
+</body>
+</html>

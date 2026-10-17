@@ -2,8 +2,8 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MODAL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Transaksi Modal</title>
     
     <!-- Link Manifest -->
     <link rel="manifest" href="../manifest.json">
@@ -12,62 +12,56 @@
     <!-- Google Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        /* Sembunyikan Scrollbar secara Visual */
-        html, body, *, .page-container, .modal-body {
-            scrollbar-width: none !important;
-            -ms-overflow-style: none !important;
-        }
-
-        ::-webkit-scrollbar {
-            display: none !important;
-            width: 0 !important;
-            height: 0 !important;
-            background: transparent !important;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             background-color: #f8fafc;
+            color: #1e293b;
             display: flex;
             justify-content: center;
             min-height: 100vh;
         }
 
-        .page-container {
+        .app-container {
             width: 100%;
             max-width: 480px;
             background-color: #ffffff;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
+            height: 100vh;
             position: relative;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
         }
 
-        /* Header Utama */
+        /* Top Header Bar */
         .page-header {
             background-color: #5114B9;
             color: #ffffff;
-            padding: 12px 14px;
+            padding: 14px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             position: sticky;
             top: 0;
             z-index: 100;
+            flex-shrink: 0;
         }
 
-        .header-left {
+        .header-title-box {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
         }
 
         .btn-back {
@@ -84,135 +78,49 @@
             text-transform: uppercase;
         }
 
-        /* Filter Section */
-        .filter-container {
-            padding: 10px 14px;
-            background-color: #ffffff;
+        /* Filter Unit Usaha Header */
+        .filter-section {
+            padding: 12px 16px;
+            background-color: #f1f5f9;
             border-bottom: 1px solid #e2e8f0;
             display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .filter-period-box {
-            border: 1px solid #475569;
-            border-radius: 4px;
-            padding: 6px 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 11px;
-            color: #334155;
-            font-weight: 600;
-        }
-
-        .input-date-inline {
-            border: none;
-            border-bottom: 1px solid #5114B9;
-            font-size: 11px;
-            font-weight: 700;
-            color: #5114B9;
-            outline: none;
-            background: transparent;
-            padding: 2px 0;
-            text-align: center;
-            width: 100px;
-        }
-
-        .filter-controls-row {
-            display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
-        }
-
-        .select-filter-jenis {
-            flex-grow: 1;
-            border: 1px solid #cbd5e1;
-            border-radius: 4px;
-            padding: 6px 8px;
-            font-size: 11px;
-            font-weight: 600;
-            color: #334155;
-            outline: none;
-            background-color: #ffffff;
-        }
-
-        .filter-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #5114B9;
-        }
-
-        .filter-actions .material-icons {
-            font-size: 20px;
-            cursor: pointer;
-        }
-
-        /* List Transaksi Area */
-        .transaction-list {
-            padding: 12px 14px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
             gap: 10px;
+            flex-shrink: 0;
         }
 
-        .trx-item-card {
-            background-color: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 10px 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
-
-        .trx-info-title {
+        .select-filter-unit {
+            width: 100%;
+            height: 36px;
+            padding: 0 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
             font-size: 12px;
-            font-weight: 700;
+            outline: none;
+            background-color: #ffffff;
+            font-weight: 600;
             color: #0f172a;
         }
-
-        .trx-info-sub {
-            font-size: 10px;
-            color: #64748b;
-            margin-top: 2px;
-        }
-
-        .trx-amount {
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        .trx-amount.green { color: #16a34a; }
-        .trx-amount.red { color: #dc2626; }
 
         /* Floating Action Button (FAB) */
         .fab-add {
             position: fixed;
             bottom: 24px;
-            right: calc(50% - 220px);
+            right: calc(50% - 210px);
             width: 52px;
             height: 52px;
-            background-color: #2b036b;
+            background-color: #5114B9;
             color: #ffffff;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(81, 20, 185, 0.4);
             cursor: pointer;
-            z-index: 100;
+            z-index: 90;
             border: none;
-            outline: none;
-            transition: transform 0.2s ease;
-        }
-
-        .fab-add:active {
-            transform: scale(0.95);
+            transition: transform 0.2s;
         }
 
         @media (max-width: 480px) {
@@ -221,7 +129,110 @@
             }
         }
 
-        /* Modal Form Overlay */
+        .fab-add:active {
+            transform: scale(0.92);
+        }
+
+        /* Content List Transaction Scrollable & Hide Scrollbar */
+        .content-body {
+            flex: 1;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .content-body::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+
+        .transaction-card {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            position: relative;
+        }
+
+        .trx-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #64748b;
+            padding-right: 28px;
+        }
+
+        .badge-unit {
+            background-color: #f3e8ff;
+            color: #5114B9;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+        }
+
+        .trx-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1.4;
+            margin-top: 2px;
+        }
+
+        .trx-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 4px;
+        }
+
+        .trx-amount {
+            font-size: 14px;
+            font-weight: 800;
+            color: #16a34a;
+        }
+
+        /* Tombol Edit pada Card */
+        .btn-edit-card {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .btn-edit-card:hover {
+            background-color: #f1f5f9;
+            color: #5114B9;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        /* Modal Overlay & Dialog */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -229,13 +240,14 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(3px);
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 200;
+            z-index: 1000;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.2s ease;
+            transition: all 0.25s ease-in-out;
         }
 
         .modal-overlay.active {
@@ -244,33 +256,38 @@
         }
 
         .modal-box {
-            width: 90%;
-            max-width: 380px;
+            width: 92%;
+            max-width: 420px;
             background-color: #ffffff;
-            border-radius: 6px;
+            border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transform: scale(0.9);
+            transition: transform 0.25s ease-in-out;
             display: flex;
             flex-direction: column;
+            max-height: 90vh;
         }
 
-        /* Header Modal Form */
+        .modal-overlay.active .modal-box {
+            transform: scale(1);
+        }
+
         .modal-header {
             background-color: #5114B9;
             color: #ffffff;
-            padding: 12px 16px;
+            padding: 14px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
-        .modal-header-title {
+        .modal-header h2 {
+            font-size: 14px;
+            font-weight: 700;
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
             text-transform: uppercase;
         }
 
@@ -283,14 +300,19 @@
             align-items: center;
         }
 
-        /* Body Form Modal */
         .modal-body {
             padding: 16px;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 14px;
-            max-height: 80vh;
-            overflow-y: auto;
+            gap: 12px;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .modal-body::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
         }
 
         .form-group {
@@ -300,478 +322,545 @@
         }
 
         .form-label {
-            font-size: 10px;
-            color: #64748b;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 700;
+            color: #475569;
         }
 
-        /* Radio Options Box */
-        .radio-group-box {
-            border: 1px solid #cbd5e1;
-            border-radius: 4px;
-            padding: 8px 12px;
+        .radio-group {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
+            gap: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 6px;
+            background-color: #f8fafc;
         }
 
         .radio-option {
+            flex: 1;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 6px;
-            font-size: 11px;
-            font-weight: 600;
-            color: #0f172a;
-            cursor: pointer;
-        }
-
-        .radio-option input[type="radio"] {
-            accent-color: #5114B9;
-            width: 14px;
-            height: 14px;
-        }
-
-        /* Form Custom Input & Select */
-        .input-text-border {
-            border: 1px solid #cbd5e1;
-            border-radius: 4px;
-            padding: 8px 10px;
-            font-size: 11px;
-            color: #0f172a;
-            outline: none;
-            width: 100%;
-        }
-
-        .input-date-text {
-            border: none;
-            font-size: 11px;
-            font-weight: 700;
-            color: #5114B9;
-            outline: none;
-            background: transparent;
-            width: 100%;
-        }
-
-        .input-line-bottom {
-            border: none;
-            border-bottom: 1px solid #94a3b8;
-            padding: 4px 0;
             font-size: 12px;
             font-weight: 600;
-            color: #0f172a;
-            outline: none;
-            width: 100%;
-            border-radius: 0;
-        }
-
-        .input-line-bottom:focus {
-            border-bottom-color: #5114B9;
-        }
-
-        .form-note {
-            font-size: 9px;
-            color: #64748b;
-            line-height: 1.2;
-        }
-
-        /* Action Group Buttons */
-        .modal-btn-group {
-            display: flex;
-            gap: 12px;
-            margin-top: 8px;
-        }
-
-        .btn-modal-submit {
-            flex: 1;
-            background-color: #5114B9;
-            color: #ffffff;
-            border: none;
-            padding: 10px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
             cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+        }
+
+        .radio-option input {
+            accent-color: #5114B9;
+        }
+
+        .form-control {
+            width: 100%;
+            height: 38px;
+            padding: 0 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 12px;
+            outline: none;
+            background-color: #ffffff;
+            color: #0f172a;
+        }
+
+        .form-control:focus {
+            border-color: #5114B9;
+        }
+
+        .modal-footer {
+            padding: 12px 16px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-modal {
+            flex: 1;
+            height: 40px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
             text-transform: uppercase;
         }
 
-        .btn-modal-cancel {
-            flex: 1;
+        .btn-simpan {
+            background-color: #5114B9;
+            color: #ffffff;
+        }
+
+        .btn-batal {
             background-color: #ffffff;
             color: #dc2626;
             border: 1px solid #dc2626;
-            padding: 10px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            cursor: pointer;
-            text-transform: uppercase;
         }
     </style>
 </head>
 <body>
 
-    <div class="page-container">
-        <!-- Header Utama -->
+    <div class="app-container">
+        <!-- Header -->
         <header class="page-header">
-            <div class="header-left">
+            <div class="header-title-box">
                 <a href="../index.html" class="btn-back">
                     <span class="material-icons">arrow_back</span>
                 </a>
-                <h1>MODAL</h1>
+                <h1>TRANSAKSI MODAL</h1>
             </div>
+            <span class="material-icons">account_balance_wallet</span>
         </header>
 
-        <!-- Filter Bar -->
-        <div class="filter-container">
-            <div class="filter-period-box">
-                <span>Periode</span>
-                <input type="date" id="startDateFilter" class="input-date-inline">
-                <span>s.d</span>
-                <input type="date" id="endDateFilter" class="input-date-inline">
-            </div>
-            <div class="filter-controls-row">
-                <select class="select-filter-jenis" id="jenisFilter">
-                    <option value="SEMUA">SEMUA JENIS</option>
-                    <option value="TAMBAH">Tambah Modal</option>
-                    <option value="PRIVE">Penarikan (Prive)</option>
-                </select>
-                <div class="filter-actions">
-                    <span class="material-icons" title="Cari">search</span>
-                    <span class="material-icons" title="Urutkan">sort_by_alpha</span>
-                </div>
-            </div>
+        <!-- Filter Berdasarkan Unit Usaha -->
+        <div class="filter-section">
+            <select class="select-filter-unit" id="filterUnit">
+                <option value="">Semua Unit Usaha</option>
+            </select>
         </div>
 
         <!-- Daftar Transaksi -->
-        <main class="transaction-list" id="modalTrxList">
-            <div style="text-align: center; color: #94a3b8; font-size: 11px; margin-top: 20px;">
-                Memuat data transaksi...
+        <main class="content-body" id="transactionList">
+            <div class="empty-state">
+                Memuat riwayat transaksi modal...
             </div>
         </main>
 
-        <!-- Floating Action Button (FAB) -->
-        <button class="fab-add" id="btnOpenModal" type="button">
+        <!-- Floating Add Button -->
+        <button class="fab-add" id="btnOpenModal" title="Tambah Transaksi Modal">
             <span class="material-icons" style="font-size: 28px;">add</span>
         </button>
+    </div>
 
-        <!-- Form Overlay / Dialog Modal Transaksi Modal -->
-        <div class="modal-overlay" id="modalFormOverlay">
-            <div class="modal-box">
-                <!-- Header Modal Dialog -->
-                <div class="modal-header">
-                    <div class="modal-header-title">
-                        <span class="material-icons" style="font-size: 18px;">add</span>
-                        <span>TRANSAKSI MODAL</span>
-                    </div>
-                    <button class="btn-close-modal" id="btnCloseModal" type="button">
-                        <span class="material-icons">close</span>
-                    </button>
-                </div>
+    <!-- Modal Form Transaksi Modal (Tambah / Edit) -->
+    <div class="modal-overlay" id="modalForm">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2><span class="material-icons" id="modalIconHeader">add</span> <span id="modalTitleHeader">Transaksi Modal</span></h2>
+                <button class="btn-close-modal" id="btnCloseModal">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
 
-                <!-- Form Body -->
-                <form class="modal-body" id="formModalTrx">
-                    <!-- Radio Button Pilih Jenis -->
+            <form id="formTransaksiModal">
+                <input type="hidden" id="editDocId" value="">
+
+                <div class="modal-body">
+                    <!-- Jenis Transaksi -->
                     <div class="form-group">
-                        <label class="form-label">Pilih Jenis</label>
-                        <div class="radio-group-box">
+                        <label class="form-label">PILIH JENIS *</label>
+                        <div class="radio-group">
                             <label class="radio-option">
-                                <input type="radio" name="jenisModal" value="TAMBAH" checked id="radioTambah">
+                                <input type="radio" name="jenisModal" value="TAMBAH" checked>
                                 <span>Tambah Modal</span>
                             </label>
                             <label class="radio-option">
-                                <input type="radio" name="jenisModal" value="PRIVE" id="radioPrive">
+                                <input type="radio" name="jenisModal" value="PRIVE">
                                 <span>Penarikan (Prive)</span>
                             </label>
                         </div>
                     </div>
 
-                    <!-- Input Tanggal -->
+                    <!-- Pilih Unit Usaha -->
                     <div class="form-group">
-                        <label class="form-label">Tanggal</label>
-                        <input type="date" class="input-date-text" id="trxTanggal" required>
-                    </div>
-
-                    <!-- Dropdown Simpan Ke -->
-                    <div class="form-group">
-                        <label class="form-label" id="labelSimpanKe">Simpan ke</label>
-                        <select class="input-text-border" id="selectSimpanKe" required>
-                            <option value="">Pilih Akun..</option>
+                        <label class="form-label">UNIT USAHA / CABANG *</label>
+                        <select class="form-control" id="modalSelectUnit" required>
+                            <option value="">-- Pilih Unit Usaha --</option>
                         </select>
                     </div>
 
-                    <!-- Dropdown Dari -->
+                    <!-- Tanggal -->
                     <div class="form-group">
-                        <label class="form-label" id="labelDari">Dari</label>
-                        <select class="input-text-border" id="selectDari" required>
-                            <option value="">Pilih Akun..</option>
+                        <label class="form-label">TANGGAL *</label>
+                        <input type="date" class="form-control" id="modalTanggal" required>
+                    </div>
+
+                    <!-- Akun Kas / Bank -->
+                    <div class="form-group">
+                        <label class="form-label">SIMPAN KE (KAS / BANK) *</label>
+                        <select class="form-control" id="modalSelectKas" required>
+                            <option value="">-- Pilih Akun Kas/Bank --</option>
                         </select>
                     </div>
 
-                    <!-- Input Jumlah -->
+                    <!-- Akun Modal -->
                     <div class="form-group">
-                        <label class="form-label">Jumlah *</label>
-                        <input type="number" class="input-line-bottom" id="trxJumlah" value="0" min="1" required>
+                        <label class="form-label">DARI (AKUN MODAL) *</label>
+                        <select class="form-control" id="modalSelectModalAcc" required>
+                            <option value="">-- Pilih Akun Modal --</option>
+                        </select>
                     </div>
 
-                    <!-- Input Keterangan -->
+                    <!-- Jumlah -->
                     <div class="form-group">
-                        <label class="form-label">Keterangan *</label>
-                        <input type="text" class="input-line-bottom" id="trxKeterangan" value="Tambah Modal" required>
+                        <label class="form-label">JUMLAH (RP) *</label>
+                        <input type="text" class="form-control" id="modalJumlah" placeholder="0" required inputmode="numeric">
                     </div>
 
-                    <!-- Catatan Info -->
-                    <div class="form-note">
-                        Catatan:<br>
-                        (*) Harus diisi
+                    <!-- Keterangan -->
+                    <div class="form-group">
+                        <label class="form-label">KETERANGAN *</label>
+                        <input type="text" class="form-control" id="modalKeterangan" placeholder="Ketik keterangan transaksi..." required>
                     </div>
+                </div>
 
-                    <!-- Tombol Aksi SIMPAN & BATAL -->
-                    <div class="modal-btn-group">
-                        <button type="submit" class="btn-modal-submit" id="btnSimpan">SIMPAN</button>
-                        <button type="button" class="btn-modal-cancel" id="btnBatal">BATAL</button>
-                    </div>
-                </form>
-            </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn-modal btn-simpan" id="btnSimpan">Simpan</button>
+                    <button type="button" class="btn-modal btn-batal" id="btnBatal">Batal</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Script Firestore Integrasi -->
+    <!-- Firebase Script Logic -->
     <script type="module">
         import { db } from '../assets/js/firebase-config.js';
-        import { collection, getDocs, addDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { 
+            collection, 
+            getDocs, 
+            getDoc,
+            doc, 
+            addDoc,
+            updateDoc,
+            query, 
+            orderBy,
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-        // Element DOM Filters & List
-        const startDateFilter = document.getElementById('startDateFilter');
-        const endDateFilter = document.getElementById('endDateFilter');
-        const jenisFilter = document.getElementById('jenisFilter');
-        const modalTrxList = document.getElementById('modalTrxList');
-
-        // Element DOM Modal Dialog Form
+        // Element DOM
+        const filterUnit = document.getElementById('filterUnit');
+        const transactionList = document.getElementById('transactionList');
+        const modalForm = document.getElementById('modalForm');
         const btnOpenModal = document.getElementById('btnOpenModal');
         const btnCloseModal = document.getElementById('btnCloseModal');
         const btnBatal = document.getElementById('btnBatal');
-        const modalFormOverlay = document.getElementById('modalFormOverlay');
-        const formModalTrx = document.getElementById('formModalTrx');
+        const formTransaksiModal = document.getElementById('formTransaksiModal');
 
-        // Element Input Form
-        const radioTambah = document.getElementById('radioTambah');
-        const radioPrive = document.getElementById('radioPrive');
-        const trxTanggal = document.getElementById('trxTanggal');
-        const labelSimpanKe = document.getElementById('labelSimpanKe');
-        const selectSimpanKe = document.getElementById('selectSimpanKe');
-        const labelDari = document.getElementById('labelDari');
-        const selectDari = document.getElementById('selectDari');
-        const trxJumlah = document.getElementById('trxJumlah');
-        const trxKeterangan = document.getElementById('trxKeterangan');
+        const editDocId = document.getElementById('editDocId');
+        const modalIconHeader = document.getElementById('modalIconHeader');
+        const modalTitleHeader = document.getElementById('modalTitleHeader');
 
-        let accountsData = [];
+        const modalSelectUnit = document.getElementById('modalSelectUnit');
+        const modalTanggal = document.getElementById('modalTanggal');
+        const modalSelectKas = document.getElementById('modalSelectKas');
+        const modalSelectModalAcc = document.getElementById('modalSelectModalAcc');
+        const modalJumlah = document.getElementById('modalJumlah');
+        const modalKeterangan = document.getElementById('modalKeterangan');
 
-        // Inisialisasi Filter Tanggal Periode Bulan Berjalan
-        function initPeriodDates() {
-            const now = new Date();
-            const y = now.getFullYear();
-            const m = String(now.getMonth() + 1).padStart(2, '0');
-            const lastDay = new Date(y, now.getMonth() + 1, 0).getDate();
+        let accountsList = [];
+        let transactionsMap = {};
 
-            startDateFilter.value = `${y}-${m}-01`;
-            endDateFilter.value = `${y}-${m}-${String(lastDay).padStart(2, '0')}`;
-            trxTanggal.value = now.toISOString().split('T')[0];
+        // Format Currency
+        function formatRupiah(num) {
+            return 'Rp ' + (num || 0).toLocaleString('id-ID');
         }
 
-        // Memuat Akun/Perkiraan dari Firestore
+        function formatInputCurrency(val) {
+            let cleanNumber = String(val).replace(/\D/g, '');
+            if (!cleanNumber) return '';
+            return parseInt(cleanNumber, 10).toLocaleString('id-ID');
+        }
+
+        function parseCurrencyValue(val) {
+            let cleanNumber = String(val).replace(/\D/g, '');
+            return cleanNumber ? parseInt(cleanNumber, 10) : 0;
+        }
+
+        // Set Default Date
+        function initModalDate() {
+            const today = new Date().toISOString().split('T')[0];
+            modalTanggal.value = today;
+        }
+
+        // 1. Memuat Daftar Unit Usaha dari settings/profile -> unitList
+        async function loadUnitOptions() {
+            try {
+                filterUnit.innerHTML = '<option value="">Semua Unit Usaha</option>';
+                modalSelectUnit.innerHTML = '<option value="">-- Pilih Unit Usaha --</option>';
+
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const unitList = data.unitList || [];
+
+                    unitList.forEach(unit => {
+                        const val = unit.kodeUnit || unit.namaUnit;
+                        const label = `[${unit.kodeUnit || '-'}] ${unit.namaUnit}`;
+
+                        // Opsi di Filter Top
+                        const optFilter = document.createElement('option');
+                        optFilter.value = val;
+                        optFilter.textContent = label;
+                        filterUnit.appendChild(optFilter);
+
+                        // Opsi di Modal Input
+                        const optModal = document.createElement('option');
+                        optModal.value = val;
+                        optModal.textContent = label;
+                        modalSelectUnit.appendChild(optModal);
+                    });
+                }
+            } catch (err) {
+                console.error("Gagal memuat unitList:", err);
+            }
+        }
+
+        // 2. Memuat Daftar Akun LEVEL 4
         async function loadAccounts() {
             try {
-                const accSnap = await getDocs(collection(db, 'accounts'));
-                accountsData = [];
-                accSnap.forEach(docSnap => {
-                    accountsData.push({ id: docSnap.id, ...docSnap.data() });
+                const q = query(collection(db, 'accounts'), orderBy('accCode', 'asc'));
+                const querySnapshot = await getDocs(q);
+
+                accountsList = [];
+                modalSelectKas.innerHTML = '<option value="">-- Pilih Akun Kas/Bank --</option>';
+                modalSelectModalAcc.innerHTML = '<option value="">-- Pilih Akun Modal --</option>';
+
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const isPostable = data.isPostable === true || data.isPostable === 'true' || parseInt(data.level, 10) === 4;
+
+                    if (isPostable) {
+                        const accObj = {
+                            id: docSnap.id,
+                            accCode: data.accCode || '',
+                            accName: data.accName || '',
+                            category: (data.category || '').toLowerCase(),
+                            code: String(data.accCode || '')
+                        };
+                        accountsList.push(accObj);
+
+                        // Filter Akun Kas & Bank Level 4
+                        if (accObj.code.startsWith('1.01.01.') || accObj.code.startsWith('1.01.02.') || accObj.category.includes('kas') || accObj.category.includes('bank')) {
+                            const opt = document.createElement('option');
+                            opt.value = accObj.accCode;
+                            opt.textContent = `${accObj.accCode} - ${accObj.accName}`;
+                            modalSelectKas.appendChild(opt);
+                        }
+
+                        // Filter Akun Modal Level 4
+                        if (accObj.code.startsWith('3.') || accObj.category.includes('modal') || accObj.category.includes('ekuitas')) {
+                            const opt = document.createElement('option');
+                            opt.value = accObj.accCode;
+                            opt.textContent = `${accObj.accCode} - ${accObj.accName}`;
+                            modalSelectModalAcc.appendChild(opt);
+                        }
+                    }
                 });
-                populateDropdowns();
             } catch (err) {
-                console.error("Gagal memuat daftar akun:", err);
+                console.error("Gagal memuat accounts:", err);
             }
         }
 
-        // Isi Dropdown Simpan Ke & Dari berdasarkan Jenis Transaksi Modal
-        function populateDropdowns() {
-            selectSimpanKe.innerHTML = '<option value="">Pilih Akun..</option>';
-            selectDari.innerHTML = '<option value="">Pilih Akun..</option>';
-
-            const isTambah = radioTambah.checked;
-
-            if (isTambah) {
-                labelSimpanKe.textContent = "Simpan ke (Kas / Bank)";
-                labelDari.textContent = "Dari (Akun Modal)";
-            } else {
-                labelSimpanKe.textContent = "Simpan ke (Akun Prive / Modal)";
-                labelDari.textContent = "Dari (Kas / Bank)";
-            }
-
-            accountsData.forEach(acc => {
-                const code = String(acc.accCode || '');
-                const name = acc.accName || '';
-                const optionText = `${code} - ${name}`;
-
-                const opt1 = new Option(optionText, code);
-                const opt2 = new Option(optionText, code);
-
-                selectSimpanKe.add(opt1);
-                selectDari.add(opt2);
-            });
-        }
-
-        // Toggle Dynamic Radio Button Change
-        radioTambah.addEventListener('change', () => {
-            if (radioTambah.checked) {
-                trxKeterangan.value = "Tambah Modal";
-                populateDropdowns();
-            }
-        });
-
-        radioPrive.addEventListener('change', () => {
-            if (radioPrive.checked) {
-                trxKeterangan.value = "Penarikan (Prive)";
-                populateDropdowns();
-            }
-        });
-
-        // Kontrol Modal Dialog Overlay
-        function openModal() {
-            modalFormOverlay.classList.add('active');
-        }
-
-        function closeModal() {
-            modalFormOverlay.classList.remove('active');
-            formModalTrx.reset();
-            radioTambah.checked = true;
-            trxKeterangan.value = "Tambah Modal";
-            initPeriodDates();
-            populateDropdowns();
-        }
-
-        btnOpenModal.addEventListener('click', openModal);
-        btnCloseModal.addEventListener('click', closeModal);
-        btnBatal.addEventListener('click', closeModal);
-
-        // Memuat Daftar Transaksi Modal dari Firestore
+        // 3. Memuat Riwayat Transaksi Modal
         async function loadModalTransactions() {
-            modalTrxList.innerHTML = `<div style="text-align: center; color: #94a3b8; font-size: 11px; margin-top: 20px;">Memuat data...</div>`;
-
-            const sDate = startDateFilter.value;
-            const eDate = endDateFilter.value;
-            const jVal = jenisFilter.value;
+            transactionList.innerHTML = '<div class="empty-state">Memuat riwayat transaksi modal...</div>';
 
             try {
-                const qTrx = query(
-                    collection(db, 'journals'),
-                    where('date', '>=', sDate),
-                    where('date', '<=', eDate),
-                    orderBy('date', 'desc')
-                );
+                const selectedUnit = filterUnit.value;
+                const querySnapshot = await getDocs(collection(db, 'journals'));
 
-                const jSnap = await getDocs(qTrx);
-                let html = '';
-                let count = 0;
+                if (querySnapshot.empty) {
+                    transactionList.innerHTML = '<div class="empty-state">Tidak ada transaksi modal pada periode ini.</div>';
+                    return;
+                }
 
-                jSnap.forEach(docSnap => {
+                let transactions = [];
+                transactionsMap = {};
+
+                querySnapshot.forEach(docSnap => {
                     const data = docSnap.data();
-                    const isModalTrx = data.categoryTrx === 'MODAL' || (data.keterangan && data.keterangan.toLowerCase().includes('modal')) || (data.keterangan && data.keterangan.toLowerCase().includes('prive'));
-
-                    if (isModalTrx) {
-                        const jenisTrx = data.jenisModal || (data.keterangan?.toLowerCase().includes('prive') ? 'PRIVE' : 'TAMBAH');
-                        
-                        if (jVal === 'SEMUA' || jVal === jenisTrx) {
-                            count++;
-                            const amount = parseFloat(data.totalAmount || 0);
-                            const isTambah = jenisTrx === 'TAMBAH';
-
-                            html += `
-                                <div class="trx-item-card">
-                                    <div>
-                                        <div class="trx-info-title">${data.keterangan || 'Transaksi Modal'}</div>
-                                        <div class="trx-info-sub">${data.date}</div>
-                                    </div>
-                                    <div class="trx-amount ${isTambah ? 'green' : 'red'}">
-                                        ${isTambah ? '+' : '-'} Rp ${amount.toLocaleString('id-ID')}
-                                    </div>
-                                </div>
-                            `;
+                    if (data.type === 'MODAL') {
+                        if (!selectedUnit || data.unitId === selectedUnit) {
+                            const itemData = {
+                                id: docSnap.id,
+                                ...data
+                            };
+                            transactions.push(itemData);
+                            transactionsMap[docSnap.id] = itemData;
                         }
                     }
                 });
 
-                if (count === 0) {
-                    modalTrxList.innerHTML = `<div style="text-align: center; color: #94a3b8; font-size: 11px; margin-top: 20px;">Tidak ada transaksi modal pada periode ini.</div>`;
-                } else {
-                    modalTrxList.innerHTML = html;
+                if (transactions.length === 0) {
+                    transactionList.innerHTML = '<div class="empty-state">Tidak ada transaksi modal pada periode ini.</div>';
+                    return;
                 }
+
+                // Urutkan berdasarkan tanggal terbaru (Descending)
+                transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                let html = '';
+                transactions.forEach(data => {
+                    html += `
+                        <div class="transaction-card">
+                            <button class="btn-edit-card" onclick="editTransaction('${data.id}')" title="Edit Transaksi">
+                                <span class="material-icons" style="font-size: 18px;">edit</span>
+                            </button>
+                            <div class="trx-header">
+                                <span>${data.date}</span>
+                                <span class="badge-unit">Unit: ${data.unitId || '-'}</span>
+                            </div>
+                            <div class="trx-title">${data.keterangan || 'Transaksi Modal'}</div>
+                            <div class="trx-footer">
+                                <div></div>
+                                <div class="trx-amount">${formatRupiah(data.amount)}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                transactionList.innerHTML = html;
 
             } catch (err) {
                 console.error("Gagal memuat transaksi modal:", err);
-                modalTrxList.innerHTML = `<div style="text-align: center; color: #dc2626; font-size: 11px; margin-top: 20px;">Gagal memuat data transaksi.</div>`;
+                transactionList.innerHTML = '<div class="empty-state" style="color:#dc2626;">Gagal memuat riwayat transaksi.</div>';
             }
         }
 
-        // Simpan Transaksi Modal ke Jurnal Firestore
-        formModalTrx.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        // Buka / Tutup Modal
+        function openModal(isEdit = false) {
+            if (!isEdit) {
+                editDocId.value = '';
+                modalIconHeader.textContent = 'add';
+                modalTitleHeader.textContent = 'Transaksi Modal';
+                formTransaksiModal.reset();
+                initModalDate();
+                document.querySelector('input[name="jenisModal"][value="TAMBAH"]').checked = true;
+            } else {
+                modalIconHeader.textContent = 'edit';
+                modalTitleHeader.textContent = 'Edit Transaksi Modal';
+            }
+            modalForm.classList.add('active');
+        }
 
-            const isTambah = radioTambah.checked;
-            const jenisModal = isTambah ? 'TAMBAH' : 'PRIVE';
-            const tgl = trxTanggal.value;
-            const simpanKe = selectSimpanKe.value;
-            const dari = selectDari.value;
-            const jumlah = parseFloat(trxJumlah.value) || 0;
-            const ket = trxKeterangan.value;
+        function closeModal() {
+            modalForm.classList.remove('active');
+            editDocId.value = '';
+            formTransaksiModal.reset();
+        }
 
-            if (!simpanKe || !dari) {
-                alert("Silakan pilih akun 'Simpan ke' dan 'Dari'");
-                return;
+        // Fitur Edit Transaksi
+        window.editTransaction = function(id) {
+            const trx = transactionsMap[id];
+            if (!trx) return;
+
+            editDocId.value = id;
+
+            // Set Radio Jenis Modal
+            const jenis = trx.jenisModal || 'TAMBAH';
+            const radioEl = document.querySelector(`input[name="jenisModal"][value="${jenis}"]`);
+            if (radioEl) radioEl.checked = true;
+
+            // Set Form Data
+            modalSelectUnit.value = trx.unitId || '';
+            modalTanggal.value = trx.date || '';
+            modalJumlah.value = formatInputCurrency(trx.amount || 0);
+            modalKeterangan.value = trx.keterangan || '';
+
+            // Extract Kas dan Modal Acc Code dari array items
+            if (trx.items && Array.isArray(trx.items) && trx.items.length >= 2) {
+                if (jenis === 'TAMBAH') {
+                    modalSelectKas.value = trx.items[0].accCode || '';
+                    modalSelectModalAcc.value = trx.items[1].accCode || '';
+                } else {
+                    modalSelectModalAcc.value = trx.items[0].accCode || '';
+                    modalSelectKas.value = trx.items[1].accCode || '';
+                }
             }
 
-            if (jumlah <= 0) {
-                alert("Jumlah harus lebih besar dari 0");
+            openModal(true);
+        };
+
+        btnOpenModal.addEventListener('click', () => openModal(false));
+        btnCloseModal.addEventListener('click', closeModal);
+        btnBatal.addEventListener('click', closeModal);
+
+        // Input Format Rupiah Realtime
+        modalJumlah.addEventListener('input', (e) => {
+            e.target.value = formatInputCurrency(e.target.value);
+        });
+
+        // Filter Unit Event
+        filterUnit.addEventListener('change', loadModalTransactions);
+
+        // 4. Simpan / Update Transaksi Modal & Jurnal Umum
+        formTransaksiModal.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const docId = editDocId.value;
+            const jenisModal = document.querySelector('input[name="jenisModal"]:checked').value;
+            const unitId = modalSelectUnit.value;
+            const tanggal = modalTanggal.value;
+            const kasAccCode = modalSelectKas.value;
+            const modalAccCode = modalSelectModalAcc.value;
+            const amount = parseCurrencyValue(modalJumlah.value);
+            const keterangan = modalKeterangan.value;
+
+            if (!unitId || !kasAccCode || !modalAccCode || amount <= 0) {
+                Swal.fire('Peringatan', 'Silakan lengkapi seluruh form data transaksi.', 'warning');
                 return;
             }
 
             try {
-                // Buat item Debit dan Kredit Jurnal
-                const items = [
-                    { accCode: simpanKe, debit: jumlah, kredit: 0 },
-                    { accCode: dari, debit: 0, kredit: jumlah }
-                ];
+                // Susun Jurnal Debit/Kredit
+                let items = [];
+                if (jenisModal === 'TAMBAH') {
+                    items = [
+                        { accCode: kasAccCode, debit: amount, kredit: 0 },
+                        { accCode: modalAccCode, debit: 0, kredit: amount }
+                    ];
+                } else {
+                    items = [
+                        { accCode: modalAccCode, debit: amount, kredit: 0 },
+                        { accCode: kasAccCode, debit: 0, kredit: amount }
+                    ];
+                }
 
-                await addDoc(collection(db, 'journals'), {
-                    date: tgl,
-                    keterangan: ket,
-                    totalAmount: jumlah,
-                    categoryTrx: 'MODAL',
+                const payload = {
+                    type: 'MODAL',
                     jenisModal: jenisModal,
+                    unitId: unitId,
+                    date: tanggal,
+                    amount: amount,
+                    keterangan: keterangan,
                     items: items,
-                    createdAt: new Date().toISOString()
+                    updatedAt: serverTimestamp()
+                };
+
+                if (docId) {
+                    // Update Data Lama
+                    await updateDoc(doc(db, 'journals', docId), payload);
+                } else {
+                    // Simpan Data Baru
+                    payload.createdAt = serverTimestamp();
+                    await addDoc(collection(db, 'journals'), payload);
+                }
+
+                closeModal();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: docId ? 'Transaksi modal berhasil diperbarui.' : 'Transaksi modal berhasil disimpan.',
+                    timer: 1500,
+                    showConfirmButton: false
                 });
 
-                alert("Transaksi Modal berhasil disimpan!");
-                closeModal();
                 loadModalTransactions();
 
             } catch (err) {
                 console.error("Gagal menyimpan transaksi modal:", err);
-                alert("Terjadi kesalahan saat menyimpan transaksi.");
+                Swal.fire('Gagal', err.message, 'error');
             }
         });
 
-        // Event Listener Filter
-        startDateFilter.addEventListener('change', loadModalTransactions);
-        endDateFilter.addEventListener('change', loadModalTransactions);
-        jenisFilter.addEventListener('change', loadModalTransactions);
-
         // Inisialisasi awal
-        initPeriodDates();
-        await loadAccounts();
+        initModalDate();
+        loadUnitOptions();
+        loadAccounts();
         loadModalTransactions();
     </script>
 </body>

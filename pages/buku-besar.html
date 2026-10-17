@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUKU BESAR</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* Hide Scrollbar Visual */
+        html, body, *, .page-container, .report-wrapper {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+
+        ::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            background: transparent !important;
+        }
+
+        body {
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header Utama */
+        .page-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .btn-back {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            padding: 10px 14px;
+            background-color: #ffffff;
+            border-bottom: 2px solid #cbd5e1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 11px;
+            color: #334155;
+            font-weight: 600;
+        }
+
+        .input-date-inline {
+            border: none;
+            border-bottom: 1px solid #5114B9;
+            font-size: 11px;
+            font-weight: 700;
+            color: #5114B9;
+            outline: none;
+            background: transparent;
+            padding: 2px 0;
+            text-align: center;
+            width: 110px;
+        }
+
+        .select-account {
+            width: 100%;
+            height: 36px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 0 10px;
+            font-size: 12px;
+            background-color: #f8fafc;
+            color: #0f172a;
+            outline: none;
+            font-weight: 600;
+        }
+
+        /* Paper Container */
+        .report-wrapper {
+            padding: 12px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .report-paper {
+            border: 1px solid #cbd5e1;
+            padding: 16px 14px;
+            background-color: #ffffff;
+            border-radius: 2px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Laporan Kertas */
+        .report-header {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .company-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .report-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-top: 2px;
+            letter-spacing: 0.5px;
+        }
+
+        .period-subtitle {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 2px;
+        }
+
+        /* Info Akun Terpilih */
+        .account-info-box {
+            background-color: #f1f5f9;
+            border-radius: 8px;
+            padding: 8px 10px;
+            margin-bottom: 12px;
+            font-size: 11px;
+            display: flex;
+            justify-content: space-between;
+            color: #334155;
+            font-weight: 600;
+        }
+
+        /* Tabel Buku Besar */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            flex-grow: 1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            font-weight: 700;
+            text-align: left;
+            padding: 6px 4px;
+            border-bottom: 2px solid #cbd5e1;
+            border-top: 1px solid #cbd5e1;
+        }
+
+        td {
+            padding: 6px 4px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #334155;
+            vertical-align: top;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <!-- Header Atas -->
+        <header class="page-header">
+            <div class="header-left">
+                <a href="../index.html" class="btn-back">
+                    <span class="material-icons">arrow_back</span>
+                </a>
+                <h1>BUKU BESAR</h1>
+            </div>
+            <div>
+                <span class="material-icons" style="font-size: 20px; cursor: pointer;">more_vert</span>
+            </div>
+        </header>
+
+        <!-- Baris Filter -->
+        <div class="filter-section">
+            <div class="filter-row">
+                <span class="filter-label">Periode:</span>
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <input type="date" id="startDate" class="input-date-inline">
+                    <span class="filter-label">s.d</span>
+                    <input type="date" id="endDate" class="input-date-inline">
+                </div>
+            </div>
+            <div class="filter-row" style="margin-top: 4px;">
+                <select id="accountSelect" class="select-account">
+                    <option value="">-- Pilih Akun --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Area Isi Laporan Buku Besar -->
+        <div class="report-wrapper">
+            <div class="report-paper">
+                <!-- Header Dokumen Laporan -->
+                <div class="report-header">
+                    <div class="company-title" id="profileNameDisplay">BUMKal</div>
+                    <div class="report-title">BUKU BESAR</div>
+                    <div class="period-subtitle" id="periodTextDisplay">--</div>
+                </div>
+
+                <div class="account-info-box" id="accountInfoBox">
+                    <span id="selectedAccCodeName">Pilih akun terlebih dahulu</span>
+                    <span id="selectedNormalSaldo">Saldo Normal: --</span>
+                </div>
+
+                <!-- Tabel Data Buku Besar -->
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">Tanggal</th>
+                                <th style="width: 35%;">Keterangan</th>
+                                <th class="text-right" style="width: 15%;">Debit</th>
+                                <th class="text-right" style="width: 15%;">Kredit</th>
+                                <th class="text-right" style="width: 20%;">Saldo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bukuBesarTableBody">
+                            <tr>
+                                <td colspan="5" class="text-center" style="color: #94a3b8; padding: 20px;">Silakan pilih akun untuk melihat buku besar.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Firestore -->
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import { doc, getDoc, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        const accountSelect = document.getElementById('accountSelect');
+        const profileNameDisplay = document.getElementById('profileNameDisplay');
+        const periodTextDisplay = document.getElementById('periodTextDisplay');
+        const selectedAccCodeName = document.getElementById('selectedAccCodeName');
+        const selectedNormalSaldo = document.getElementById('selectedNormalSaldo');
+        const bukuBesarTableBody = document.getElementById('bukuBesarTableBody');
+
+        let accountsMap = {};
+
+        function formatDateDisplay(dateStr) {
+            if (!dateStr) return '';
+            const [y, m, d] = dateStr.split('-');
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            return `${d} ${months[parseInt(m, 10) - 1]} ${y}`;
+        }
+
+        function updatePeriodDisplay() {
+            const s = formatDateDisplay(startDateInput.value);
+            const e = formatDateDisplay(endDateInput.value);
+            periodTextDisplay.textContent = `${s} - ${e}`;
+        }
+
+        async function initPage() {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                let startStr = '';
+                let endStr = '';
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    profileNameDisplay.textContent = data.namaProfil || 'BUMKal';
+
+                    if (data.activeMonthCode && data.activeMonthCode.includes('-')) {
+                        const [y, m] = data.activeMonthCode.split('-');
+                        const firstDay = new Date(parseInt(y, 10), parseInt(m, 10) - 1, 1);
+                        const lastDay = new Date(parseInt(y, 10), parseInt(m, 10), 0);
+
+                        startStr = firstDay.toISOString().split('T')[0];
+                        endStr = lastDay.toISOString().split('T')[0];
+                    }
+                }
+
+                if (!startStr || !endStr) {
+                    const now = new Date();
+                    startStr = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+                    endStr = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+                }
+
+                startDateInput.value = startStr;
+                endDateInput.value = endStr;
+                updatePeriodDisplay();
+
+                // Load Accounts ke Select
+                const accSnap = await getDocs(collection(db, 'accounts'));
+                accountSelect.innerHTML = `<option value="">-- Pilih Akun --</option>`;
+                
+                const accList = [];
+                accSnap.forEach(d => {
+                    const data = d.data();
+                    const code = String(data.accCode || '').trim();
+                    if (code) {
+                        const name = data.accName || '';
+                        const isNormalDebit = code.startsWith('1') || code.startsWith('5') || code.startsWith('6');
+                        accountsMap[code] = {
+                            code: code,
+                            name: name,
+                            normalSaldo: isNormalDebit ? 'DEBIT' : 'KREDIT'
+                        };
+                        accList.push({ code, name });
+                    }
+                });
+
+                accList.sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true })).forEach(acc => {
+                    const opt = document.createElement('option');
+                    opt.value = acc.code;
+                    opt.textContent = `${acc.code} - ${acc.name}`;
+                    accountSelect.appendChild(opt);
+                });
+
+            } catch (err) {
+                console.error("Gagal inisialisasi buku besar:", err);
+            }
+        }
+
+        async function generateBukuBesar() {
+            updatePeriodDisplay();
+            const selectedCode = accountSelect.value;
+            const sDate = startDateInput.value;
+            const eDate = endDateInput.value;
+
+            if (!selectedCode) {
+                selectedAccCodeName.textContent = "Pilih akun terlebih dahulu";
+                selectedNormalSaldo.textContent = "Saldo Normal: --";
+                bukuBesarTableBody.innerHTML = `<tr><td colspan="5" class="text-center" style="color: #94a3b8; padding: 20px;">Silakan pilih akun untuk melihat buku besar.</td></tr>`;
+                return;
+            }
+
+            const accInfo = accountsMap[selectedCode] || { name: '', normalSaldo: 'DEBIT' };
+            selectedAccCodeName.textContent = `${selectedCode} - ${accInfo.name}`;
+            selectedNormalSaldo.textContent = `Saldo Normal: ${accInfo.normalSaldo}`;
+
+            try {
+                // 1. Hitung Saldo Awal (Akumulasi sebelum startDate)
+                const qAll = query(collection(db, 'journals'), where('date', '<=', eDate), orderBy('date', 'asc'));
+                const jSnap = await getDocs(qAll);
+
+                let openingBalance = 0;
+                const rowsData = [];
+
+                jSnap.forEach(docItem => {
+                    const journal = docItem.data();
+                    const jDate = journal.date;
+                    const desc = journal.description || journal.memo || 'Transaksi Jurnal';
+
+                    if (journal.items && Array.isArray(journal.items)) {
+                        journal.items.forEach(item => {
+                            if (String(item.accCode || '').trim() === selectedCode) {
+                                const debit = parseFloat(item.debit) || 0;
+                                const kredit = parseFloat(item.kredit) || 0;
+
+                                if (jDate < sDate) {
+                                    if (accInfo.normalSaldo === 'DEBIT') {
+                                        openingBalance += (debit - kredit);
+                                    } else {
+                                        openingBalance += (kredit - debit);
+                                    }
+                                } else if (jDate >= sDate && jDate <= eDate) {
+                                    rowsData.push({
+                                        date: jDate,
+                                        description: desc,
+                                        debit: debit,
+                                        kredit: kredit
+                                    });
+                                }
+                            }
+                        });
+                    }
+                });
+
+                bukuBesarTableBody.innerHTML = '';
+                
+                // Baris Saldo Awal
+                let runningBalance = openingBalance;
+                const rowAwal = document.createElement('tr');
+                rowAwal.style.backgroundColor = '#f8fafc';
+                rowAwal.innerHTML = `
+                    <td>-</td>
+                    <td><b>Saldo Awal Periode</b></td>
+                    <td class="text-right">-</td>
+                    <td class="text-right">-</td>
+                    <td class="text-right"><b>${runningBalance.toLocaleString('id-ID')}</b></td>
+                `;
+                bukuBesarTableBody.appendChild(rowAwal);
+
+                if (rowsData.length === 0) {
+                    const emptyRow = document.createElement('tr');
+                    emptyRow.innerHTML = `<td colspan="5" class="text-center" style="color: #94a3b8; padding: 15px;">Tidak ada transaksi pada periode ini.</td>`;
+                    bukuBesarTableBody.appendChild(emptyRow);
+                    return;
+                }
+
+                rowsData.forEach(row => {
+                    if (accInfo.normalSaldo === 'DEBIT') {
+                        runningBalance += (row.debit - row.kredit);
+                    } else {
+                        runningBalance += (row.kredit - row.debit);
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${row.date}</td>
+                        <td>${row.description}</td>
+                        <td class="text-right">${row.debit > 0 ? row.debit.toLocaleString('id-ID') : '-'}</td>
+                        <td class="text-right">${row.kredit > 0 ? row.kredit.toLocaleString('id-ID') : '-'}</td>
+                        <td class="text-right">${runningBalance.toLocaleString('id-ID')}</td>
+                    `;
+                    bukuBesarTableBody.appendChild(tr);
+                });
+
+            } catch (err) {
+                console.error("Gagal memuat buku besar:", err);
+                bukuBesarTableBody.innerHTML = `<tr><td colspan="5" class="text-center" style="color: #dc2626; padding: 20px;">Gagal memuat data buku besar.</td></tr>`;
+            }
+        }
+
+        startDateInput.addEventListener('change', generateBukuBesar);
+        endDateInput.addEventListener('change', generateBukuBesar);
+        accountSelect.addEventListener('change', generateBukuBesar);
+
+        await initPage();
+    </script>
+</body>
+</html>

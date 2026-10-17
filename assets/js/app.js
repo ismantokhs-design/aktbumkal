@@ -13,8 +13,22 @@ function initUIControls() {
     const drawerOverlay = document.getElementById('drawerOverlay');
 
     // Sidebar Drawer (Garis 3)
+    function toggleMenu(e) {
+        if (e) e.stopPropagation();
+        closeOption(); // Tutup opsi titik 3 jika sedang terbuka
+        
+        const isActive = drawerMenu?.classList.contains('active');
+        if (isActive) {
+            closeMenu();
+        } else {
+            drawerMenu?.classList.add('active');
+            drawerOverlay?.classList.add('active');
+            document.body.classList.add('no-scroll');
+        }
+    }
+
     function openMenu() {
-        closeOption();
+        closeOption(); 
         drawerMenu?.classList.add('active');
         drawerOverlay?.classList.add('active');
         document.body.classList.add('no-scroll');
@@ -22,20 +36,24 @@ function initUIControls() {
 
     function closeMenu() {
         drawerMenu?.classList.remove('active');
-        drawerOverlay?.classList.remove('active');
+        if (!optionMenuPopup?.classList.contains('active')) {
+            drawerOverlay?.classList.remove('active');
+        }
         document.body.classList.remove('no-scroll');
     }
 
     // Option Menu Popup (Titik 3)
     function toggleOption(e) {
-        e.stopPropagation();
-        closeMenu();
+        if (e) e.stopPropagation();
+        closeMenu(); // Tutup sidebar drawer jika sedang terbuka
+        
         const isActive = optionMenuPopup?.classList.contains('active');
         if (isActive) {
             closeOption();
         } else {
             optionMenuPopup?.classList.add('active');
             drawerOverlay?.classList.add('active');
+            document.body.classList.add('no-scroll');
         }
     }
 
@@ -43,26 +61,45 @@ function initUIControls() {
         optionMenuPopup?.classList.remove('active');
         if (!drawerMenu?.classList.contains('active')) {
             drawerOverlay?.classList.remove('active');
+            document.body.classList.remove('no-scroll');
         }
     }
 
-    // Event Listeners
-    btnToggleMenu?.addEventListener('click', openMenu);
+    // Event Listeners Utama
+    btnToggleMenu?.addEventListener('click', toggleMenu);
     btnToggleOption?.addEventListener('click', toggleOption);
 
     drawerOverlay?.addEventListener('click', () => {
         closeMenu();
         closeOption();
     });
+
+    // Otomatis menutup sidebar & membersihkan body scroll saat menu item diklik
+    const menuItems = drawerMenu?.querySelectorAll('.menu-item');
+    menuItems?.forEach(item => {
+        item.addEventListener('click', () => {
+            closeMenu();
+            document.body.classList.remove('no-scroll');
+        });
+    });
+
+    const optionItems = optionMenuPopup?.querySelectorAll('.option-item');
+    optionItems?.forEach(item => {
+        item.addEventListener('click', () => {
+            closeOption();
+            document.body.classList.remove('no-scroll');
+        });
+    });
 }
 
-// Memuat data dashboard dari Firestore
+// Memuat data dashboard
 async function loadDashboardData() {
     try {
+        if (typeof getAllTransactions !== 'function') return;
         const response = await getAllTransactions();
-        if (!response.success) return;
+        if (!response || !response.success) return;
 
-        const transactions = response.data;
+        const transactions = response.data || [];
         let totalPenerimaan = 0;
         let totalPengeluaran = 0;
 

@@ -110,7 +110,7 @@
             background: transparent;
             padding: 2px 0;
             text-align: center;
-            width: 100px;
+            width: 110px;
         }
 
         /* Paper Container */
@@ -231,7 +231,7 @@
                 <div class="report-header">
                     <div class="company-title" id="profileNameDisplay">BUMKal</div>
                     <div class="report-title">PERUBAHAN MODAL</div>
-                    <div class="period-subtitle" id="periodTextDisplay">01 Okt 2026 - 31 Okt 2026</div>
+                    <div class="period-subtitle" id="periodTextDisplay">--</div>
                 </div>
 
                 <!-- Section 1: MODAL AWAL -->
@@ -289,17 +289,6 @@
 
         const totalModalAkhir = document.getElementById('totalModalAkhir');
 
-        function initDates() {
-            const now = new Date();
-            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-            startDateInput.value = firstDay.toISOString().split('T')[0];
-            endDateInput.value = lastDay.toISOString().split('T')[0];
-
-            updatePeriodDisplay();
-        }
-
         function formatDateDisplay(dateStr) {
             if (!dateStr) return '';
             const [y, m, d] = dateStr.split('-');
@@ -313,16 +302,63 @@
             periodTextDisplay.textContent = `${s} - ${e}`;
         }
 
-        async function loadProfileName() {
+        // Inisialisasi tanggal awal (Tanggal 1) dan tanggal akhir bulan aktif dari database
+        async function initActiveDates() {
             try {
                 const docRef = doc(db, 'settings', 'profile');
                 const docSnap = await getDoc(docRef);
 
+                let startStr = '';
+                let endStr = '';
+
                 if (docSnap.exists()) {
-                    profileNameDisplay.textContent = docSnap.data().namaProfil || 'BUMKal';
+                    const data = docSnap.data();
+                    profileNameDisplay.textContent = data.namaProfil || 'BUMKal';
+
+                    if (data.activeMonthCode && data.activeMonthCode.includes('-')) {
+                        const [y, m] = data.activeMonthCode.split('-');
+                        const yearNum = parseInt(y, 10);
+                        const monthNum = parseInt(m, 10);
+
+                        // Tanggal 1 di awal bulan aktif
+                        const firstDay = new Date(yearNum, monthNum - 1, 1);
+                        // Tanggal terakhir di bulan aktif
+                        const lastDay = new Date(yearNum, monthNum, 0);
+
+                        const fY = firstDay.getFullYear();
+                        const fM = String(firstDay.getMonth() + 1).padStart(2, '0');
+                        const fD = String(firstDay.getDate()).padStart(2, '0');
+                        startStr = `${fY}-${fM}-${fD}`;
+
+                        const lY = lastDay.getFullYear();
+                        const lM = String(lastDay.getMonth() + 1).padStart(2, '0');
+                        const lD = String(lastDay.getDate()).padStart(2, '0');
+                        endStr = `${lY}-${lM}-${lD}`;
+                    }
                 }
+
+                // Fallback jika profil kosong
+                if (!startStr || !endStr) {
+                    const now = new Date();
+                    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                    startStr = firstDay.toISOString().split('T')[0];
+                    endStr = lastDay.toISOString().split('T')[0];
+                }
+
+                startDateInput.value = startStr;
+                endDateInput.value = endStr;
+
+                updatePeriodDisplay();
+                await generatePerubahanModalReport();
+
             } catch (err) {
-                console.error("Gagal memuat profil BUMKal:", err);
+                console.error("Gagal memuat profil / tanggal aktif:", err);
+                const now = new Date();
+                startDateInput.value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+                endDateInput.value = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+                updatePeriodDisplay();
+                await generatePerubahanModalReport();
             }
         }
 
@@ -371,7 +407,7 @@
                             const cat = (accInfo.category || '').toLowerCase();
                             const name = (accInfo.name || '').toLowerCase();
 
-                            // Modal Awal (Sebelum awal periode) ATAU Transaksi Modal Murni (3)
+                            // Modal Awal & Transaksi Modal Murni (3)
                             if (code.startsWith('3') || cat.includes('modal') || cat.includes('ekuitas')) {
                                 if (name.includes('prive')) {
                                     if (jDate >= sDate && jDate <= eDate) {
@@ -419,9 +455,8 @@
         startDateInput.addEventListener('change', generatePerubahanModalReport);
         endDateInput.addEventListener('change', generatePerubahanModalReport);
 
-        initDates();
-        await loadProfileName();
-        generatePerubahanModalReport();
+        // Inisialisasi awal saat halaman dimuat
+        initActiveDates();
     </script>
 </body>
 </html>

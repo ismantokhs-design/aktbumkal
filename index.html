@@ -30,31 +30,40 @@
             background-color: rgba(81, 20, 185, 0.1);
         }
 
-        /* Mengunci Header Drawer agar diam/sticky */
-        .drawer-header {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            background-color: #5114B9;
-        }
-
-        /* Struktur Drawer */
-        .drawer-menu {
+        .card-sub-header {
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            gap: 8px;
         }
 
-        /* Menyembunyikan Scrollbar Drawer (Tetap Bisa Di-scroll) */
-        .drawer-content {
-            overflow-y: auto;
-            flex-grow: 1;
-            -ms-overflow-style: none !important; /* IE dan Edge */
-            scrollbar-width: none !important;  /* Firefox */
+        .select-unit-dashboard {
+            height: 28px;
+            padding: 0 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #0f172a;
+            background-color: #f8fafc;
+            outline: none;
+            max-width: 170px;
         }
 
-        .drawer-content::-webkit-scrollbar {
-            display: none !important; /* Chrome, Safari, Opera */
-            width: 0 !important;
+        .select-unit-dashboard:focus {
+            border-color: #5114B9;
+            background-color: #ffffff;
+        }
+
+        .active-month-bar {
+            background-color: #f1f5f9;
+            padding: 6px 14px;
+            font-size: 11px;
+            color: #334155;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -75,9 +84,9 @@
     <!-- Overlay Latar Belakang Gelap -->
     <div class="drawer-overlay" id="drawerOverlay"></div>
 
-    <!-- Sidebar Navigation Drawer (Garis 3) -->
+    <!-- Sidebar Navigation Drawer -->
     <div class="drawer-menu" id="drawerMenu">
-        <!-- Header Drawer Sticky -->
+        <!-- Header Drawer -->
         <div class="drawer-header">
             <div class="drawer-header-title">PROFIL AKUNTANSI</div>
             <div class="drawer-profile-info">
@@ -86,93 +95,140 @@
             </div>
         </div>
 
-        <div class="drawer-content">
-            <div class="menu-category">DATA</div>
+        <!-- Konten Menu Akordion Tengah -->
+        <div class="drawer-content" id="drawerContent">
+            <!-- KATEGORI 1: DATA -->
+            <div class="menu-section">
+                <div class="menu-category-header">
+                    <span>DATA</span>
+                    <span class="material-icons">expand_more</span>
+                </div>
+                <div class="menu-items-group">
+                    <a href="./pages/kontak.html" class="menu-item">
+                        <span class="material-icons">badge</span>
+                        <span>Kontak</span>
+                    </a>
+                    <a href="./pages/akun.html" class="menu-item">
+                        <span class="material-icons">list_alt</span>
+                        <span>Akun/Perkiraan</span>
+                    </a>
+                    <a href="./pages/barang.html" class="menu-item">
+                        <span class="material-icons">inventory_2</span>
+                        <span>Barang</span>
+                    </a>
+                </div>
+            </div>
 
-            <a href="#" class="menu-item">
-                <span class="material-icons">badge</span>
-                <span>Kontak</span>
-            </a>
-            <a href="./pages/akun.html" class="menu-item">
-                <span class="material-icons">list_alt</span>
-                <span>Akun/Perkiraan</span>
-            </a>
+            <!-- KATEGORI 2: TRANSAKSI -->
+            <div class="menu-section">
+                <div class="menu-category-header">
+                    <span>TRANSAKSI</span>
+                    <span class="material-icons">expand_more</span>
+                </div>
+                <div class="menu-items-group">
+                    <a href="./pages/saldo-awal.html" class="menu-item">
+                        <span class="material-icons">edit_note</span>
+                        <span>Saldo Awal</span>
+                    </a>
+                    <a href="./pages/input-jurnal.html" class="menu-item">
+                        <span class="material-icons">post_add</span>
+                        <span>Entri Jurnal</span>
+                    </a>
+                    <a href="./pages/aset.html" class="menu-item">
+                        <span class="material-icons">devices_other</span>
+                        <span>Aset</span>
+                    </a>
+                    <a href="./pages/produksi.html" class="menu-item">
+                        <span class="material-icons">factory</span>
+                        <span>Proses Produksi</span>
+                    </a>
+                    <a href="./pages/penjualan.html" class="menu-item">
+                        <span class="material-icons">point_of_sale</span>
+                        <span>Penjualan Produk</span>
+                    </a>
+                </div>
+            </div>
 
-            <div class="drawer-divider"></div>
+            <!-- KATEGORI 3: TRANSAKSI KHUSUS -->
+            <div class="menu-section">
+                <div class="menu-category-header">
+                    <span>TRANSAKSI KHUSUS</span>
+                    <span class="material-icons">expand_more</span>
+                </div>
+                <div class="menu-items-group">
+                    <a href="./pages/modal.html" class="menu-item">
+                        <span class="material-icons">account_balance_wallet</span>
+                        <span>Modal</span>
+                    </a>
+                    <a href="./pages/kas-masuk.html" class="menu-item">
+                        <span class="material-icons">add_circle</span>
+                        <span>Penerimaan Kas</span>
+                    </a>
+                    <a href="./pages/kas-keluar.html" class="menu-item">
+                        <span class="material-icons">remove_circle</span>
+                        <span>Pengeluaran Kas</span>
+                    </a>
+                    <a href="./pages/piutang.html" class="menu-item">
+                        <span class="material-icons">receipt_long</span>
+                        <span>Piutang</span>
+                    </a>
+                    <a href="./pages/hutang.html" class="menu-item">
+                        <span class="material-icons">request_quote</span>
+                        <span>Hutang</span>
+                    </a>
+                </div>
+            </div>
 
-            <div class="menu-category">TRANSAKSI</div>
+            <!-- KATEGORI 4: LAPORAN -->
+            <div class="menu-section">
+                <div class="menu-category-header">
+                    <span>LAPORAN</span>
+                    <span class="material-icons">expand_more</span>
+                </div>
+                <div class="menu-items-group">
+                    <a href="./pages/jurnal.html" class="menu-item">
+                        <span class="material-icons">chat_bubble</span>
+                        <span>Jurnal</span>
+                    </a>
+                    <a href="./pages/buku-besar.html" class="menu-item">
+                        <span class="material-icons">menu_book</span>
+                        <span>Buku Besar</span>
+                    </a>
+                    <a href="./pages/neraca-saldo.html" class="menu-item">
+                        <span class="material-icons">view_list</span>
+                        <span>Neraca Saldo</span>
+                    </a>
+                    <a href="./pages/laba-rugi.html" class="menu-item">
+                        <span class="material-icons">insert_photo</span>
+                        <span>Laba/Rugi</span>
+                    </a>
+                    <a href="./pages/neraca.html" class="menu-item">
+                        <span class="material-icons">view_column</span>
+                        <span>Neraca</span>
+                    </a>
+                    <a href="./pages/arus-kas.html" class="menu-item">
+                        <span class="material-icons">show_chart</span>
+                        <span>Arus Kas</span>
+                    </a>
+                    <a href="./pages/perubahan-modal.html" class="menu-item">
+                        <span class="material-icons">trending_up</span>
+                        <span>Perubahan Modal</span>
+                    </a>
+                </div>
+            </div>
+        </div>
 
-            <a href="./pages/saldo-awal.html" class="menu-item">
-                <span class="material-icons">edit_note</span>
-                <span>Saldo Awal</span>
-            </a>
-            <a href="./pages/input-jurnal.html" class="menu-item">
-                <span class="material-icons">post_add</span>
-                <span>Entri Jurnal</span>
-            </a>
-
-            <div class="drawer-divider"></div>
-
-            <div class="menu-category">TRANSAKSI KHUSUS</div>
-
-            <!-- Tautan Terhubung ke pages/modal.html -->
-            <a href="./pages/modal.html" class="menu-item">
-                <span class="material-icons">account_balance_wallet</span>
-                <span>Modal</span>
-            </a>
-            <a href="#" class="menu-item">
-                <span class="material-icons">add_circle</span>
-                <span>Penerimaan Kas</span>
-            </a>
-            <a href="#" class="menu-item">
-                <span class="material-icons">remove_circle</span>
-                <span>Pengeluaran Kas</span>
-            </a>
-            <a href="#" class="menu-item">
-                <span class="material-icons">receipt_long</span>
-                <span>Piutang</span>
-            </a>
-            <a href="#" class="menu-item">
-                <span class="material-icons">request_quote</span>
-                <span>Hutang</span>
-            </a>
-
-            <div class="drawer-divider"></div>
-
-            <div class="menu-category">LAPORAN</div>
-
-            <a href="#" class="menu-item">
-                <span class="material-icons">chat_bubble</span>
-                <span>Jurnal</span>
-            </a>
-            <a href="#" class="menu-item">
-                <span class="material-icons">menu_book</span>
-                <span>Buku Besar</span>
-            </a>
-            <a href="#" class="menu-item">
-                <span class="material-icons">view_list</span>
-                <span>Neraca Saldo</span>
-            </a>
-            <a href="./pages/laba-rugi.html" class="menu-item">
-                <span class="material-icons">insert_photo</span>
-                <span>Laba/Rugi</span>
-            </a>
-            <a href="./pages/neraca.html" class="menu-item">
-                <span class="material-icons">view_column</span>
-                <span>Neraca</span>
-            </a>
-            <a href="./pages/arus-kas.html" class="menu-item">
-                <span class="material-icons">show_chart</span>
-                <span>Arus Kas</span>
-            </a>
-            <a href="./pages/perubahan-modal.html" class="menu-item">
-                <span class="material-icons">trending_up</span>
-                <span>Perubahan Modal</span>
-            </a>
+        <!-- Footer Sidebar (User Login) -->
+        <div class="drawer-footer-user">
+            <span class="material-icons">account_circle</span>
+            <div class="drawer-user-info">
+                <span class="drawer-user-label">User Login</span>
+                <span class="drawer-user-name" id="drawerUserNameLogin">Memuat...</span>
+            </div>
         </div>
     </div>
 
-    <!-- Option Menu Popup (Titik 3) -->
+    <!-- Option Menu Popup -->
     <div class="option-menu-popup" id="optionMenuPopup">
         <div class="option-header">OPTION MENU</div>
         <div class="option-list">
@@ -191,6 +247,11 @@
 
             <div class="option-divider"></div>
 
+            <a href="./pages/tutup-bulan.html" class="option-item">
+                <span class="material-icons">event_repeat</span>
+                <span>Tutup Akhir Bulan</span>
+            </a>
+
             <a href="./pages/tutup-buku.html" class="option-item">
                 <span class="material-icons">published_with_changes</span>
                 <span>Tutup Buku Akhir Tahun</span>
@@ -203,6 +264,10 @@
                 <span class="material-icons">restore</span>
                 <span>Restore</span>
             </a>
+            <a href="./pages/reset-data.html" class="option-item">
+                <span class="material-icons">restart_alt</span>
+                <span>Reset Data</span>
+            </a>
 
             <div class="option-divider"></div>
 
@@ -213,14 +278,6 @@
 
             <div class="option-divider"></div>
 
-            <a href="#" class="option-item">
-                <span class="material-icons">info</span>
-                <span>Tentang Aplikasi</span>
-            </a>
-
-            <div class="option-divider"></div>
-
-            <!-- Tombol Keluar -->
             <div class="option-item" id="btnOpenLogout" style="cursor: pointer;">
                 <span class="material-icons">power_settings_new</span>
                 <span>Keluar</span>
@@ -250,9 +307,14 @@
             <h1 id="headerHeaderName">Memuat...</h1>
         </header>
 
-        <!-- Rentang Periode -->
+        <!-- Rentang Periode Dinamis -->
         <div class="period-bar" id="periodDisplayBar">
-            Periode <span id="startPeriodText">01-Jan-2026</span> s.d <span id="endPeriodText">31-Des-2026</span>
+            Periode <span id="startPeriodText">--</span> s.d <span id="endPeriodText">--</span>
+        </div>
+
+        <!-- Info Bulan Aktif di Bawah Periode -->
+        <div class="active-month-bar">
+            Bulan Aktif: <span id="activeMonthDisplayText">--</span>
         </div>
 
         <!-- Main Content -->
@@ -265,12 +327,17 @@
                         <span class="material-icons" style="font-size: 18px; color: #5114B9; font-weight: bold;">chevron_right</span>
                     </a>
                 </div>
-                <div style="text-align: right; font-size: 11px; color: #005691; font-weight: bold;" id="yearLabelDisplay">Tahun 2026</div>
+
+                <div class="card-sub-header">
+                    <select class="select-unit-dashboard" id="filterUnitLabaRugi">
+                        <option value="">Konsolidasi (Gabungan)</option>
+                    </select>
+                    <div style="font-size: 11px; color: #005691; font-weight: bold;" id="yearLabelDisplay">Tahun --</div>
+                </div>
                 
                 <div class="chart-container" style="position: relative;">
                     <span class="chart-label-y" id="chartYMax">0</span>
                     <svg viewBox="0 0 340 130" style="width:100%; height:100%;" id="svgChart">
-                        <!-- Garis Grid Vertikal -->
                         <line x1="10" y1="10" x2="10" y2="110" stroke="#eee" stroke-width="1"/>
                         <line x1="38" y1="10" x2="38" y2="110" stroke="#eee" stroke-width="1"/>
                         <line x1="66" y1="10" x2="66" y2="110" stroke="#eee" stroke-width="1"/>
@@ -284,10 +351,8 @@
                         <line x1="290" y1="10" x2="290" y2="110" stroke="#eee" stroke-width="1"/>
                         <line x1="318" y1="10" x2="318" y2="110" stroke="#eee" stroke-width="1"/>
                         
-                        <!-- Garis Dasar Sumbu X -->
                         <line x1="10" y1="110" x2="318" y2="110" stroke="#f44336" stroke-width="1.5"/>
 
-                        <!-- Label Bulan -->
                         <text x="10" y="122" font-size="8" text-anchor="middle">Jan</text>
                         <text x="38" y="122" font-size="8" text-anchor="middle">Feb</text>
                         <text x="66" y="122" font-size="8" text-anchor="middle">Mar</text>
@@ -301,7 +366,6 @@
                         <text x="290" y="122" font-size="8" text-anchor="middle">Nov</text>
                         <text x="318" y="122" font-size="8" text-anchor="middle">Des</text>
 
-                        <!-- Element Nilai & Line Chart Dinamis dari JS -->
                         <g id="dynamicChartGroup"></g>
                     </svg>
                 </div>
@@ -363,7 +427,7 @@
                 <div class="card" style="margin-bottom:0;">
                     <div class="card-header">
                         <span class="card-title" style="font-size:10px;">Total Hutang</span>
-                        <a href="#" class="icon-btn-next">
+                        <a href="./pages/hutang.html" class="icon-btn-next">
                             <span class="material-icons" style="font-size: 18px; color: #5114B9;">chevron_right</span>
                         </a>
                     </div>
@@ -376,7 +440,7 @@
                 <div class="card" style="margin-bottom:0;">
                     <div class="card-header">
                         <span class="card-title" style="font-size:10px;">Total Piutang</span>
-                        <a href="#" class="icon-btn-next">
+                        <a href="./pages/piutang.html" class="icon-btn-next">
                             <span class="material-icons" style="font-size: 18px; color: #5114B9;">chevron_right</span>
                         </a>
                     </div>
@@ -400,19 +464,53 @@
         </nav>
     </div>
 
-    <!-- Script Utama Aplikasi -->
-    <script type="module" src="./assets/js/app.js"></script>
+    <!-- Script Utama Interaksi Akordion Eksklusif & Drawer -->
+    <script type="module">
+        import './assets/js/app.js';
+        
+        window.addEventListener('pageshow', () => {
+            const drawerMenu = document.getElementById('drawerMenu');
+            const optionMenuPopup = document.getElementById('optionMenuPopup');
+            const drawerOverlay = document.getElementById('drawerOverlay');
 
-    <!-- Script Integrasi Firestore Dashboard -->
+            drawerMenu?.classList.remove('active');
+            optionMenuPopup?.classList.remove('active');
+            drawerOverlay?.classList.remove('active');
+            document.body.classList.remove('no-scroll');
+        });
+
+        // Logika Akordion Eksklusif (Menu lain otomatis tertutup & animasi buka-tutup mulus)
+        const menuHeaders = document.querySelectorAll('.menu-category-header');
+        menuHeaders.forEach(header => {
+            header.addEventListener('click', () => {
+                const section = header.parentElement;
+                const isActive = section.classList.contains('active');
+                
+                // Tutup semua kategori terlebih dahulu
+                document.querySelectorAll('.menu-section').forEach(sec => {
+                    sec.classList.remove('active');
+                });
+
+                // Jika sebelumnya belum aktif, buka kategori yang diklik
+                if (!isActive) {
+                    section.classList.add('active');
+                }
+            });
+        });
+    </script>
+
+    <!-- Script Integrasi Firestore Dashboard & Nama User Login -->
     <script type="module">
         import { auth, db } from './assets/js/firebase-config.js';
-        import { signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
         import { doc, getDoc, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const headerHeaderName = document.getElementById('headerHeaderName');
         const drawerProfileName = document.getElementById('drawerProfileName');
+        const drawerUserNameLogin = document.getElementById('drawerUserNameLogin');
+        const filterUnitLabaRugi = document.getElementById('filterUnitLabaRugi');
+        const activeMonthDisplayText = document.getElementById('activeMonthDisplayText');
 
-        // Element Dashboard
         const displayPenerimaanKas = document.getElementById('displayPenerimaanKas');
         const displayPengeluaranKas = document.getElementById('displayPengeluaranKas');
         const displayArusKasBersih = document.getElementById('displayArusKasBersih');
@@ -429,16 +527,72 @@
         const dynamicChartGroup = document.getElementById('dynamicChartGroup');
         const chartYMax = document.getElementById('chartYMax');
 
-        const currentYear = new Date().getFullYear();
-        document.getElementById('yearLabelDisplay').textContent = `Tahun ${currentYear}`;
-        document.getElementById('startPeriodText').textContent = `01-Jan-${currentYear}`;
-        document.getElementById('endPeriodText').textContent = `31-Des-${currentYear}`;
+        function formatDateIndo(dateStr) {
+            if (!dateStr) return '--';
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr;
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = months[d.getMonth()];
+            const year = d.getFullYear();
+            return `${day}-${month}-${year}`;
+        }
 
-        // Memuat Nama BUMKal dari Firestore
+        function formatMonthName(activeMonthCode, fallbackDateStr) {
+            const monthsFull = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            
+            if (activeMonthCode && activeMonthCode.includes('-')) {
+                const parts = activeMonthCode.split('-');
+                const y = parts[0];
+                const m = parseInt(parts[1], 10) - 1;
+                if (!isNaN(m) && monthsFull[m]) {
+                    return `${monthsFull[m]} ${y}`;
+                }
+            }
+
+            if (fallbackDateStr) {
+                const d = new Date(fallbackDateStr);
+                if (!isNaN(d.getTime())) {
+                    return `${monthsFull[d.getMonth()]} ${d.getFullYear()}`;
+                }
+            }
+
+            const now = new Date();
+            return `${monthsFull[now.getMonth()]} ${now.getFullYear()}`;
+        }
+
+        let currentStartDate = `${new Date().getFullYear()}-01-01`;
+        let currentEndDate = `${new Date().getFullYear()}-12-31`;
+
+        // Deteksi User Login & Ambil Nama User
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                let userName = user.displayName || user.email || 'Administrator';
+                
+                try {
+                    const userDocRef = doc(db, 'users', user.uid);
+                    const userDocSnap = await getDoc(userDocRef);
+                    if (userDocSnap.exists() && userDocSnap.data().nama) {
+                        userName = userDocSnap.data().nama;
+                    }
+                } catch (e) {
+                    console.warn("Menggunakan nama auth default");
+                }
+
+                if (drawerUserNameLogin) {
+                    drawerUserNameLogin.textContent = userName;
+                }
+            } else {
+                window.location.href = './pages/login.html';
+            }
+        });
+
         async function loadProfileHeader() {
             try {
                 const docRef = doc(db, 'settings', 'profile');
                 const docSnap = await getDoc(docRef);
+
+                let activeMonthCode = '';
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
@@ -446,18 +600,47 @@
 
                     if (headerHeaderName) headerHeaderName.textContent = nama;
                     if (drawerProfileName) drawerProfileName.textContent = nama;
+
+                    if (data.tglMulai) currentStartDate = data.tglMulai;
+                    if (data.tglSelesai) currentEndDate = data.tglSelesai;
+                    if (data.activeMonthCode) activeMonthCode = data.activeMonthCode;
+
+                    if (filterUnitLabaRugi) {
+                        filterUnitLabaRugi.innerHTML = '<option value="">Konsolidasi (Gabungan)</option>';
+                        const unitList = data.unitList || [];
+                        unitList.forEach(unit => {
+                            const val = unit.kodeUnit || unit.namaUnit;
+                            const label = `Unit: ${unit.kodeUnit || ''} - ${unit.namaUnit}`;
+                            const opt = document.createElement('option');
+                            opt.value = val;
+                            opt.textContent = label;
+                            filterUnitLabaRugi.appendChild(opt);
+                        });
+                    }
+
                 } else {
                     if (headerHeaderName) headerHeaderName.textContent = 'BUMKal';
                     if (drawerProfileName) drawerProfileName.textContent = 'BUMKal';
                 }
+
+                const activeYear = new Date(currentStartDate).getFullYear() || new Date().getFullYear();
+                document.getElementById('yearLabelDisplay').textContent = `Tahun ${activeYear}`;
+                document.getElementById('startPeriodText').textContent = formatDateIndo(currentStartDate);
+                document.getElementById('endPeriodText').textContent = formatDateIndo(currentEndDate);
+
+                if (activeMonthDisplayText) {
+                    activeMonthDisplayText.textContent = formatMonthName(activeMonthCode, currentStartDate);
+                }
+
             } catch (error) {
                 console.error("Gagal memuat profil header:", error);
             }
         }
 
-        // Memuat Data Keuangan Real-Time dari Firestore
         async function loadDashboardData() {
             try {
+                const selectedUnit = filterUnitLabaRugi ? filterUnitLabaRugi.value : '';
+
                 const accSnap = await getDocs(collection(db, 'accounts'));
                 const accountsMap = {};
 
@@ -471,13 +654,9 @@
                     };
                 });
 
-                const startDate = `${currentYear}-01-01`;
-                const endDate = `${currentYear}-12-31`;
-
                 const qJurnal = query(
                     collection(db, 'journals'),
-                    where('date', '>=', startDate),
-                    where('date', '<=', endDate),
+                    where('date', '<=', currentEndDate),
                     orderBy('date', 'asc')
                 );
 
@@ -494,10 +673,17 @@
                 let totalPiutang = 0;
 
                 const monthlyProfit = Array(12).fill(0);
+                const activeYear = new Date(currentStartDate).getFullYear();
 
                 jSnap.forEach(docItem => {
                     const journal = docItem.data();
+
+                    if (selectedUnit && journal.unitId && journal.unitId !== selectedUnit) {
+                        return;
+                    }
+
                     const trxDate = new Date(journal.date);
+                    const trxYear = trxDate.getFullYear();
                     const monthIndex = trxDate.getMonth();
 
                     let monthRevenue = 0;
@@ -513,39 +699,48 @@
                             const cat = (accInfo.category || '').toLowerCase();
                             const accName = (accInfo.name || '').toLowerCase();
 
-                            const isKasBank = code.startsWith('1.01') || code.startsWith('111') || 
-                                              cat.includes('kas') || cat.includes('bank') || 
-                                              accName.includes('kas') || accName.includes('bank') || accName.includes('bpd');
+                            const isKasBank = code.startsWith('1.01') || code.startsWith('111') ||  
+                                    cat.includes('kas') || cat.includes('bank') ||  
+                                    accName.includes('kas') || accName.includes('bank') || accName.includes('bpd');
 
-                            if (isKasBank) {
-                                totalPenerimaanKas += debit;
-                                totalPengeluaranKas += kredit;
-                                totalKasBank += (debit - kredit);
+                            if (trxYear === activeYear) {
+                                if (isKasBank) {
+                                    totalPenerimaanKas += debit;
+                                    totalPengeluaranKas += kredit;
+                                }
+
+                                if (code.startsWith('4') || cat.includes('pendapatan') || accName.includes('pendapatan')) {
+                                    const rev = (kredit - debit);
+                                    totalPendapatan += rev;
+                                    monthRevenue += rev;
+                                }
+
+                                if (code.startsWith('5') || code.startsWith('6') || cat.includes('biaya') || cat.includes('beban')) {
+                                    const exp = (debit - kredit);
+                                    totalBiaya += exp;
+                                    monthExpense += exp;
+                                }
                             }
 
-                            if (code.startsWith('4') || cat.includes('pendapatan') || accName.includes('pendapatan')) {
-                                const rev = (kredit - debit);
-                                totalPendapatan += rev;
-                                monthRevenue += rev;
-                            }
+                            if (trxDate <= new Date(currentEndDate)) {
+                                if (isKasBank) {
+                                    totalKasBank += (debit - kredit);
+                                }
 
-                            if (code.startsWith('5') || code.startsWith('6') || cat.includes('biaya') || cat.includes('beban')) {
-                                const exp = (debit - kredit);
-                                totalBiaya += exp;
-                                monthExpense += exp;
-                            }
+                                if (code.startsWith('2') || cat.includes('hutang') || cat.includes('kewajiban')) {
+                                    totalHutang += (kredit - debit);
+                                }
 
-                            if (code.startsWith('2') || cat.includes('hutang') || cat.includes('kewajiban')) {
-                                totalHutang += (kredit - debit);
-                            }
-
-                            if (code.startsWith('1.02') || cat.includes('piutang') || accName.includes('piutang')) {
-                                totalPiutang += (debit - kredit);
+                                if (code.startsWith('1.02') || cat.includes('piutang') || accName.includes('piutang')) {
+                                    totalPiutang += (debit - kredit);
+                                }
                             }
                         });
                     }
 
-                    monthlyProfit[monthIndex] += (monthRevenue - monthExpense);
+                    if (trxYear === activeYear) {
+                        monthlyProfit[monthIndex] += (monthRevenue - monthExpense);
+                    }
                 });
 
                 const arusKasBersih = totalPenerimaanKas - totalPengeluaranKas;
@@ -615,6 +810,8 @@
             }
         }
 
+        filterUnitLabaRugi?.addEventListener('change', loadDashboardData);
+
         const btnOpenLogout = document.getElementById('btnOpenLogout');
         const modalLogout = document.getElementById('modalLogout');
         const btnCancelLogout = document.getElementById('btnCancelLogout');
@@ -651,8 +848,12 @@
             window.location.href = './pages/login.html';
         });
 
-        loadProfileHeader();
-        loadDashboardData();
+        async function initDashboard() {
+            await loadProfileHeader();
+            await loadDashboardData();
+        }
+
+        initDashboard();
     </script>
 
     <!-- Service Worker -->

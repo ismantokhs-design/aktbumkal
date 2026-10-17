@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JURNAL UMUM</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* Hide Scrollbar Visual */
+        html, body, *, .page-container, .report-wrapper {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+
+        ::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            background: transparent !important;
+        }
+
+        body {
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header Utama */
+        .page-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .btn-back {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            padding: 10px 14px;
+            background-color: #ffffff;
+            border-bottom: 2px solid #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 11px;
+            color: #334155;
+            font-weight: 600;
+        }
+
+        .input-date-inline {
+            border: none;
+            border-bottom: 1px solid #5114B9;
+            font-size: 11px;
+            font-weight: 700;
+            color: #5114B9;
+            outline: none;
+            background: transparent;
+            padding: 2px 0;
+            text-align: center;
+            width: 110px;
+        }
+
+        /* Paper Container */
+        .report-wrapper {
+            padding: 12px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .report-paper {
+            border: 1px solid #cbd5e1;
+            padding: 16px 14px;
+            background-color: #ffffff;
+            border-radius: 2px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Laporan Kertas */
+        .report-header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .company-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .report-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-top: 2px;
+            letter-spacing: 0.5px;
+        }
+
+        .period-subtitle {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 2px;
+        }
+
+        /* Tabel Jurnal Umum */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            flex-grow: 1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            font-weight: 700;
+            text-align: left;
+            padding: 6px 4px;
+            border-bottom: 2px solid #cbd5e1;
+            border-top: 1px solid #cbd5e1;
+        }
+
+        td {
+            padding: 6px 4px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #334155;
+            vertical-align: top;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .journal-group-header {
+            background-color: #f8fafc;
+            font-weight: 700;
+            color: #0f172a;
+            border-top: 1px solid #cbd5e1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <!-- Header Atas -->
+        <header class="page-header">
+            <div class="header-left">
+                <a href="../index.html" class="btn-back">
+                    <span class="material-icons">arrow_back</span>
+                </a>
+                <h1>JURNAL UMUM</h1>
+            </div>
+            <div>
+                <span class="material-icons" style="font-size: 20px; cursor: pointer;">more_vert</span>
+            </div>
+        </header>
+
+        <!-- Baris Filter Periode -->
+        <div class="filter-section">
+            <span class="filter-label">Periode</span>
+            <input type="date" id="startDate" class="input-date-inline">
+            <span class="filter-label">s.d</span>
+            <input type="date" id="endDate" class="input-date-inline">
+        </div>
+
+        <!-- Area Isi Laporan Jurnal Umum -->
+        <div class="report-wrapper">
+            <div class="report-paper">
+                <!-- Header Dokumen Laporan -->
+                <div class="report-header">
+                    <div class="company-title" id="profileNameDisplay">BUMKal</div>
+                    <div class="report-title">JURNAL UMUM</div>
+                    <div class="period-subtitle" id="periodTextDisplay">--</div>
+                </div>
+
+                <!-- Tabel Data Jurnal -->
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 16%;">Tanggal</th>
+                                <th style="width: 44%;">Keterangan / Akun</th>
+                                <th class="text-right" style="width: 20%;">Debit</th>
+                                <th class="text-right" style="width: 20%;">Kredit</th>
+                            </tr>
+                        </thead>
+                        <tbody id="jurnalTableBody">
+                            <tr>
+                                <td colspan="4" class="text-center" style="color: #94a3b8; padding: 20px;">Memuat data jurnal...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Firestore -->
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import { doc, getDoc, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        const profileNameDisplay = document.getElementById('profileNameDisplay');
+        const periodTextDisplay = document.getElementById('periodTextDisplay');
+        const jurnalTableBody = document.getElementById('jurnalTableBody');
+
+        function formatDateDisplay(dateStr) {
+            if (!dateStr) return '';
+            const [y, m, d] = dateStr.split('-');
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            return `${d} ${months[parseInt(m, 10) - 1]} ${y}`;
+        }
+
+        function updatePeriodDisplay() {
+            const s = formatDateDisplay(startDateInput.value);
+            const e = formatDateDisplay(endDateInput.value);
+            periodTextDisplay.textContent = `${s} - ${e}`;
+        }
+
+        async function initActiveDates() {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                let startStr = '';
+                let endStr = '';
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    profileNameDisplay.textContent = data.namaProfil || 'BUMKal';
+
+                    if (data.activeMonthCode && data.activeMonthCode.includes('-')) {
+                        const [y, m] = data.activeMonthCode.split('-');
+                        const yearNum = parseInt(y, 10);
+                        const monthNum = parseInt(m, 10);
+
+                        // Tanggal 1 di awal bulan aktif
+                        const firstDay = new Date(yearNum, monthNum - 1, 1);
+                        // Tanggal terakhir di bulan aktif
+                        const lastDay = new Date(yearNum, monthNum, 0);
+
+                        const fY = firstDay.getFullYear();
+                        const fM = String(firstDay.getMonth() + 1).padStart(2, '0');
+                        const fD = String(firstDay.getDate()).padStart(2, '0');
+                        startStr = `${fY}-${fM}-${fD}`;
+
+                        const lY = lastDay.getFullYear();
+                        const lM = String(lastDay.getMonth() + 1).padStart(2, '0');
+                        const lD = String(lastDay.getDate()).padStart(2, '0');
+                        endStr = `${lY}-${lM}-${lD}`;
+                    }
+                }
+
+                if (!startStr || !endStr) {
+                    const now = new Date();
+                    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                    startStr = firstDay.toISOString().split('T')[0];
+                    endStr = lastDay.toISOString().split('T')[0];
+                }
+
+                startDateInput.value = startStr;
+                endDateInput.value = endStr;
+
+                updatePeriodDisplay();
+                await generateJurnalReport();
+
+            } catch (err) {
+                console.error("Gagal memuat tanggal aktif:", err);
+                const now = new Date();
+                startDateInput.value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+                endDateInput.value = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+                updatePeriodDisplay();
+                await generateJurnalReport();
+            }
+        }
+
+        async function generateJurnalReport() {
+            updatePeriodDisplay();
+            const sDate = startDateInput.value;
+            const eDate = endDateInput.value;
+
+            try {
+                // Ambil master akun untuk nama akun
+                const accSnap = await getDocs(collection(db, 'accounts'));
+                const accountsMap = {};
+                accSnap.forEach(d => {
+                    const data = d.data();
+                    accountsMap[String(data.accCode || '').trim()] = data.accName || '';
+                });
+
+                // Query Jurnal berdasarkan rentang tanggal periode
+                const qJurnal = query(
+                    collection(db, 'journals'),
+                    where('date', '>=', sDate),
+                    where('date', '<=', eDate),
+                    orderBy('date', 'asc')
+                );
+
+                const jSnap = await getDocs(qJurnal);
+                jurnalTableBody.innerHTML = '';
+
+                if (jSnap.empty) {
+                    jurnalTableBody.innerHTML = `<tr><td colspan="4" class="text-center" style="color: #94a3b8; padding: 20px;">Tidak ada transaksi jurnal pada periode ini.</td></tr>`;
+                    return;
+                }
+
+                jSnap.forEach(docItem => {
+                    const journal = docItem.data();
+                    const jDate = journal.date || '';
+                    const desc = journal.description || journal.memo || 'Transaksi';
+
+                    // Baris Header Keterangan Jurnal
+                    const headerRow = document.createElement('tr');
+                    headerRow.className = 'journal-group-header';
+                    headerRow.innerHTML = `
+                        <td>${jDate}</td>
+                        <td colspan="3"><b>${desc}</b></td>
+                    `;
+                    jurnalTableBody.appendChild(headerRow);
+
+                    if (journal.items && Array.isArray(journal.items)) {
+                        journal.items.forEach(item => {
+                            const code = String(item.accCode || '').trim();
+                            const name = accountsMap[code] || item.accName || code;
+                            const debit = parseFloat(item.debit) || 0;
+                            const kredit = parseFloat(item.kredit) || 0;
+
+                            const itemRow = document.createElement('tr');
+                            const isKredit = kredit > 0;
+                            const indentStyle = isKredit ? 'padding-left: 18px;' : 'padding-left: 6px;';
+
+                            itemRow.innerHTML = `
+                                <td></td>
+                                <td style="${indentStyle}">${code} - ${name}</td>
+                                <td class="text-right">${debit > 0 ? debit.toLocaleString('id-ID') : '-'}</td>
+                                <td class="text-right">${kredit > 0 ? kredit.toLocaleString('id-ID') : '-'}</td>
+                            `;
+                            jurnalTableBody.appendChild(itemRow);
+                        });
+                    }
+                });
+
+            } catch (err) {
+                console.error("Gagal memuat jurnal umum:", err);
+                jurnalTableBody.innerHTML = `<tr><td colspan="4" class="text-center" style="color: #dc2626; padding: 20px;">Gagal memuat laporan jurnal umum.</td></tr>`;
+            }
+        }
+
+        startDateInput.addEventListener('change', generateJurnalReport);
+        endDateInput.addEventListener('change', generateJurnalReport);
+
+        await initActiveDates();
+    </script>
+</body>
+</html>

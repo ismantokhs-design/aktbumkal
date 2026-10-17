@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Produk / Barang</title>
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background-color: #f8fafc; display: flex; justify-content: center; min-height: 100vh; color: #1e293b; }
+        .page-container { width: 100%; max-width: 480px; background-color: #ffffff; display: flex; flex-direction: column; min-height: 100vh; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; padding-bottom: 70px; }
+        
+        /* Header */
+        .page-header { background-color: #5114B9; color: #ffffff; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .header-left { display: flex; align-items: center; gap: 14px; }
+        .btn-back { color: #ffffff; text-decoration: none; display: flex; align-items: center; }
+        .page-header h1 { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Filter & Search Bar */
+        .filter-bar { background-color: #f1f5f9; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #cbd5e1; gap: 8px; }
+        .filter-bar input { width: 100%; height: 32px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; outline: none; background: #ffffff; }
+
+        /* Content List */
+        .content-list { padding: 12px; display: flex; flex-direction: column; gap: 10px; flex-grow: 1; }
+        .item-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .item-card-top { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748b; font-weight: 600; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; }
+        .item-card-body { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+        .item-info { display: flex; flex-direction: column; gap: 2px; }
+        .item-title { font-size: 13px; font-weight: 700; color: #0f172a; line-height: 1.3; }
+        .item-subtitle { font-size: 11px; color: #475569; }
+        .item-price { font-size: 13px; font-weight: 800; color: #5114B9; white-space: nowrap; text-align: right; }
+
+        /* Floating Action Button (FAB) */
+        .fab-btn { position: fixed; bottom: 65px; right: calc(50% - 220px); width: 52px; height: 52px; background-color: #5114B9; color: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(81,20,185,0.4); cursor: pointer; border: none; z-index: 95; }
+        .fab-btn:active { transform: scale(0.95); }
+        @media (max-width: 500px) { .fab-btn { right: 20px; } }
+
+        /* Bottom Total Bar */
+        .bottom-total-bar { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; background-color: #0f172a; color: #ffffff; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; z-index: 90; }
+        .bottom-total-value { color: #a78bfa; font-size: 15px; }
+
+        /* Modal Overlay */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; padding: 16px; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-box { background-color: #ffffff; width: 100%; max-width: 440px; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 90vh; }
+        
+        .modal-header { background-color: #5114B9; color: #ffffff; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 14px; }
+        .modal-header .close-modal { cursor: pointer; font-size: 20px; }
+        
+        .modal-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; max-height: calc(90vh - 120px); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; }
+        .form-control { width: 100%; height: 38px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; outline: none; background-color: #f8fafc; color: #0f172a; }
+        .form-control:focus { border-color: #5114B9; background-color: #ffffff; }
+
+        .modal-footer { padding: 12px 16px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; gap: 10px; }
+        .btn-modal { flex: 1; height: 38px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; border: none; }
+        .btn-simpan { background-color: #5114B9; color: #ffffff; }
+        .btn-batal { background-color: #ffffff; color: #dc2626; border: 1px solid #dc2626; }
+        .empty-state { text-align: center; padding: 40px; color: #94a3b8; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <header class="page-header">
+            <div class="header-left">
+                <a href="../index.html" class="btn-back"><span class="material-icons">arrow_back</span></a>
+                <h1>Master Produk / Barang</h1>
+            </div>
+        </header>
+
+        <div class="filter-bar">
+            <input type="text" id="searchBarang" placeholder="Cari nama barang atau kode SKU...">
+        </div>
+
+        <div class="content-list" id="barangListContainer">
+            <div class="empty-state">Memuat data produk...</div>
+        </div>
+
+        <button class="fab-btn" id="openModalBtn">
+            <span class="material-icons" style="font-size: 28px;">add</span>
+        </button>
+
+        <div class="bottom-total-bar">
+            <span>TOTAL PRODUK</span>
+            <span class="bottom-total-value" id="totalCountDisplay">0 Item</span>
+        </div>
+    </div>
+
+    <!-- Modal Form Tambah / Edit Produk -->
+    <div class="modal-overlay" id="barangModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span id="modalTitleText">TAMBAH PRODUK BARU</span>
+                <span class="material-icons close-modal" id="closeModalBtn">close</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Kode SKU / ID *</label>
+                        <input type="text" id="itemSku" class="form-control" placeholder="Contoh: KMP-05">
+                    </div>
+                    <div class="form-group">
+                        <label>Kategori *</label>
+                        <select id="itemCategory" class="form-control">
+                            <option value="Barang Jadi">Barang Jadi / Produk</option>
+                            <option value="Bahan Baku">Bahan Baku</option>
+                            <option value="Barang Dalam Proses">Dalam Proses</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Nama Produk / Barang *</label>
+                    <input type="text" id="itemName" class="form-control" placeholder="Contoh: Pupuk Kompos Organik 5 Kg">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Satuan *</label>
+                        <input type="text" id="itemUnit" class="form-control" placeholder="Karung / Kg / Liter">
+                    </div>
+                    <div class="form-group">
+                        <label>Harga Jual (Rp)</label>
+                        <input type="text" id="itemSellPrice" class="form-control" placeholder="0" inputmode="numeric">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Harga Beli / HPP (Rp)</label>
+                    <input type="text" id="itemBuyPrice" class="form-control" placeholder="0" inputmode="numeric">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-batal" id="btnBatal">BATAL</button>
+                <button class="btn-modal btn-simpan" id="btnSimpan">SIMPAN</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import { collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const barangListContainer = document.getElementById('barangListContainer');
+        const totalCountDisplay = document.getElementById('totalCountDisplay');
+        const searchBarang = document.getElementById('searchBarang');
+
+        const barangModal = document.getElementById('barangModal');
+        const openModalBtn = document.getElementById('openModalBtn');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const btnBatal = document.getElementById('btnBatal');
+        const btnSimpan = document.getElementById('btnSimpan');
+
+        const itemSku = document.getElementById('itemSku');
+        const itemCategory = document.getElementById('itemCategory');
+        const itemName = document.getElementById('itemName');
+        const itemUnit = document.getElementById('itemUnit');
+        const itemSellPrice = document.getElementById('itemSellPrice');
+        const itemBuyPrice = document.getElementById('itemBuyPrice');
+
+        let rawBarangData = [];
+
+        function formatNumberInput(inputElem) {
+            inputElem.addEventListener('input', (e) => {
+                let clean = e.target.value.replace(/\D/g, '');
+                e.target.value = clean ? parseInt(clean, 10).toLocaleString('id-ID') : '';
+            });
+        }
+
+        formatNumberInput(itemSellPrice);
+        formatNumberInput(itemBuyPrice);
+
+        openModalBtn.addEventListener('click', () => {
+            itemSku.value = '';
+            itemName.value = '';
+            itemUnit.value = 'Karung';
+            itemSellPrice.value = '';
+            itemBuyPrice.value = '';
+            barangModal.classList.add('active');
+        });
+
+        closeModalBtn.addEventListener('click', () => barangModal.classList.remove('active'));
+        btnBatal.addEventListener('click', () => barangModal.classList.remove('active'));
+        barangModal.addEventListener('click', (e) => { if (e.target === barangModal) barangModal.classList.remove('active'); });
+
+        async function loadBarangData() {
+            try {
+                const querySnapshot = await getDocs(collection(db, 'products'));
+                rawBarangData = [];
+
+                querySnapshot.forEach(docSnap => {
+                    rawBarangData.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                renderList(rawBarangData);
+            } catch (err) {
+                console.error("Gagal memuat produk:", err);
+                barangListContainer.innerHTML = `<div class="empty-state">Gagal memuat data produk dari database.</div>`;
+            }
+        }
+
+        function renderList(dataArray) {
+            barangListContainer.innerHTML = '';
+            if (dataArray.length === 0) {
+                barangListContainer.innerHTML = `<div class="empty-state">Belum ada data produk atau barang terdaftar.</div>`;
+                totalCountDisplay.textContent = `0 Item`;
+                return;
+            }
+
+            dataArray.forEach(item => {
+                const sellPrice = parseFloat(item.sellPrice || 0).toLocaleString('id-ID');
+                const buyPrice = parseFloat(item.buyPrice || 0).toLocaleString('id-ID');
+
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                card.innerHTML = `
+                    <div class="item-card-top">
+                        <span>SKU: ${item.sku || '-'}</span>
+                        <span>[${item.category || 'Umum'}]</span>
+                    </div>
+                    <div class="item-card-body">
+                        <div class="item-info">
+                            <span class="item-title">${item.name || 'Tanpa Nama'}</span>
+                            <span class="item-subtitle">Satuan: ${item.unit || '-'} | HPP: Rp ${buyPrice}</span>
+                        </div>
+                        <div class="item-price">
+                            Jual<br>Rp ${sellPrice}
+                        </div>
+                    </div>
+                `;
+                barangListContainer.appendChild(card);
+            });
+
+            totalCountDisplay.textContent = `${dataArray.length} Item`;
+        }
+
+        btnSimpan.addEventListener('click', async () => {
+            if (!itemSku.value || !itemName.value || !itemUnit.value) {
+                Swal.fire('Peringatan', 'Kode SKU, Nama Produk, dan Satuan wajib diisi.', 'warning');
+                return;
+            }
+
+            const sell = parseInt(itemSellPrice.value.replace(/\D/g, ''), 10) || 0;
+            const buy = parseInt(itemBuyPrice.value.replace(/\D/g, ''), 10) || 0;
+
+            try {
+                const newProduct = {
+                    sku: itemSku.value.trim(),
+                    name: itemName.value.trim(),
+                    category: itemCategory.value,
+                    unit: itemUnit.value.trim(),
+                    sellPrice: sell,
+                    buyPrice: buy,
+                    createdAt: serverTimestamp()
+                };
+
+                await addDoc(collection(db, 'products'), newProduct);
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil',
+                    text: 'Produk baru berhasil disimpan.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                barangModal.classList.remove('active');
+                loadBarangData();
+
+            } catch (err) {
+                console.error("Gagal menyimpan produk:", err);
+                Swal.fire('Error', err.message, 'error');
+            }
+        });
+
+        searchBarang.addEventListener('input', (e) => {
+            const keyword = e.target.value.toLowerCase();
+            const filtered = rawBarangData.filter(item => 
+                (item.name && item.name.toLowerCase().includes(keyword)) ||
+                (item.sku && item.sku.toLowerCase().includes(keyword))
+            );
+            renderList(filtered);
+        });
+
+        loadBarangData();
+    </script>
+</body>
+</html>

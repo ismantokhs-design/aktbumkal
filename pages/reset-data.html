@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RESET DATA</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* Sembunyikan Scrollbar */
+        html, body, *, .page-container {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+
+        ::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+
+        body {
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header Utama */
+        .page-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .btn-back {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Body Content */
+        .content-body {
+            padding: 20px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Warning Box */
+        .warning-card {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 10px;
+        }
+
+        .warning-icon {
+            color: #dc2626;
+            font-size: 48px;
+        }
+
+        .warning-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #991b1b;
+        }
+
+        .warning-desc {
+            font-size: 11px;
+            color: #7f1d1d;
+            line-height: 1.5;
+        }
+
+        /* Checklist Data yang akan dihapus */
+        .reset-options-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .options-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 4px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            color: #1e293b;
+            cursor: pointer;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            accent-color: #dc2626;
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Input Konfirmasi */
+        .confirm-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .confirm-label {
+            font-size: 11px;
+            color: #475569;
+            font-weight: 600;
+        }
+
+        .confirm-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 12px;
+            outline: none;
+            width: 100%;
+        }
+
+        .confirm-input:focus {
+            border-color: #dc2626;
+        }
+
+        /* Tombol Reset */
+        .btn-reset-danger {
+            background-color: #dc2626;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-reset-danger:disabled {
+            background-color: #fca5a5;
+            cursor: not-allowed;
+        }
+
+        .btn-reset-danger:hover:not(:disabled) {
+            background-color: #b91c1c;
+        }
+
+        /* Status Loader */
+        .status-message {
+            font-size: 11px;
+            text-align: center;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+
+        .status-message.success { color: #16a34a; }
+        .status-message.error { color: #dc2626; }
+        .status-message.info { color: #5114B9; }
+
+        /* Modern Smooth Confirm Modal */
+        .custom-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(3px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s ease-in-out;
+        }
+
+        .custom-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .custom-modal-box {
+            width: 88%;
+            max-width: 340px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transform: scale(0.9);
+            transition: transform 0.25s ease-in-out;
+        }
+
+        .custom-modal-overlay.active .custom-modal-box {
+            transform: scale(1);
+        }
+
+        .modal-icon-wrapper {
+            width: 48px;
+            height: 48px;
+            background-color: #fef2f2;
+            color: #dc2626;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px auto;
+        }
+
+        .modal-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 6px;
+        }
+
+        .modal-desc {
+            font-size: 11px;
+            color: #64748b;
+            line-height: 1.4;
+            margin-bottom: 18px;
+        }
+
+        .modal-btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-confirm-delete {
+            flex: 1;
+            background-color: #dc2626;
+            color: #ffffff;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-cancel-delete {
+            flex: 1;
+            background-color: #f1f5f9;
+            color: #475569;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <!-- Header Utama -->
+        <header class="page-header">
+            <a href="../index.html" class="btn-back">
+                <span class="material-icons">arrow_back</span>
+            </a>
+            <h1>RESET DATA APLIKASI</h1>
+        </header>
+
+        <!-- Body Content -->
+        <main class="content-body">
+            <!-- Warning Box -->
+            <div class="warning-card">
+                <span class="material-icons warning-icon">warning</span>
+                <div class="warning-title">PERINGATAN SANGAT PENTING!</div>
+                <div class="warning-desc">
+                    Tindakan ini akan <b>menghapus data secara permanen</b> dari database Firestore. Data yang telah dihapus <b>tidak dapat dikembalikan</b> lagi. Pastikan Anda telah mengunduh cadangan (Backup) data terlebih dahulu jika masih diperlukan.
+                </div>
+            </div>
+
+            <!-- Pilih Data yang Ingin Dihapus -->
+            <div class="reset-options-box">
+                <div class="options-title">PILIH DATA YANG INGIN DIRESET:</div>
+                
+                <label class="checkbox-item">
+                    <input type="checkbox" id="chkJournals" checked>
+                    <span>Semua Transaksi & Jurnal Umum</span>
+                </label>
+
+                <label class="checkbox-item">
+                    <input type="checkbox" id="chkAccounts">
+                    <span>Daftar Akun / Kode Perkiraan</span>
+                </label>
+
+                <label class="checkbox-item">
+                    <input type="checkbox" id="chkSettings">
+                    <span>Pengaturan Profil & Aplikasi</span>
+                </label>
+            </div>
+
+            <!-- Input Verifikasi Keamanan -->
+            <div class="confirm-input-group">
+                <label class="confirm-label">
+                    Ketik teks <b>RESET DATA</b> di bawah untuk konfirmasi:
+                </label>
+                <input type="text" class="confirm-input" id="inputConfirmText" placeholder="Ketik RESET DATA di sini..." autocomplete="off">
+            </div>
+
+            <!-- Tombol Eksekusi -->
+            <button type="button" class="btn-reset-danger" id="btnExecuteReset" disabled>
+                <span class="material-icons">restart_alt</span>
+                <span>HAPUS & RESET DATA NOW</span>
+            </button>
+
+            <!-- Pesan Status Proses -->
+            <div class="status-message" id="statusMessage"></div>
+        </main>
+    </div>
+
+    <!-- Custom Smooth Modal Dialog -->
+    <div class="custom-modal-overlay" id="confirmResetModal">
+        <div class="custom-modal-box">
+            <div class="modal-icon-wrapper">
+                <span class="material-icons" style="font-size: 26px;">delete_forever</span>
+            </div>
+            <div class="modal-title">Konfirmasi Reset Data</div>
+            <div class="modal-desc">
+                Apakah Anda benar-benar yakin ingin menghapus data yang dipilih? Proses ini <b>TIDAK DAPAT DIBATALKAN!</b>
+            </div>
+            <div class="modal-btn-group">
+                <button class="btn-cancel-delete" id="btnCancelResetModal">Batal</button>
+                <button class="btn-confirm-delete" id="btnConfirmResetModal">Ya, Hapus Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Firestore Integrasi -->
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import { collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const chkJournals = document.getElementById('chkJournals');
+        const chkAccounts = document.getElementById('chkAccounts');
+        const chkSettings = document.getElementById('chkSettings');
+        const inputConfirmText = document.getElementById('inputConfirmText');
+        const btnExecuteReset = document.getElementById('btnExecuteReset');
+        const statusMessage = document.getElementById('statusMessage');
+
+        // Element Custom Modal
+        const confirmResetModal = document.getElementById('confirmResetModal');
+        const btnCancelResetModal = document.getElementById('btnCancelResetModal');
+        const btnConfirmResetModal = document.getElementById('btnConfirmResetModal');
+
+        // Validasi Teks Konfirmasi
+        inputConfirmText.addEventListener('input', () => {
+            const isMatch = inputConfirmText.value.trim() === 'RESET DATA';
+            btnExecuteReset.disabled = !isMatch;
+        });
+
+        // Buka & Tutup Modal
+        btnExecuteReset.addEventListener('click', () => {
+            confirmResetModal.classList.add('active');
+        });
+
+        btnCancelResetModal.addEventListener('click', () => {
+            confirmResetModal.classList.remove('active');
+        });
+
+        confirmResetModal.addEventListener('click', (e) => {
+            if (e.target === confirmResetModal) {
+                confirmResetModal.classList.remove('active');
+            }
+        });
+
+        // Fungsi Menghapus Seluruh Dokumen dalam Koleksi
+        async function deleteCollection(collectionName) {
+            const colRef = collection(db, collectionName);
+            const snapshot = await getDocs(colRef);
+            
+            const deletePromises = snapshot.docs.map(docSnap => deleteDoc(doc(db, collectionName, docSnap.id)));
+            await Promise.all(deletePromises);
+            return snapshot.size;
+        }
+
+        // Eksekusi Penghapusan Data
+        btnConfirmResetModal.addEventListener('click', async () => {
+            confirmResetModal.classList.remove('active');
+            btnExecuteReset.disabled = true;
+            inputConfirmText.disabled = true;
+            statusMessage.className = "status-message info";
+            statusMessage.textContent = "Memproses penghapusan data...";
+
+            try {
+                let report = [];
+
+                if (chkJournals.checked) {
+                    const count = await deleteCollection('journals');
+                    report.push(`${count} jurnal`);
+                }
+
+                if (chkAccounts.checked) {
+                    const count = await deleteCollection('accounts');
+                    report.push(`${count} akun`);
+                }
+
+                if (chkSettings.checked) {
+                    const count = await deleteCollection('settings');
+                    report.push(`${count} pengaturan`);
+                }
+
+                statusMessage.className = "status-message success";
+                statusMessage.textContent = `Berhasil mereset: ${report.join(', ')}.`;
+
+                setTimeout(() => {
+                    window.location.href = '../index.html';
+                }, 1200);
+
+            } catch (err) {
+                console.error("Gagal melakukan reset data:", err);
+                statusMessage.className = "status-message error";
+                statusMessage.textContent = "Terjadi kesalahan saat menghapus data.";
+                btnExecuteReset.disabled = false;
+                inputConfirmText.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
