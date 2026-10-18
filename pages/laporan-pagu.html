@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAPORAN KONTROL PAGU ANGGARAN</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Link External CSS Utama -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        html, body, *, .modal-box, .report-container {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+
+        ::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            background: transparent !important;
+        }
+
+        body {
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-title-box {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .btn-back {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .icon-menu {
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        /* Filter Panel */
+        .filter-container {
+            padding: 12px;
+            background-color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .form-group-hp {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .form-label-hp {
+            font-size: 9px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .form-control-hp {
+            width: 100%;
+            padding: 7px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 11px;
+            background-color: #ffffff;
+            color: #1e293b;
+            outline: none;
+        }
+
+        .btn-filter {
+            background-color: #5114B9;
+            color: #ffffff;
+            border: none;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        /* Report Body Container */
+        .report-container {
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            background-color: #ffffff;
+            flex-grow: 1;
+            padding-bottom: 40px;
+            overflow-y: auto;
+        }
+
+        .report-title-section {
+            text-align: center;
+            border-bottom: 2px solid #5114B9;
+            padding-bottom: 8px;
+        }
+
+        .report-org {
+            font-size: 12px;
+            font-weight: 800;
+            color: #1e293b;
+            text-transform: uppercase;
+        }
+
+        .report-subtitle {
+            font-size: 11px;
+            font-weight: 700;
+            color: #5114B9;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .report-periode {
+            font-size: 10px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        /* Kartu Konsolidasi (Total Gabungan) */
+        .konsolidasi-card {
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .konsolidasi-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: #5114B9;
+            text-transform: uppercase;
+            text-align: center;
+            border-bottom: 1px dashed #cbd5e1;
+            padding-bottom: 6px;
+        }
+
+        .konsolidasi-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        .k-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .k-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .k-val {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        /* Bagian Rincian Transaksi Kartu HP */
+        .section-rincian-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: #5114B9;
+            text-transform: uppercase;
+            margin-top: 6px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .rincian-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .rincian-card {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+
+        .rincian-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 9px;
+            color: #64748b;
+            font-weight: 700;
+            border-bottom: 1px dashed #e2e8f0;
+            padding-bottom: 4px;
+        }
+
+        .rincian-uraian {
+            font-size: 11px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .rincian-footer {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-top: 4px;
+            background: #ffffff;
+            padding: 6px 8px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .rf-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .rf-label {
+            font-size: 8px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .rf-val {
+            font-size: 11px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        /* Ringkasan Bawah & Tanda Tangan */
+        .summary-info-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+        }
+
+        .summary-label {
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .summary-num {
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .signature-section {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 9px;
+            color: #334155;
+        }
+
+        .sig-date {
+            text-align: right;
+            margin-bottom: 10px;
+        }
+
+        .sig-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            text-align: center;
+            gap: 10px;
+        }
+
+        .sig-person {
+            display: flex;
+            flex-direction: column;
+            gap: 35px;
+        }
+
+        .sig-name {
+            font-weight: 700;
+            text-decoration: underline;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Cek Status Auth -->
+    <script type="module">
+        import { auth } from '../assets/js/firebase-config.js';
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+
+    <!-- Option Menu Popup -->
+    <div class="option-menu-popup" id="optionMenuPopup">
+        <div class="option-header">OPTION MENU</div>
+        <div class="option-list">
+            <a href="setting.html" class="option-item">
+                <span class="material-icons">settings</span>
+                <span>Pengaturan</span>
+            </a>
+            <a href="setting-user.html" class="option-item">
+                <span class="material-icons">manage_accounts</span>
+                <span>Setting User</span>
+            </a>
+            <a href="hak-akses.html" class="option-item">
+                <span class="material-icons">admin_panel_settings</span>
+                <span>Hak Akses</span>
+            </a>
+            <div class="option-divider"></div>
+            <a href="tutup-bulan.html" class="option-item">
+                <span class="material-icons">event_repeat</span>
+                <span>Tutup Akhir Bulan</span>
+            </a>
+            <a href="tutup-buku.html" class="option-item">
+                <span class="material-icons">published_with_changes</span>
+                <span>Tutup Buku Akhir Tahun</span>
+            </a>
+            <a href="#" class="option-item">
+                <span class="material-icons">history</span>
+                <span>Backup</span>
+            </a>
+            <a href="#" class="option-item">
+                <span class="material-icons">restore</span>
+                <span>Restore</span>
+            </a>
+            <a href="reset-data.html" class="option-item">
+                <span class="material-icons">restart_alt</span>
+                <span>Reset Data</span>
+            </a>
+            <div class="option-divider"></div>
+            <a href="#" class="option-item">
+                <span class="material-icons">cloud_upload</span>
+                <span>Google Drive</span>
+            </a>
+            <div class="option-divider"></div>
+            <div class="option-item" id="btnOpenLogout" style="cursor: pointer;">
+                <span class="material-icons">power_settings_new</span>
+                <span>Keluar</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Popup Konfirmasi Keluar -->
+    <div class="logout-modal-overlay" id="modalLogout">
+        <div class="logout-modal-box">
+            <div class="logout-icon-wrapper" style="width: 48px; height: 48px; background-color: #fce8e6; color: #d32f2f; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto;">
+                <span class="material-icons" style="font-size:28px;">power_settings_new</span>
+            </div>
+            <div class="logout-modal-title" style="font-size: 15px; font-weight: 700; color: #222222; margin-bottom: 6px;">Konfirmasi Keluar</div>
+            <div class="logout-modal-desc" style="font-size: 12px; color: #666666; margin-bottom: 20px;">Apakah Anda yakin ingin keluar dari aplikasi?</div>
+            <div class="logout-btn-group" style="display: flex; gap: 10px;">
+                <button class="btn-confirm-logout" id="btnConfirmLogout" style="flex: 1; background-color: #d32f2f; color: #ffffff; border: none; padding: 10px 0; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">Ya, Keluar</button>
+                <button class="btn-cancel-logout" id="btnCancelLogout" style="flex: 1; background-color: #f0f4f8; color: #444444; border: none; padding: 10px 0; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-container">
+        <!-- Header Halaman HP -->
+        <header class="page-header">
+            <div class="header-title-box">
+                <a href="../index.html" class="btn-back" style="background:none; border:none; cursor:pointer; padding:0; display:flex; align-items:center; text-decoration:none;">
+                    <span class="material-icons" style="color: #ffffff;">arrow_back</span>
+                </a>
+                <h1>LAPORAN KONTROL PAGU</h1>
+            </div>
+            <span class="material-icons icon-menu" id="btnToggleOption">more_vert</span>
+        </header>
+
+        <!-- Filter Kontrol Laporan -->
+        <div class="filter-container">
+            <div class="form-group-hp">
+                <label class="form-label-hp" for="filterUnit">Unit Usaha (Cabang)</label>
+                <select id="filterUnit" class="form-control-hp">
+                    <option value="">Semua Unit Usaha</option>
+                </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div class="form-group-hp">
+                    <label class="form-label-hp" for="filterBulan">Bulan</label>
+                    <select id="filterBulan" class="form-control-hp">
+                        <option value="1">Januari</option>
+                        <option value="2">Februari</option>
+                        <option value="3">Maret</option>
+                        <option value="4">April</option>
+                        <option value="5">Mei</option>
+                        <option value="6">Juni</option>
+                        <option value="7" selected>Juli</option>
+                        <option value="8">Agustus</option>
+                        <option value="9">September</option>
+                        <option value="10">Oktober</option>
+                        <option value="11">November</option>
+                        <option value="12">Desember</option>
+                    </select>
+                </div>
+                <div class="form-group-hp">
+                    <label class="form-label-hp" for="filterTahun">Tahun / Periode</label>
+                    <select id="filterTahun" class="form-control-hp">
+                        <option value="2025" selected>2025 (1 Tahun)</option>
+                        <option value="2026">2026 (1 Tahun)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn-filter" id="btnTampilkan">
+                <span class="material-icons" style="font-size: 14px;">refresh</span>
+                <span>Tampilkan</span>
+            </button>
+        </div>
+
+        <!-- Konten Laporan -->
+        <div class="report-container">
+            <div class="report-title-section">
+                <div class="report-org" id="lblOrgName">BUMKal</div>
+                <div class="report-subtitle" id="lblReportTitle">Laporan Bulanan Konsolidasi Unit Usaha</div>
+                <div class="report-periode" id="lblPeriodeText">Periode Bulan Juli 2025</div>
+            </div>
+
+            <!-- Kartu Konsolidasi Total Keseluruhan -->
+            <div class="konsolidasi-card">
+                <div class="konsolidasi-title" id="lblCardTitle">Total Konsolidasi Keseluruhan</div>
+                <div class="konsolidasi-grid">
+                    <div class="k-item">
+                        <span class="k-label">Total Pagu Anggaran</span>
+                        <span class="k-val" id="totPagu" style="color: #5114B9;">Rp 0</span>
+                    </div>
+                    <div class="k-item">
+                        <span class="k-label">Total Pengeluaran</span>
+                        <span class="k-val" id="totPengeluaran" style="color: #d97706;">Rp 0</span>
+                    </div>
+                    <div class="k-item">
+                        <span class="k-label">Sisa Bulan Lalu</span>
+                        <span class="k-val" id="totSisaLalu" style="color: #475569;">Rp 0</span>
+                    </div>
+                    <div class="k-item">
+                        <span class="k-label">Total Saldo Anggaran</span>
+                        <span class="k-val" id="totSaldo" style="color: #16a34a;">Rp 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rincian Transaksi Format Kartu Vertikal HP -->
+            <div class="section-rincian-title">
+                <span>Rincian Transaksi Pagu</span>
+                <span id="rincianCount" style="font-size: 9px; color: #64748b;">(0 Transaksi)</span>
+            </div>
+            
+            <div class="rincian-list" id="rincianContainer">
+                <!-- Data rincian akan dimuat secara dinamis di sini -->
+            </div>
+
+            <!-- Ringkasan Bawah & Tanda Tangan -->
+            <div class="summary-info-box">
+                <div class="summary-row">
+                    <span class="summary-label">Pagu Anggaran</span>
+                    <span class="summary-num" id="sumPagu">Rp 0</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Saldo Anggaran</span>
+                    <span class="summary-num" id="sumSaldo" style="color: #16a34a;">Rp 0</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Realisasi Sampai Bulan ini</span>
+                    <span class="summary-num" id="sumRealisasi" style="color: #d97706;">Rp 0</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Total Pengeluaran Biaya Bulan ini</span>
+                    <span class="summary-num" id="sumBulanIni" style="color: #dc2626;">Rp 0</span>
+                </div>
+            </div>
+
+            <!-- Tanda Tangan -->
+            <div class="signature-section">
+                <div class="sig-date" id="sigDateText">Srihardono, 31 Juli 2025</div>
+                <div class="sig-grid">
+                    <div class="sig-person">
+                        <span>Pengawas BUMKal</span>
+                        <span class="sig-name">BU CARIK</span>
+                    </div>
+                    <div class="sig-person">
+                        <span>Direktur BUMKal</span>
+                        <span class="sig-name" id="sigDirekturName">CHOLIS</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Option Menu -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const btnToggleOption = document.getElementById('btnToggleOption');
+            const optionMenuPopup = document.getElementById('optionMenuPopup');
+
+            btnToggleOption?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                optionMenuPopup?.classList.toggle('active');
+            });
+
+            document.addEventListener('click', () => {
+                optionMenuPopup?.classList.remove('active');
+            });
+        });
+    </script>
+
+    <!-- Script Integrasi Firestore & Logika Jembatan unitList -->
+    <script type="module">
+        import { auth, db } from '../assets/js/firebase-config.js';
+        import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { 
+            collection, 
+            getDocs, 
+            doc, 
+            query, 
+            orderBy, 
+            getDoc 
+        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+            }
+        });
+
+        const filterUnit = document.getElementById('filterUnit');
+        const filterBulan = document.getElementById('filterBulan');
+        const filterTahun = document.getElementById('filterTahun');
+        const btnTampilkan = document.getElementById('btnTampilkan');
+
+        const lblOrgName = document.getElementById('lblOrgName');
+        const lblReportTitle = document.getElementById('lblReportTitle');
+        const lblCardTitle = document.getElementById('lblCardTitle');
+        const lblPeriodeText = document.getElementById('lblPeriodeText');
+        const sigDateText = document.getElementById('sigDateText');
+        const sigDirekturName = document.getElementById('sigDirekturName');
+
+        const totPagu = document.getElementById('totPagu');
+        const totPengeluaran = document.getElementById('totPengeluaran');
+        const totSisaLalu = document.getElementById('totSisaLalu');
+        const totSaldo = document.getElementById('totSaldo');
+
+        const sumPagu = document.getElementById('sumPagu');
+        const sumSaldo = document.getElementById('sumSaldo');
+        const sumRealisasi = document.getElementById('sumRealisasi');
+        const sumBulanIni = document.getElementById('sumBulanIni');
+        const rincianContainer = document.getElementById('rincianContainer');
+        const rincianCount = document.getElementById('rincianCount');
+
+        let rawPaguData = [];
+        let paguAccounts = new Set();
+        let codeToNameUnit = {}; 
+
+        async function loadProfileHeader() {
+            try {
+                const profileDoc = await getDoc(doc(db, 'settings', 'profile'));
+                
+                filterUnit.innerHTML = '<option value="">Semua Unit Usaha</option>';
+                let listUnits = [];
+
+                if (profileDoc.exists()) {
+                    const data = profileDoc.data();
+                    if (data.namaProfil) lblOrgName.textContent = data.namaProfil;
+                    if (data.namaDirektur) sigDirekturName.textContent = data.namaDirektur;
+                    listUnits = data.unitList || [];
+                }
+
+                if (listUnits.length === 0) {
+                    listUnits = [{ namaUnit: 'Kantor Pusat', kodeUnit: '00' }];
+                }
+                
+                listUnits.forEach(u => {
+                    const nama = u.namaUnit || '';
+                    const kode = u.kodeUnit || '';
+                    
+                    if (kode && nama) {
+                        codeToNameUnit[kode] = nama;
+                        codeToNameUnit[nama] = nama;
+                    }
+
+                    if (nama) {
+                        const opt = document.createElement('option');
+                        opt.value = nama;
+                        opt.textContent = nama;
+                        filterUnit.appendChild(opt);
+                    }
+                });
+            } catch (e) {
+                console.warn("Gagal memuat profil:", e);
+            }
+        }
+
+        async function loadData() {
+            try {
+                // 1. Ambil data Chart of Accounts untuk mendeteksi akun berstatus hasPagu = "Ya"
+                const coaSnap = await getDocs(collection(db, 'accounts'));
+                paguAccounts.clear();
+                coaSnap.forEach(d => {
+                    const acc = d.data();
+                    const paguVal = acc.hasPagu || acc.pagu;
+                    if (paguVal && String(paguVal).toLowerCase() === 'ya') {
+                        if (acc.accCode) paguAccounts.add(String(acc.accCode).trim());
+                    }
+                });
+
+                // 2. Ambil data Pagu Anggaran
+                const paguSnap = await getDocs(query(collection(db, 'pagu_anggaran'), orderBy('namaPagu', 'asc')));
+                rawPaguData = [];
+                paguSnap.forEach(d => {
+                    rawPaguData.push({ id: d.id, ...d.data() });
+                });
+
+                // 3. Ambil data Jurnal Transaksi
+                const journalSnap = await getDocs(query(collection(db, 'journals'), orderBy('date', 'asc')));
+                
+                const unitF = filterUnit.value; 
+                const targetMonth = String(filterBulan.value).padStart(2, '0');
+                const targetYear = filterTahun.value;
+
+                let totalRealPengeluaran = 0;
+                let matchedTransactions = [];
+
+                journalSnap.forEach(d => {
+                    const j = d.data();
+                    if (j.date && j.date.startsWith(`${targetYear}-${targetMonth}`)) {
+                        
+                        // JEMBATAN PENGHUBUNG: Membaca unitName dari dokumen journals (misal "00")
+                        const rawUnitJournal = String(j.unitName || j.unitId || '').trim();
+                        const resolvedNamaUnit = codeToNameUnit[rawUnitJournal] || rawUnitJournal;
+
+                        if (unitF && resolvedNamaUnit !== unitF) {
+                            return; 
+                        }
+
+                        // Akumulasi nominal pengeluaran dari item jurnal yang akunnya terdaftar sebagai Pagu
+                        if (j.items && Array.isArray(j.items)) {
+                            j.items.forEach(item => {
+                                const code = String(item.accCode || '').trim();
+                                if (paguAccounts.has(code)) {
+                                    const nominal = parseFloat(item.debit) || parseFloat(item.kredit) || 0;
+                                    if (nominal > 0) {
+                                        totalRealPengeluaran += nominal;
+                                        matchedTransactions.push({
+                                            date: j.date,
+                                            description: j.description || 'Pengeluaran Pagu Anggaran',
+                                            refNo: j.refNo || '-',
+                                            amount: nominal
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+
+                renderReport(totalRealPengeluaran, matchedTransactions);
+            } catch (e) {
+                console.error("Gagal memuat laporan pagu:", e);
+            }
+        }
+
+        function renderReport(realPengeluaran = 0, transactions = []) {
+            const unitF = filterUnit.value;
+            const bulanName = filterBulan.options[filterBulan.selectedIndex].text;
+            const tahunVal = filterTahun.value;
+
+            if (unitF) {
+                lblReportTitle.textContent = `Laporan Bulanan ${unitF}`;
+                lblCardTitle.textContent = `Total Pagu ${unitF}`;
+            } else {
+                lblReportTitle.textContent = `Laporan Bulanan Konsolidasi Unit Usaha`;
+                lblCardTitle.textContent = `Total Konsolidasi Keseluruhan`;
+            }
+
+            lblPeriodeText.textContent = `Periode Bulan ${bulanName} ${tahunVal}`;
+            sigDateText.textContent = `Srihardono, 31 ${bulanName} ${tahunVal}`;
+
+            let filteredPagu = rawPaguData.filter(item => {
+                let matchUnit = !unitF || item.unitUsaha === unitF;
+                let matchTahun = String(item.tahunAnggaran) === String(tahunVal);
+                return matchUnit && matchTahun;
+            });
+
+            let sumP = 0;
+            let sumSisa = 0;
+
+            filteredPagu.forEach(item => {
+                const paguVal = parseFloat(item.nominalPagu) || 0;
+                const sisaLaluVal = parseFloat(item.sisaBulanLalu) || 0;
+                sumP += paguVal;
+                sumSisa += sisaLaluVal;
+            });
+
+            let totalPeng = realPengeluaran;
+            if (totalPeng === 0 && transactions.length === 0) {
+                filteredPagu.forEach(item => {
+                    totalPeng += parseFloat(item.realisasi) || 0;
+                });
+            }
+
+            let sumSal = sumP - totalPeng + sumSisa;
+
+            totPagu.textContent = `Rp ${sumP.toLocaleString('id-ID')}`;
+            totPengeluaran.textContent = `Rp ${totalPeng.toLocaleString('id-ID')}`;
+            totSisaLalu.textContent = `Rp ${sumSisa.toLocaleString('id-ID')}`;
+            totSaldo.textContent = `Rp ${sumSal.toLocaleString('id-ID')}`;
+
+            sumPagu.textContent = `Rp ${sumP.toLocaleString('id-ID')}`;
+            sumSaldo.textContent = `Rp ${sumSal.toLocaleString('id-ID')}`;
+            sumRealisasi.textContent = `Rp ${totalPeng.toLocaleString('id-ID')}`;
+            sumBulanIni.textContent = `Rp ${totalPeng.toLocaleString('id-ID')}`;
+
+            // Render Kartu Rincian Transaksi Vertikal untuk HP
+            rincianContainer.innerHTML = '';
+            rincianCount.textContent = `(${transactions.length} Transaksi)`;
+
+            if (transactions.length === 0) {
+                rincianContainer.innerHTML = `
+                    <div style="text-align: center; padding: 12px; font-size: 10px; color: #64748b; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px;">
+                        Tidak ada transaksi pengeluaran pagu pada periode ini.
+                    </div>
+                `;
+            } else {
+                let runningSaldo = sumSal; // Saldo berjalan simulasi dari sisa akhir
+                transactions.forEach((tx, idx) => {
+                    const card = document.createElement('div');
+                    card.className = 'rincian-card';
+                    card.innerHTML = `
+                        <div class="rincian-card-header">
+                            <span>#${idx + 1} &bull; ${tx.date}</span>
+                            <span style="color: #5114B9; font-weight: 700;">${tx.refNo}</span>
+                        </div>
+                        <div class="rincian-uraian">${tx.description}</div>
+                        <div class="rincian-footer">
+                            <div class="rf-item">
+                                <span class="rf-label">Pengeluaran</span>
+                                <span class="rf-val" style="color: #dc2626;">Rp ${tx.amount.toLocaleString('id-ID')}</span>
+                            </div>
+                            <div class="rf-item" style="text-align: right;">
+                                <span class="rf-label">Saldo Berjalan</span>
+                                <span class="rf-val" style="color: #16a34a;">Rp ${(sumP - tx.amount + sumSisa).toLocaleString('id-ID')}</span>
+                            </div>
+                        </div>
+                    `;
+                    rincianContainer.appendChild(card);
+                });
+            }
+        }
+
+        btnTampilkan.addEventListener('click', loadData);
+
+        // Logout Handler
+        const btnOpenLogout = document.getElementById('btnOpenLogout');
+        const modalLogout = document.getElementById('modalLogout');
+        const btnCancelLogout = document.getElementById('btnCancelLogout');
+        const btnConfirmLogout = document.getElementById('btnConfirmLogout');
+
+        btnOpenLogout?.addEventListener('click', () => {
+            document.getElementById('optionMenuPopup')?.classList.remove('active');
+            modalLogout?.classList.add('active');
+        });
+        btnCancelLogout?.addEventListener('click', () => modalLogout?.classList.remove('active'));
+        btnConfirmLogout?.addEventListener('click', async () => {
+            await signOut(auth);
+            window.location.href = 'login.html';
+        });
+
+        async function init() {
+            await loadProfileHeader();
+            await loadData();
+        }
+        init();
+    </script>
+</body>
+</html>

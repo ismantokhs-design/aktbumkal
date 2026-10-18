@@ -273,7 +273,7 @@ main {
 }
 
 /* ==========================================
-   9. SIDEBAR DRAWER MENU & ACCORDION (KONSISTEN)
+   9. SIDEBAR DRAWER MENU & ACCORDION (STABIL & RAPI)
    ========================================== */
 .drawer-overlay {
     position: fixed;
@@ -367,7 +367,7 @@ main {
     height: 0 !important;
 }
 
-/* Footer User Login di Bawah */
+/* Footer User Login di Bawah (Dijamin Selalu Muncul) */
 .drawer-footer-user {
     background-color: #f8fafc;
     border-top: 1px solid #e2e8f0;
@@ -434,15 +434,15 @@ main {
     transition: transform 0.3s ease;
 }
 
-/* Perbaikan Akordion agar tertutup secara default dan terbuka mulus saat .active */
+/* KUNCI AKORDION: Tertutup rapi default, terbuka hanya jika .active */
 .menu-items-group {
-    display: none;
+    display: none !important;
     flex-direction: column;
     background-color: #ffffff;
 }
 
 .menu-section.active .menu-items-group {
-    display: flex;
+    display: flex !important;
     border-bottom: 1px solid #e2e8f0;
 }
 
