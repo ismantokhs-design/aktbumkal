@@ -131,32 +131,6 @@
             flex-direction: column;
         }
 
-        /* Header Laporan Kertas */
-        .report-header {
-            text-align: center;
-            margin-bottom: 16px;
-        }
-
-        .company-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #334155;
-        }
-
-        .report-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: #0f172a;
-            margin-top: 2px;
-            letter-spacing: 0.5px;
-        }
-
-        .period-subtitle {
-            font-size: 11px;
-            color: #475569;
-            margin-top: 2px;
-        }
-
         /* Tampilan Baris Laporan */
         .report-section-title {
             font-size: 11px;
@@ -227,13 +201,6 @@
         <!-- Area Isi Laporan Perubahan Modal -->
         <div class="report-wrapper">
             <div class="report-paper">
-                <!-- Header Dokumen Laporan -->
-                <div class="report-header">
-                    <div class="company-title" id="profileNameDisplay">BUMKal</div>
-                    <div class="report-title">PERUBAHAN MODAL</div>
-                    <div class="period-subtitle" id="periodTextDisplay">--</div>
-                </div>
-
                 <!-- Section 1: MODAL AWAL -->
                 <div class="report-section-title">MODAL AWAL</div>
                 <div class="report-row-item">
@@ -277,9 +244,6 @@
         const startDateInput = document.getElementById('startDate');
         const endDateInput = document.getElementById('endDate');
 
-        const profileNameDisplay = document.getElementById('profileNameDisplay');
-        const periodTextDisplay = document.getElementById('periodTextDisplay');
-
         const valModalAwal = document.getElementById('valModalAwal');
         const valLabaRugi = document.getElementById('valLabaRugi');
         const totalModalAwalDanLaba = document.getElementById('totalModalAwalDanLaba');
@@ -288,19 +252,6 @@
         const totalPenguranganModal = document.getElementById('totalPenguranganModal');
 
         const totalModalAkhir = document.getElementById('totalModalAkhir');
-
-        function formatDateDisplay(dateStr) {
-            if (!dateStr) return '';
-            const [y, m, d] = dateStr.split('-');
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-            return `${d} ${months[parseInt(m, 10) - 1]} ${y}`;
-        }
-
-        function updatePeriodDisplay() {
-            const s = formatDateDisplay(startDateInput.value);
-            const e = formatDateDisplay(endDateInput.value);
-            periodTextDisplay.textContent = `${s} - ${e}`;
-        }
 
         // Inisialisasi tanggal awal (Tanggal 1) dan tanggal akhir bulan aktif dari database
         async function initActiveDates() {
@@ -313,7 +264,6 @@
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    profileNameDisplay.textContent = data.namaProfil || 'BUMKal';
 
                     if (data.activeMonthCode && data.activeMonthCode.includes('-')) {
                         const [y, m] = data.activeMonthCode.split('-');
@@ -349,7 +299,6 @@
                 startDateInput.value = startStr;
                 endDateInput.value = endStr;
 
-                updatePeriodDisplay();
                 await generatePerubahanModalReport();
 
             } catch (err) {
@@ -357,14 +306,11 @@
                 const now = new Date();
                 startDateInput.value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
                 endDateInput.value = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
-                updatePeriodDisplay();
                 await generatePerubahanModalReport();
             }
         }
 
         async function generatePerubahanModalReport() {
-            updatePeriodDisplay();
-
             const sDate = startDateInput.value;
             const eDate = endDateInput.value;
 

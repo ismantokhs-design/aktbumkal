@@ -309,24 +309,6 @@
             flex-direction: column;
         }
 
-        .modal-header {
-            background-color: #5114B9;
-            color: #ffffff;
-            padding: 12px 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .modal-title {
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
         .modal-body {
             padding: 14px;
             display: flex;
@@ -431,7 +413,7 @@
                     <option value="7">Juli</option>
                     <option value="8">Agustus</option>
                     <option value="9">September</option>
-                    <option value="10" selected>Oktober</option>
+                    <option value="10">Oktober</option>
                     <option value="11">November</option>
                     <option value="12">Desember</option>
                 </select>
@@ -440,7 +422,8 @@
                 <label class="form-label-hp" for="filterTahun">Tahun</label>
                 <select id="filterTahun" class="form-control-hp">
                     <option value="2025">2025</option>
-                    <option value="2026" selected>2026</option>
+                    <option value="2026">2026</option>
+                    <option value="2027">2027</option>
                 </select>
             </div>
         </div>
@@ -461,57 +444,20 @@
     <!-- Modal Form Input/Edit Rekonsiliasi -->
     <div class="modal-overlay" id="modalRekon">
         <div class="modal-box">
-            <div class="modal-header">
-                <div class="modal-title" id="modalHeaderTitle">Input Rekonsiliasi Bank</div>
-                <button type="button" class="btn-card-action" id="btnCloseModal" style="color:white;">
-                    <span class="material-icons" style="font-size: 18px;">close</span>
-                </button>
-            </div>
-
             <form id="rekonForm">
-                <div class="modal-body">
+                <div class="modal-body" style="padding-top: 18px;">
                     <input type="hidden" id="rekonId">
 
                     <div class="form-group-hp">
-                        <label class="form-label-hp" for="namaBank">Nama Rekening Bank</label>
-                        <input type="text" id="namaBank" class="form-control-hp" placeholder="Contoh: Bank Bantul" required>
+                        <label class="form-label-hp" for="namaBank">Nama Rekening Bank (CashFlowGroup: Kas dan Bank)</label>
+                        <select id="namaBank" class="form-control-hp" required>
+                            <option value="">Pilih Akun Bank...</option>
+                        </select>
                     </div>
 
                     <div class="form-group-hp">
                         <label class="form-label-hp" for="noRekening">Nomer Rekening</label>
                         <input type="text" id="noRekening" class="form-control-hp" placeholder="Contoh: 05.50.05/000101" required>
-                    </div>
-
-                    <div class="form-group-hp">
-                        <label class="form-label-hp" for="tanggalSaldo">Tanggal Saldo</label>
-                        <input type="date" id="tanggalSaldo" class="form-control-hp" required>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                        <div class="form-group-hp">
-                            <label class="form-label-hp" for="saldoBank">Saldo Bank (1)</label>
-                            <input type="text" id="saldoBank" class="form-control-hp" placeholder="0" required autocomplete="off">
-                        </div>
-                        <div class="form-group-hp">
-                            <label class="form-label-hp" for="bungaPajakAdm">Bunga - (Pajak+Adm) (2)</label>
-                            <input type="text" id="bungaPajakAdm" class="form-control-hp" placeholder="0" value="0" autocomplete="off">
-                        </div>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                        <div class="form-group-hp">
-                            <label class="form-label-hp" for="totalPenerimaan">Total Penerimaan (4)</label>
-                            <input type="text" id="totalPenerimaan" class="form-control-hp" placeholder="0" value="0" autocomplete="off">
-                        </div>
-                        <div class="form-group-hp">
-                            <label class="form-label-hp" for="totalPenggunaan">Total Penggunaan (5)</label>
-                            <input type="text" id="totalPenggunaan" class="form-control-hp" placeholder="0" value="0" autocomplete="off">
-                        </div>
-                    </div>
-
-                    <div class="form-group-hp">
-                        <label class="form-label-hp" for="cashOnHand">Cash On Hand (7)</label>
-                        <input type="text" id="cashOnHand" class="form-control-hp" placeholder="0" value="0" autocomplete="off">
                     </div>
 
                     <div class="form-group-hp">
@@ -551,6 +497,7 @@
             collection, 
             getDocs, 
             doc, 
+            getDoc,
             setDoc, 
             updateDoc, 
             deleteDoc, 
@@ -566,40 +513,47 @@
         const rekonListContainer = document.getElementById('rekonListContainer');
         const modalRekon = document.getElementById('modalRekon');
         const fabAddRekon = document.getElementById('fabAddRekon');
-        const btnCloseModal = document.getElementById('btnCloseModal');
         const btnResetForm = document.getElementById('btnResetForm');
         const rekonForm = document.getElementById('rekonForm');
-        const modalHeaderTitle = document.getElementById('modalHeaderTitle');
 
         const rekonIdInput = document.getElementById('rekonId');
-        const namaBankInput = document.getElementById('namaBank');
+        const namaBankSelect = document.getElementById('namaBank');
         const noRekeningInput = document.getElementById('noRekening');
-        const tanggalSaldoInput = document.getElementById('tanggalSaldo');
-        const saldoBankInput = document.getElementById('saldoBank');
-        const bungaPajakAdmInput = document.getElementById('bungaPajakAdm');
-        const totalPenerimaanInput = document.getElementById('totalPenerimaan');
-        const totalPenggunaanInput = document.getElementById('totalPenggunaan');
-        const cashOnHandInput = document.getElementById('cashOnHand');
         const keteranganInput = document.getElementById('keterangan');
 
         const filterBulan = document.getElementById('filterBulan');
         const filterTahun = document.getElementById('filterTahun');
 
-        // Format angka ribuan otomatis pada input nominal
-        [saldoBankInput, bungaPajakAdmInput, totalPenerimaanInput, totalPenggunaanInput, cashOnHandInput].forEach(inp => {
-            inp.addEventListener('input', function() {
-                let val = this.value.replace(/[^,\d]/g, '');
-                let split = val.split(',');
-                let sisa = split[0].length % 3;
-                let rupiah = split[0].substr(0, sisa);
-                let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
-                if (ribuan) {
-                    let separator = sisa ? '.' : '';
-                    rupiah += separator + ribuan.join('.');
-                }
-                this.value = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
-            });
-        });
+        // Fungsi memuat akun dari COA (CashFlowGroup === "Kas dan Bank") dan diurutkan berdasarkan kode akun (A-Z)
+        async function loadBankAccountsCOA() {
+            try {
+                const accSnap = await getDocs(collection(db, 'accounts'));
+                namaBankSelect.innerHTML = '<option value="">Pilih Akun Bank...</option>';
+
+                let accountsList = [];
+                accSnap.forEach(d => {
+                    const data = d.data();
+                    const code = String(data.accCode || '').trim();
+                    const name = String(data.accName || '').trim();
+                    const cashFlowGroup = String(data.cashFlowGroup || '').trim();
+
+                    if (cashFlowGroup === 'Kas dan Bank') {
+                        accountsList.push({ code, name });
+                    }
+                });
+
+                accountsList.sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true }));
+
+                accountsList.forEach(acc => {
+                    const opt = document.createElement('option');
+                    opt.value = `${acc.code} - ${acc.name}`;
+                    opt.textContent = `${acc.code} - ${acc.name}`;
+                    namaBankSelect.appendChild(opt);
+                });
+            } catch (err) {
+                console.error("Gagal memuat akun COA:", err);
+            }
+        }
 
         function parseCleanNumber(val) {
             if (!val) return 0;
@@ -609,20 +563,81 @@
         function resetForm() {
             rekonForm.reset();
             rekonIdInput.value = '';
-            modalHeaderTitle.textContent = 'Input Rekonsiliasi Bank';
-            tanggalSaldoInput.value = new Date().toISOString().split('T')[0];
         }
 
-        fabAddRekon.addEventListener('click', () => { resetForm(); modalRekon.classList.add('active'); });
-        btnCloseModal.addEventListener('click', () => modalRekon.classList.remove('active'));
+        fabAddRekon.addEventListener('click', async () => { 
+            resetForm(); 
+            await loadBankAccountsCOA();
+            modalRekon.classList.add('active'); 
+        });
+
         btnResetForm.addEventListener('click', () => modalRekon.classList.remove('active'));
+
+        async function initActivePeriod() {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.activeMonthCode && data.activeMonthCode.includes('-')) {
+                        const [y, m] = data.activeMonthCode.split('-');
+                        filterTahun.value = y;
+                        filterBulan.value = String(parseInt(m, 10));
+                    }
+                }
+            } catch (err) {
+                console.error("Gagal memuat bulan aktif:", err);
+            }
+            await loadRekonData();
+        }
 
         async function loadRekonData() {
             try {
-                const b = filterBulan.value;
+                const bStr = String(filterBulan.value).padStart(2, '0');
                 const t = filterTahun.value;
+                const endPeriodDate = `${t}-${bStr}-31`; // Batas akhir bulan aktif untuk perhitungan saldo kumulatif
 
-                const q = query(collection(db, 'rekonsiliasi_bank'), where('tahun', '==', t), where('bulan', '==', b));
+                // Ambil semua jurnal s.d akhir bulan periode terpilih
+                const qJurnal = query(collection(db, 'journals'), where('date', '<=', endPeriodDate));
+                const jSnap = await getDocs(qJurnal);
+
+                // Petakan mutasi per akun
+                const accountBalances = {}; // Untuk Saldo Bank (1) s.d akhir bulan
+                const monthlyMutations = {}; // Untuk Penerimaan & Penggunaan di bulan tersebut
+
+                jSnap.forEach(docJ => {
+                    const j = docJ.data();
+                    const jDate = j.date || '';
+                    const [jYear, jMonth] = jDate.split('-');
+
+                    if (j.items && Array.isArray(j.items)) {
+                        j.items.forEach(item => {
+                            const code = String(item.accCode || '').trim();
+                            const debit = parseFloat(item.debit) || 0;
+                            const kredit = parseFloat(item.kredit) || 0;
+                            const net = debit - kredit; // Untuk aset (debit menambah saldo)
+
+                            // Saldo kumulatif s.d akhir bulan terpilih
+                            if (jDate <= endPeriodDate) {
+                                accountBalances[code] = (accountBalances[code] || 0) + net;
+                            }
+
+                            // Mutasi khusus pada bulan dan tahun terpilih
+                            if (jYear === t && jMonth === bStr) {
+                                if (!monthlyMutations[code]) {
+                                    monthlyMutations[code] = { penerimaan: 0, penggunaan: 0 };
+                                }
+                                // Jika akun kas/bank bertambah (debit) di bulan itu
+                                monthlyMutations[code].penerimaan += debit;
+                                // Jika akun kas/bank berkurang (kredit) di bulan itu
+                                monthlyMutations[code].penggunaan += kredit;
+                            }
+                        });
+                    }
+                });
+
+                const q = query(collection(db, 'rekonsiliasi_bank'), where('tahun', '==', t), where('bulan', '==', filterBulan.value));
                 const snap = await getDocs(q);
 
                 rekonListContainer.innerHTML = '';
@@ -637,17 +652,23 @@
 
                 snap.forEach(d => {
                     const item = { id: d.id, ...d.data() };
+                    
+                    // Ambil kode akun dari string namaBank (misal: "1.01.02.001 - Bank BPD" -> ambil "1.01.02.001")
+                    const rawNamaBank = item.namaBank || '';
+                    const accCodeMatch = rawNamaBank.split(' - ')[0].trim();
 
-                    const sBank = parseCleanNumber(item.saldoBank);
+                    // Otomatis ambil saldo dari perhitungan jurnal
+                    const sBank = accountBalances[accCodeMatch] || 0;
                     const bPajak = parseCleanNumber(item.bungaPajakAdm);
-                    const sNetto = sBank - bPajak; // (3) = (1) - (2)
+                    const sNetto = sBank - bPajak;
 
-                    const tPenerimaan = parseCleanNumber(item.totalPenerimaan);
-                    const tPenggunaan = parseCleanNumber(item.totalPenggunaan);
-                    const sSeharusnya = tPenerimaan - tPenggunaan; // (6) = (4) - (5)
+                    const mutasi = monthlyMutations[accCodeMatch] || { penerimaan: 0, penggunaan: 0 };
+                    const tPenerimaan = mutasi.penerimaan;
+                    const tPenggunaan = mutasi.penggunaan;
+                    const sSeharusnya = tPenerimaan - tPenggunaan;
 
                     const coh = parseCleanNumber(item.cashOnHand);
-                    const selisih = sSeharusnya - sNetto - coh; // (8) = (6) - (3) - (7)
+                    const selisih = sSeharusnya - sNetto - coh;
 
                     let selisihColor = '#16a34a';
                     let selisihBg = '#dcfce7';
@@ -662,7 +683,7 @@
                         <div class="rekon-card-header">
                             <div>
                                 <span class="bank-name">${item.namaBank || ''}</span>
-                                <div class="bank-date">Tgl Saldo: ${item.tanggalSaldo || '--'}</div>
+                                <div class="bank-date">Periode: ${filterBulan.options[filterBulan.selectedIndex].text} ${t}</div>
                             </div>
                             <span class="bank-acc-num">${item.noRekening || ''}</span>
                         </div>
@@ -724,20 +745,14 @@
                     btn.addEventListener('click', async (e) => {
                         const id = e.currentTarget.dataset.id;
                         const snapDoc = await getDocs(collection(db, 'rekonsiliasi_bank'));
-                        snapDoc.forEach(docSnap => {
+                        snapDoc.forEach(async (docSnap) => {
                             if (docSnap.id === id) {
                                 const data = docSnap.data();
+                                await loadBankAccountsCOA();
                                 rekonIdInput.value = id;
-                                namaBankInput.value = data.namaBank || '';
+                                namaBankSelect.value = data.namaBank || '';
                                 noRekeningInput.value = data.noRekening || '';
-                                tanggalSaldoInput.value = data.tanggalSaldo || '';
-                                saldoBankInput.value = Number(data.saldoBank || 0).toLocaleString('id-ID');
-                                bungaPajakAdmInput.value = Number(data.bungaPajakAdm || 0).toLocaleString('id-ID');
-                                totalPenerimaanInput.value = Number(data.totalPenerimaan || 0).toLocaleString('id-ID');
-                                totalPenggunaanInput.value = Number(data.totalPenggunaan || 0).toLocaleString('id-ID');
-                                cashOnHandInput.value = Number(data.cashOnHand || 0).toLocaleString('id-ID');
                                 keteranganInput.value = data.keterangan || '';
-                                modalHeaderTitle.textContent = 'Edit Rekonsiliasi Bank';
                                 modalRekon.classList.add('active');
                             }
                         });
@@ -782,14 +797,8 @@
             const id = rekonIdInput.value;
 
             const payload = {
-                namaBank: namaBankInput.value.trim(),
+                namaBank: namaBankSelect.value.trim(),
                 noRekening: noRekeningInput.value.trim(),
-                tanggalSaldo: tanggalSaldoInput.value,
-                saldoBank: parseCleanNumber(saldoBankInput.value),
-                bungaPajakAdm: parseCleanNumber(bungaPajakAdmInput.value),
-                totalPenerimaan: parseCleanNumber(totalPenerimaanInput.value),
-                totalPenggunaan: parseCleanNumber(totalPenggunaanInput.value),
-                cashOnHand: parseCleanNumber(cashOnHandInput.value),
                 keterangan: keteranganInput.value.trim(),
                 bulan: filterBulan.value,
                 tahun: filterTahun.value,
@@ -827,7 +836,7 @@
             window.location.href = 'login.html';
         });
 
-        loadRekonData();
+        initActivePeriod();
     </script>
 </body>
 </html>
