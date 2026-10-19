@@ -131,32 +131,6 @@
             flex-direction: column;
         }
 
-        /* Header Laporan Kertas */
-        .report-header {
-            text-align: center;
-            margin-bottom: 16px;
-        }
-
-        .company-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #334155;
-        }
-
-        .report-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: #0f172a;
-            margin-top: 2px;
-            letter-spacing: 0.5px;
-        }
-
-        .period-subtitle {
-            font-size: 11px;
-            color: #475569;
-            margin-top: 2px;
-        }
-
         /* Tabel Jurnal Umum */
         .table-container {
             width: 100%;
@@ -187,8 +161,8 @@
             vertical-align: top;
         }
 
-        .text-right {
-            text-align: right;
+        .text-left {
+            text-align: left;
         }
 
         .text-center {
@@ -200,6 +174,14 @@
             font-weight: 700;
             color: #0f172a;
             border-top: 1px solid #cbd5e1;
+        }
+
+        .grand-total-row {
+            background-color: #f1f5f9;
+            font-weight: 700;
+            color: #0f172a;
+            border-top: 2px solid #cbd5e1;
+            border-bottom: 2px solid #cbd5e1;
         }
     </style>
 </head>
@@ -230,13 +212,6 @@
         <!-- Area Isi Laporan Jurnal Umum -->
         <div class="report-wrapper">
             <div class="report-paper">
-                <!-- Header Dokumen Laporan -->
-                <div class="report-header">
-                    <div class="company-title" id="profileNameDisplay">BUMKal</div>
-                    <div class="report-title">JURNAL UMUM</div>
-                    <div class="period-subtitle" id="periodTextDisplay">--</div>
-                </div>
-
                 <!-- Tabel Data Jurnal -->
                 <div class="table-container">
                     <table>
@@ -244,8 +219,8 @@
                             <tr>
                                 <th style="width: 16%;">Tanggal</th>
                                 <th style="width: 44%;">Keterangan / Akun</th>
-                                <th class="text-right" style="width: 20%;">Debit</th>
-                                <th class="text-right" style="width: 20%;">Kredit</th>
+                                <th class="text-left" style="width: 20%;">Debit</th>
+                                <th class="text-left" style="width: 20%;">Kredit</th>
                             </tr>
                         </thead>
                         <tbody id="jurnalTableBody">
@@ -253,6 +228,9 @@
                                 <td colspan="4" class="text-center" style="color: #94a3b8; padding: 20px;">Memuat data jurnal...</td>
                             </tr>
                         </tbody>
+                        <tfoot id="jurnalTableFoot">
+                            <!-- Grand Total dihasilkan via JS -->
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -266,22 +244,8 @@
 
         const startDateInput = document.getElementById('startDate');
         const endDateInput = document.getElementById('endDate');
-        const profileNameDisplay = document.getElementById('profileNameDisplay');
-        const periodTextDisplay = document.getElementById('periodTextDisplay');
         const jurnalTableBody = document.getElementById('jurnalTableBody');
-
-        function formatDateDisplay(dateStr) {
-            if (!dateStr) return '';
-            const [y, m, d] = dateStr.split('-');
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-            return `${d} ${months[parseInt(m, 10) - 1]} ${y}`;
-        }
-
-        function updatePeriodDisplay() {
-            const s = formatDateDisplay(startDateInput.value);
-            const e = formatDateDisplay(endDateInput.value);
-            periodTextDisplay.textContent = `${s} - ${e}`;
-        }
+        const jurnalTableFoot = document.getElementById('jurnalTableFoot');
 
         async function initActiveDates() {
             try {
@@ -293,27 +257,16 @@
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    profileNameDisplay.textContent = data.namaProfil || 'BUMKal';
-
                     if (data.activeMonthCode && data.activeMonthCode.includes('-')) {
                         const [y, m] = data.activeMonthCode.split('-');
                         const yearNum = parseInt(y, 10);
                         const monthNum = parseInt(m, 10);
 
-                        // Tanggal 1 di awal bulan aktif
                         const firstDay = new Date(yearNum, monthNum - 1, 1);
-                        // Tanggal terakhir di bulan aktif
                         const lastDay = new Date(yearNum, monthNum, 0);
 
-                        const fY = firstDay.getFullYear();
-                        const fM = String(firstDay.getMonth() + 1).padStart(2, '0');
-                        const fD = String(firstDay.getDate()).padStart(2, '0');
-                        startStr = `${fY}-${fM}-${fD}`;
-
-                        const lY = lastDay.getFullYear();
-                        const lM = String(lastDay.getMonth() + 1).padStart(2, '0');
-                        const lD = String(lastDay.getDate()).padStart(2, '0');
-                        endStr = `${lY}-${lM}-${lD}`;
+                        startStr = `${firstDay.getFullYear()}-${String(firstDay.getMonth() + 1).padStart(2, '0')}-${String(firstDay.getDate()).padStart(2, '0')}`;
+                        endStr = `${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
                     }
                 }
 
@@ -328,7 +281,6 @@
                 startDateInput.value = startStr;
                 endDateInput.value = endStr;
 
-                updatePeriodDisplay();
                 await generateJurnalReport();
 
             } catch (err) {
@@ -336,13 +288,11 @@
                 const now = new Date();
                 startDateInput.value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
                 endDateInput.value = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
-                updatePeriodDisplay();
                 await generateJurnalReport();
             }
         }
 
         async function generateJurnalReport() {
-            updatePeriodDisplay();
             const sDate = startDateInput.value;
             const eDate = endDateInput.value;
 
@@ -365,11 +315,15 @@
 
                 const jSnap = await getDocs(qJurnal);
                 jurnalTableBody.innerHTML = '';
+                jurnalTableFoot.innerHTML = '';
 
                 if (jSnap.empty) {
                     jurnalTableBody.innerHTML = `<tr><td colspan="4" class="text-center" style="color: #94a3b8; padding: 20px;">Tidak ada transaksi jurnal pada periode ini.</td></tr>`;
                     return;
                 }
+
+                let grandTotalDebit = 0;
+                let grandTotalKredit = 0;
 
                 jSnap.forEach(docItem => {
                     const journal = docItem.data();
@@ -392,20 +346,31 @@
                             const debit = parseFloat(item.debit) || 0;
                             const kredit = parseFloat(item.kredit) || 0;
 
+                            grandTotalDebit += debit;
+                            grandTotalKredit += kredit;
+
                             const itemRow = document.createElement('tr');
-                            const isKredit = kredit > 0;
-                            const indentStyle = isKredit ? 'padding-left: 18px;' : 'padding-left: 6px;';
 
                             itemRow.innerHTML = `
                                 <td></td>
-                                <td style="${indentStyle}">${code} - ${name}</td>
-                                <td class="text-right">${debit > 0 ? debit.toLocaleString('id-ID') : '-'}</td>
-                                <td class="text-right">${kredit > 0 ? kredit.toLocaleString('id-ID') : '-'}</td>
+                                <td style="padding-left: 6px;">${code} - ${name}</td>
+                                <td class="text-left">${debit > 0 ? debit.toLocaleString('id-ID') : '-'}</td>
+                                <td class="text-left">${kredit > 0 ? kredit.toLocaleString('id-ID') : '-'}</td>
                             `;
                             jurnalTableBody.appendChild(itemRow);
                         });
                     }
                 });
+
+                // Render Baris Grand Total di Bagian Paling Bawah (tfoot)
+                const footRow = document.createElement('tr');
+                footRow.className = 'grand-total-row';
+                footRow.innerHTML = `
+                    <td colspan="2" style="text-align: right; padding-right: 8px;">TOTAL KESELURUHAN:</td>
+                    <td class="text-left">${grandTotalDebit.toLocaleString('id-ID')}</td>
+                    <td class="text-left">${grandTotalKredit.toLocaleString('id-ID')}</td>
+                `;
+                jurnalTableFoot.appendChild(footRow);
 
             } catch (err) {
                 console.error("Gagal memuat jurnal umum:", err);

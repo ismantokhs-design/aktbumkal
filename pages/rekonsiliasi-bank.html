@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REKONSILIASI BANK</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Link External CSS Utama -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body, *, .modal-box, .list-container {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+
+        ::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            background: transparent !important;
+        }
+
+        body {
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-title-box {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .btn-back {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .icon-menu {
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        .filter-container {
+            padding: 12px;
+            background-color: #f8fafc;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .form-group-hp {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-label-hp {
+            font-size: 9px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .form-control-hp {
+            width: 100%;
+            padding: 7px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 11px;
+            background-color: #ffffff;
+            color: #1e293b;
+            outline: none;
+        }
+
+        /* Daftar Kartu Rekonsiliasi HP-friendly */
+        .list-container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            padding: 12px;
+            gap: 10px;
+            background-color: #f8fafc;
+            padding-bottom: 80px;
+            overflow-y: auto;
+        }
+
+        .rekon-card {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .rekon-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 6px;
+        }
+
+        .bank-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .bank-acc-num {
+            font-size: 10px;
+            font-weight: 600;
+            color: #5114B9;
+            background-color: #f0ebf8;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .bank-date {
+            font-size: 9px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .rekon-grid-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+            background-color: #f8fafc;
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 8px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .info-val {
+            font-size: 11px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .rekon-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px dashed #e2e8f0;
+            padding-top: 6px;
+            margin-top: 2px;
+        }
+
+        .selisih-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .card-action-btns {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-card-action {
+            background: none;
+            border: none;
+            padding: 4px;
+            color: #64748b;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-card-action:hover {
+            background-color: #f1f5f9;
+            color: #5114B9;
+        }
+
+        /* Floating Action Button (FAB) (+) */
+        .fab-add {
+            position: fixed;
+            bottom: 24px;
+            right: calc(50% - 210px);
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background-color: #5114B9;
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 4px 12px rgba(81, 20, 185, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 200;
+            transition: transform 0.2s ease;
+        }
+
+        @media (max-width: 480px) {
+            .fab-add {
+                right: 20px;
+            }
+        }
+
+        .fab-add:active {
+            transform: scale(0.95);
+        }
+
+        /* Modal Form */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 300;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-box {
+            width: 100%;
+            max-width: 420px;
+            max-height: 90vh;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 12px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .modal-title {
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .modal-body {
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .modal-footer {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .btn-save-modal {
+            background-color: #5114B9;
+            color: white;
+            border: none;
+            padding: 10px 0;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .btn-cancel-modal {
+            background-color: #ffffff;
+            color: #64748b;
+            border: 1px solid #cbd5e1;
+            padding: 10px 0;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Cek Status Auth -->
+    <script type="module">
+        import { auth } from '../assets/js/firebase-config.js';
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        onAuthStateChanged(auth, (user) => {
+            if (!user) { window.location.href = 'login.html'; }
+        });
+    </script>
+
+    <!-- Option Menu Popup -->
+    <div class="option-menu-popup" id="optionMenuPopup">
+        <div class="option-header">OPTION MENU</div>
+        <div class="option-list">
+            <a href="setting.html" class="option-item"><span class="material-icons">settings</span><span>Pengaturan</span></a>
+            <a href="setting-user.html" class="option-item"><span class="material-icons">manage_accounts</span><span>Setting User</span></a>
+            <a href="hak-akses.html" class="option-item"><span class="material-icons">admin_panel_settings</span><span>Hak Akses</span></a>
+            <div class="option-divider"></div>
+            <a href="tutup-bulan.html" class="option-item"><span class="material-icons">event_repeat</span><span>Tutup Akhir Bulan</span></a>
+            <a href="tutup-buku.html" class="option-item"><span class="material-icons">published_with_changes</span><span>Tutup Buku Akhir Tahun</span></a>
+            <div class="option-divider"></div>
+            <div class="option-item" id="btnOpenLogout" style="cursor: pointer;"><span class="material-icons">power_settings_new</span><span>Keluar</span></div>
+        </div>
+    </div>
+
+    <!-- Modal Logout -->
+    <div class="logout-modal-overlay" id="modalLogout">
+        <div class="logout-modal-box">
+            <div class="logout-icon-wrapper" style="width: 48px; height: 48px; background-color: #fce8e6; color: #d32f2f; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto;">
+                <span class="material-icons" style="font-size:28px;">power_settings_new</span>
+            </div>
+            <div class="logout-modal-title" style="font-size: 15px; font-weight: 700; color: #222222; margin-bottom: 6px; text-align:center;">Konfirmasi Keluar</div>
+            <div class="logout-modal-desc" style="font-size: 12px; color: #666666; margin-bottom: 20px; text-align:center;">Apakah Anda yakin ingin keluar dari aplikasi?</div>
+            <div class="logout-btn-group" style="display: flex; gap: 10px;">
+                <button class="btn-confirm-logout" id="btnConfirmLogout" style="flex: 1; background-color: #d32f2f; color: #ffffff; border: none; padding: 10px 0; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">Ya, Keluar</button>
+                <button class="btn-cancel-logout" id="btnCancelLogout" style="flex: 1; background-color: #f0f4f8; color: #444444; border: none; padding: 10px 0; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-container">
+        <!-- Header Halaman -->
+        <header class="page-header">
+            <div class="header-title-box">
+                <a href="../index.html" class="btn-back"><span class="material-icons" style="color: #ffffff;">arrow_back</span></a>
+                <h1>REKONSILIASI BANK</h1>
+            </div>
+            <span class="material-icons icon-menu" id="btnToggleOption">more_vert</span>
+        </header>
+
+        <!-- Filter Periode HP -->
+        <div class="filter-container">
+            <div class="form-group-hp">
+                <label class="form-label-hp" for="filterBulan">Bulan Rekon</label>
+                <select id="filterBulan" class="form-control-hp">
+                    <option value="1">Januari</option>
+                    <option value="2">Februari</option>
+                    <option value="3">Maret</option>
+                    <option value="4">April</option>
+                    <option value="5">Mei</option>
+                    <option value="6">Juni</option>
+                    <option value="7">Juli</option>
+                    <option value="8">Agustus</option>
+                    <option value="9">September</option>
+                    <option value="10" selected>Oktober</option>
+                    <option value="11">November</option>
+                    <option value="12">Desember</option>
+                </select>
+            </div>
+            <div class="form-group-hp">
+                <label class="form-label-hp" for="filterTahun">Tahun</label>
+                <select id="filterTahun" class="form-control-hp">
+                    <option value="2025">2025</option>
+                    <option value="2026" selected>2026</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Daftar Kartu Rekonsiliasi -->
+        <div class="list-container" id="rekonListContainer">
+            <div style="text-align: center; padding: 40px; color: #94a3b8; font-size: 11px;">
+                Memuat data rekonsiliasi...
+            </div>
+        </div>
+
+        <!-- Floating Action Button (+) -->
+        <button class="fab-add" id="fabAddRekon" title="Tambah Rekonsiliasi">
+            <span class="material-icons" style="font-size: 26px;">add</span>
+        </button>
+    </div>
+
+    <!-- Modal Form Input/Edit Rekonsiliasi -->
+    <div class="modal-overlay" id="modalRekon">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="modal-title" id="modalHeaderTitle">Input Rekonsiliasi Bank</div>
+                <button type="button" class="btn-card-action" id="btnCloseModal" style="color:white;">
+                    <span class="material-icons" style="font-size: 18px;">close</span>
+                </button>
+            </div>
+
+            <form id="rekonForm">
+                <div class="modal-body">
+                    <input type="hidden" id="rekonId">
+
+                    <div class="form-group-hp">
+                        <label class="form-label-hp" for="namaBank">Nama Rekening Bank</label>
+                        <input type="text" id="namaBank" class="form-control-hp" placeholder="Contoh: Bank Bantul" required>
+                    </div>
+
+                    <div class="form-group-hp">
+                        <label class="form-label-hp" for="noRekening">Nomer Rekening</label>
+                        <input type="text" id="noRekening" class="form-control-hp" placeholder="Contoh: 05.50.05/000101" required>
+                    </div>
+
+                    <div class="form-group-hp">
+                        <label class="form-label-hp" for="tanggalSaldo">Tanggal Saldo</label>
+                        <input type="date" id="tanggalSaldo" class="form-control-hp" required>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <div class="form-group-hp">
+                            <label class="form-label-hp" for="saldoBank">Saldo Bank (1)</label>
+                            <input type="text" id="saldoBank" class="form-control-hp" placeholder="0" required autocomplete="off">
+                        </div>
+                        <div class="form-group-hp">
+                            <label class="form-label-hp" for="bungaPajakAdm">Bunga - (Pajak+Adm) (2)</label>
+                            <input type="text" id="bungaPajakAdm" class="form-control-hp" placeholder="0" value="0" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <div class="form-group-hp">
+                            <label class="form-label-hp" for="totalPenerimaan">Total Penerimaan (4)</label>
+                            <input type="text" id="totalPenerimaan" class="form-control-hp" placeholder="0" value="0" autocomplete="off">
+                        </div>
+                        <div class="form-group-hp">
+                            <label class="form-label-hp" for="totalPenggunaan">Total Penggunaan (5)</label>
+                            <input type="text" id="totalPenggunaan" class="form-control-hp" placeholder="0" value="0" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="form-group-hp">
+                        <label class="form-label-hp" for="cashOnHand">Cash On Hand (7)</label>
+                        <input type="text" id="cashOnHand" class="form-control-hp" placeholder="0" value="0" autocomplete="off">
+                    </div>
+
+                    <div class="form-group-hp">
+                        <label class="form-label-hp" for="keterangan">Keterangan</label>
+                        <input type="text" id="keterangan" class="form-control-hp" placeholder="Catatan tambahan...">
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn-save-modal">Simpan Data</button>
+                        <button type="button" class="btn-cancel-modal" id="btnResetForm">Batal</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script Option Menu -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const btnToggleOption = document.getElementById('btnToggleOption');
+            const optionMenuPopup = document.getElementById('optionMenuPopup');
+            btnToggleOption?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                optionMenuPopup?.classList.toggle('active');
+            });
+            document.addEventListener('click', () => {
+                optionMenuPopup?.classList.remove('active');
+            });
+        });
+    </script>
+
+    <!-- Script Firestore Integrasi & Kalkulasi -->
+    <script type="module">
+        import { auth, db } from '../assets/js/firebase-config.js';
+        import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { 
+            collection, 
+            getDocs, 
+            doc, 
+            setDoc, 
+            updateDoc, 
+            deleteDoc, 
+            query, 
+            where, 
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = 'login.html'; }
+        });
+
+        const rekonListContainer = document.getElementById('rekonListContainer');
+        const modalRekon = document.getElementById('modalRekon');
+        const fabAddRekon = document.getElementById('fabAddRekon');
+        const btnCloseModal = document.getElementById('btnCloseModal');
+        const btnResetForm = document.getElementById('btnResetForm');
+        const rekonForm = document.getElementById('rekonForm');
+        const modalHeaderTitle = document.getElementById('modalHeaderTitle');
+
+        const rekonIdInput = document.getElementById('rekonId');
+        const namaBankInput = document.getElementById('namaBank');
+        const noRekeningInput = document.getElementById('noRekening');
+        const tanggalSaldoInput = document.getElementById('tanggalSaldo');
+        const saldoBankInput = document.getElementById('saldoBank');
+        const bungaPajakAdmInput = document.getElementById('bungaPajakAdm');
+        const totalPenerimaanInput = document.getElementById('totalPenerimaan');
+        const totalPenggunaanInput = document.getElementById('totalPenggunaan');
+        const cashOnHandInput = document.getElementById('cashOnHand');
+        const keteranganInput = document.getElementById('keterangan');
+
+        const filterBulan = document.getElementById('filterBulan');
+        const filterTahun = document.getElementById('filterTahun');
+
+        // Format angka ribuan otomatis pada input nominal
+        [saldoBankInput, bungaPajakAdmInput, totalPenerimaanInput, totalPenggunaanInput, cashOnHandInput].forEach(inp => {
+            inp.addEventListener('input', function() {
+                let val = this.value.replace(/[^,\d]/g, '');
+                let split = val.split(',');
+                let sisa = split[0].length % 3;
+                let rupiah = split[0].substr(0, sisa);
+                let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+                if (ribuan) {
+                    let separator = sisa ? '.' : '';
+                    rupiah += separator + ribuan.join('.');
+                }
+                this.value = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
+            });
+        });
+
+        function parseCleanNumber(val) {
+            if (!val) return 0;
+            return parseFloat(String(val).replace(/\./g, '').replace(',', '.')) || 0;
+        }
+
+        function resetForm() {
+            rekonForm.reset();
+            rekonIdInput.value = '';
+            modalHeaderTitle.textContent = 'Input Rekonsiliasi Bank';
+            tanggalSaldoInput.value = new Date().toISOString().split('T')[0];
+        }
+
+        fabAddRekon.addEventListener('click', () => { resetForm(); modalRekon.classList.add('active'); });
+        btnCloseModal.addEventListener('click', () => modalRekon.classList.remove('active'));
+        btnResetForm.addEventListener('click', () => modalRekon.classList.remove('active'));
+
+        async function loadRekonData() {
+            try {
+                const b = filterBulan.value;
+                const t = filterTahun.value;
+
+                const q = query(collection(db, 'rekonsiliasi_bank'), where('tahun', '==', t), where('bulan', '==', b));
+                const snap = await getDocs(q);
+
+                rekonListContainer.innerHTML = '';
+
+                if (snap.empty) {
+                    rekonListContainer.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #94a3b8; font-size: 11px;">
+                            Belum ada data rekonsiliasi untuk periode ini.
+                        </div>`;
+                    return;
+                }
+
+                snap.forEach(d => {
+                    const item = { id: d.id, ...d.data() };
+
+                    const sBank = parseCleanNumber(item.saldoBank);
+                    const bPajak = parseCleanNumber(item.bungaPajakAdm);
+                    const sNetto = sBank - bPajak; // (3) = (1) - (2)
+
+                    const tPenerimaan = parseCleanNumber(item.totalPenerimaan);
+                    const tPenggunaan = parseCleanNumber(item.totalPenggunaan);
+                    const sSeharusnya = tPenerimaan - tPenggunaan; // (6) = (4) - (5)
+
+                    const coh = parseCleanNumber(item.cashOnHand);
+                    const selisih = sSeharusnya - sNetto - coh; // (8) = (6) - (3) - (7)
+
+                    let selisihColor = '#16a34a';
+                    let selisihBg = '#dcfce7';
+                    if (selisih !== 0) {
+                        selisihColor = '#dc2626';
+                        selisihBg = '#fee2e2';
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = 'rekon-card';
+                    card.innerHTML = `
+                        <div class="rekon-card-header">
+                            <div>
+                                <span class="bank-name">${item.namaBank || ''}</span>
+                                <div class="bank-date">Tgl Saldo: ${item.tanggalSaldo || '--'}</div>
+                            </div>
+                            <span class="bank-acc-num">${item.noRekening || ''}</span>
+                        </div>
+
+                        <div class="rekon-grid-info">
+                            <div class="info-item">
+                                <span class="info-label">Saldo Bank (1)</span>
+                                <span class="info-val">Rp ${sBank.toLocaleString('id-ID')}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Bunga - (Paj+Adm) (2)</span>
+                                <span class="info-val">Rp ${bPajak.toLocaleString('id-ID')}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Saldo Netto (3)</span>
+                                <span class="info-val" style="color: #5114B9;">Rp ${sNetto.toLocaleString('id-ID')}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Total Penerimaan (4)</span>
+                                <span class="info-val" style="color: #16a34a;">Rp ${tPenerimaan.toLocaleString('id-ID')}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Total Penggunaan (5)</span>
+                                <span class="info-val" style="color: #dc2626;">Rp ${tPenggunaan.toLocaleString('id-ID')}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Sisa Seharusnya (6)</span>
+                                <span class="info-val">Rp ${sSeharusnya.toLocaleString('id-ID')}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Cash On Hand (7)</span>
+                                <span class="info-val">Rp ${coh.toLocaleString('id-ID')}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Selisih Dana (8)</span>
+                                <span class="info-val" style="color: ${selisihColor};">Rp ${selisih.toLocaleString('id-ID')}</span>
+                            </div>
+                        </div>
+
+                        ${item.keterangan ? `<div style="font-size: 10px; color: #64748b; font-style: italic;">Ket: ${item.keterangan}</div>` : ''}
+
+                        <div class="rekon-card-footer">
+                            <span class="selisih-badge" style="color: ${selisihColor}; background-color: ${selisihBg};">Selisih: Rp ${selisih.toLocaleString('id-ID')}</span>
+                            <div class="card-action-btns">
+                                <button class="btn-card-action btn-edit" data-id="${item.id}" type="button" title="Edit">
+                                    <span class="material-icons" style="font-size: 16px; color: #5114B9;">edit</span>
+                                </button>
+                                <button class="btn-card-action btn-delete" data-id="${item.id}" data-name="${item.namaBank}" type="button" title="Hapus">
+                                    <span class="material-icons" style="font-size: 16px; color: #ef4444;">delete</span>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    rekonListContainer.appendChild(card);
+                });
+
+                // Handler Edit
+                document.querySelectorAll('.btn-edit').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const id = e.currentTarget.dataset.id;
+                        const snapDoc = await getDocs(collection(db, 'rekonsiliasi_bank'));
+                        snapDoc.forEach(docSnap => {
+                            if (docSnap.id === id) {
+                                const data = docSnap.data();
+                                rekonIdInput.value = id;
+                                namaBankInput.value = data.namaBank || '';
+                                noRekeningInput.value = data.noRekening || '';
+                                tanggalSaldoInput.value = data.tanggalSaldo || '';
+                                saldoBankInput.value = Number(data.saldoBank || 0).toLocaleString('id-ID');
+                                bungaPajakAdmInput.value = Number(data.bungaPajakAdm || 0).toLocaleString('id-ID');
+                                totalPenerimaanInput.value = Number(data.totalPenerimaan || 0).toLocaleString('id-ID');
+                                totalPenggunaanInput.value = Number(data.totalPenggunaan || 0).toLocaleString('id-ID');
+                                cashOnHandInput.value = Number(data.cashOnHand || 0).toLocaleString('id-ID');
+                                keteranganInput.value = data.keterangan || '';
+                                modalHeaderTitle.textContent = 'Edit Rekonsiliasi Bank';
+                                modalRekon.classList.add('active');
+                            }
+                        });
+                    });
+                });
+
+                // Handler Delete
+                document.querySelectorAll('.btn-delete').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const id = e.currentTarget.dataset.id;
+                        const name = e.currentTarget.dataset.name;
+                        const res = await Swal.fire({
+                            title: 'Hapus Data?',
+                            text: `Yakin ingin menghapus rekon untuk "${name}"?`,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#ef4444',
+                            confirmButtonText: 'Ya, Hapus'
+                        });
+                        if (res.isConfirmed) {
+                            await deleteDoc(doc(db, 'rekonsiliasi_bank', id));
+                            Swal.fire({ icon: 'success', title: 'Terhapus', timer: 1200, showConfirmButton: false });
+                            loadRekonData();
+                        }
+                    });
+                });
+
+            } catch (err) {
+                console.error("Gagal memuat rekon:", err);
+                rekonListContainer.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #ef4444; font-size: 11px;">
+                        Gagal memuat data rekonsiliasi.
+                    </div>`;
+            }
+        }
+
+        filterBulan.addEventListener('change', loadRekonData);
+        filterTahun.addEventListener('change', loadRekonData);
+
+        rekonForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = rekonIdInput.value;
+
+            const payload = {
+                namaBank: namaBankInput.value.trim(),
+                noRekening: noRekeningInput.value.trim(),
+                tanggalSaldo: tanggalSaldoInput.value,
+                saldoBank: parseCleanNumber(saldoBankInput.value),
+                bungaPajakAdm: parseCleanNumber(bungaPajakAdmInput.value),
+                totalPenerimaan: parseCleanNumber(totalPenerimaanInput.value),
+                totalPenggunaan: parseCleanNumber(totalPenggunaanInput.value),
+                cashOnHand: parseCleanNumber(cashOnHandInput.value),
+                keterangan: keteranganInput.value.trim(),
+                bulan: filterBulan.value,
+                tahun: filterTahun.value,
+                updatedAt: serverTimestamp()
+            };
+
+            try {
+                if (id) {
+                    await updateDoc(doc(db, 'rekonsiliasi_bank', id), payload);
+                } else {
+                    payload.createdAt = serverTimestamp();
+                    await setDoc(doc(collection(db, 'rekonsiliasi_bank')), payload);
+                }
+                Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Data rekon tersimpan.', timer: 1200, showConfirmButton: false });
+                modalRekon.classList.remove('active');
+                loadRekonData();
+            } catch (err) {
+                Swal.fire('Gagal', err.message, 'error');
+            }
+        });
+
+        // Logout Handler
+        const btnOpenLogout = document.getElementById('btnOpenLogout');
+        const modalLogout = document.getElementById('modalLogout');
+        const btnCancelLogout = document.getElementById('btnCancelLogout');
+        const btnConfirmLogout = document.getElementById('btnConfirmLogout');
+
+        btnOpenLogout?.addEventListener('click', () => {
+            document.getElementById('optionMenuPopup')?.classList.remove('active');
+            modalLogout?.classList.add('active');
+        });
+        btnCancelLogout?.addEventListener('click', () => modalLogout?.classList.remove('active'));
+        btnConfirmLogout?.addEventListener('click', async () => {
+            await signOut(auth);
+            window.location.href = 'login.html';
+        });
+
+        loadRekonData();
+    </script>
+</body>
+</html>

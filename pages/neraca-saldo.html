@@ -131,37 +131,11 @@
             flex-direction: column;
         }
 
-        /* Header Laporan Kertas */
-        .report-header {
-            text-align: center;
-            margin-bottom: 16px;
-        }
-
-        .company-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #334155;
-        }
-
-        .report-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: #0f172a;
-            margin-top: 2px;
-            letter-spacing: 0.5px;
-        }
-
-        .period-subtitle {
-            font-size: 11px;
-            color: #475569;
-            margin-top: 2px;
-        }
-
         /* Tabel Neraca Saldo */
         .table-container {
             width: 100%;
             overflow-x: auto;
-            margin-top: 8px;
+            margin-top: 4px;
             flex-grow: 1;
         }
 
@@ -237,13 +211,6 @@
         <!-- Area Isi Laporan Neraca Saldo -->
         <div class="report-wrapper">
             <div class="report-paper">
-                <!-- Header Dokumen Laporan -->
-                <div class="report-header">
-                    <div class="company-title" id="profileNameDisplay">BUMKal</div>
-                    <div class="report-title">NERACA SALDO</div>
-                    <div class="period-subtitle" id="periodTextDisplay">--</div>
-                </div>
-
                 <!-- Tabel Data Neraca Saldo -->
                 <div class="table-container">
                     <table>
@@ -281,24 +248,9 @@
         const startDateInput = document.getElementById('startDate');
         const endDateInput = document.getElementById('endDate');
 
-        const profileNameDisplay = document.getElementById('profileNameDisplay');
-        const periodTextDisplay = document.getElementById('periodTextDisplay');
         const neracaSaldoTableBody = document.getElementById('neracaSaldoTableBody');
         const totalDebitEl = document.getElementById('totalDebit');
         const totalKreditEl = document.getElementById('totalKredit');
-
-        function formatDateDisplay(dateStr) {
-            if (!dateStr) return '';
-            const [y, m, d] = dateStr.split('-');
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-            return `${d} ${months[parseInt(m, 10) - 1]} ${y}`;
-        }
-
-        function updatePeriodDisplay() {
-            const s = formatDateDisplay(startDateInput.value);
-            const e = formatDateDisplay(endDateInput.value);
-            periodTextDisplay.textContent = `${s} - ${e}`;
-        }
 
         // Inisialisasi tanggal awal (Tanggal 1) dan tanggal akhir bulan aktif dari database
         async function initActiveDates() {
@@ -311,16 +263,13 @@
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    profileNameDisplay.textContent = data.namaProfil || 'BUMKal';
 
                     if (data.activeMonthCode && data.activeMonthCode.includes('-')) {
                         const [y, m] = data.activeMonthCode.split('-');
                         const yearNum = parseInt(y, 10);
                         const monthNum = parseInt(m, 10);
 
-                        // Tanggal 1 di awal bulan aktif
                         const firstDay = new Date(yearNum, monthNum - 1, 1);
-                        // Tanggal terakhir di bulan aktif
                         const lastDay = new Date(yearNum, monthNum, 0);
 
                         const fY = firstDay.getFullYear();
@@ -335,7 +284,6 @@
                     }
                 }
 
-                // Fallback jika profil kosong
                 if (!startStr || !endStr) {
                     const now = new Date();
                     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -344,10 +292,9 @@
                     endStr = lastDay.toISOString().split('T')[0];
                 }
 
-                    startDateInput.value = startStr;
+                startDateInput.value = startStr;
                 endDateInput.value = endStr;
 
-                updatePeriodDisplay();
                 await generateNeracaSaldoReport();
 
             } catch (err) {
@@ -355,13 +302,11 @@
                 const now = new Date();
                 startDateInput.value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
                 endDateInput.value = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
-                updatePeriodDisplay();
                 await generateNeracaSaldoReport();
             }
         }
 
         async function generateNeracaSaldoReport() {
-            updatePeriodDisplay();
             const eDate = endDateInput.value;
 
             try {
@@ -408,7 +353,6 @@
                                 };
                             }
 
-                            // Akun berawalan 1 dan 5/6 bersaldo normal Debit, sisanya Kredit
                             const isNormalDebit = code.startsWith('1') || code.startsWith('5') || code.startsWith('6');
                             
                             if (isNormalDebit) {
@@ -433,7 +377,6 @@
                     const acc = accountsMap[code];
                     const balance = acc.netBalance;
 
-                    // Hanya tampilkan akun yang memiliki saldo != 0 atau ada aktivitas
                     if (balance !== 0) {
                         hasData = true;
                         const isNormalDebit = code.startsWith('1') || code.startsWith('5') || code.startsWith('6');

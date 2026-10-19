@@ -107,6 +107,12 @@
             font-weight: 600;
         }
 
+        /* Menghilangkan ikon kalender bawaan browser */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            display: none;
+            -webkit-appearance: none;
+        }
+
         .input-date-inline {
             border: none;
             border-bottom: 1px solid #5114B9;
@@ -149,32 +155,6 @@
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-        }
-
-        /* Header Laporan Kertas */
-        .report-header {
-            text-align: center;
-            margin-bottom: 12px;
-        }
-
-        .company-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #334155;
-        }
-
-        .report-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: #0f172a;
-            margin-top: 2px;
-            letter-spacing: 0.5px;
-        }
-
-        .period-subtitle {
-            font-size: 11px;
-            color: #475569;
-            margin-top: 2px;
         }
 
         /* Info Akun Terpilih */
@@ -227,6 +207,12 @@
         .text-center {
             text-align: center;
         }
+
+        .summary-row {
+            background-color: #f8fafc;
+            font-weight: 700;
+            border-top: 1px solid #cbd5e1;
+        }
     </style>
 </head>
 <body>
@@ -265,13 +251,6 @@
         <!-- Area Isi Laporan Buku Besar -->
         <div class="report-wrapper">
             <div class="report-paper">
-                <!-- Header Dokumen Laporan -->
-                <div class="report-header">
-                    <div class="company-title" id="profileNameDisplay">BUMKal</div>
-                    <div class="report-title">BUKU BESAR</div>
-                    <div class="period-subtitle" id="periodTextDisplay">--</div>
-                </div>
-
                 <div class="account-info-box" id="accountInfoBox">
                     <span id="selectedAccCodeName">Pilih akun terlebih dahulu</span>
                     <span id="selectedNormalSaldo">Saldo Normal: --</span>
@@ -294,6 +273,9 @@
                                 <td colspan="5" class="text-center" style="color: #94a3b8; padding: 20px;">Silakan pilih akun untuk melihat buku besar.</td>
                             </tr>
                         </tbody>
+                        <tfoot id="bukuBesarTableFoot">
+                            <!-- Footer total mutasi & saldo akhir dihasilkan via JS -->
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -308,60 +290,49 @@
         const startDateInput = document.getElementById('startDate');
         const endDateInput = document.getElementById('endDate');
         const accountSelect = document.getElementById('accountSelect');
-        const profileNameDisplay = document.getElementById('profileNameDisplay');
-        const periodTextDisplay = document.getElementById('periodTextDisplay');
         const selectedAccCodeName = document.getElementById('selectedAccCodeName');
         const selectedNormalSaldo = document.getElementById('selectedNormalSaldo');
         const bukuBesarTableBody = document.getElementById('bukuBesarTableBody');
+        const bukuBesarTableFoot = document.getElementById('bukuBesarTableFoot');
 
         let accountsMap = {};
-
-        function formatDateDisplay(dateStr) {
-            if (!dateStr) return '';
-            const [y, m, d] = dateStr.split('-');
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-            return `${d} ${months[parseInt(m, 10) - 1]} ${y}`;
-        }
-
-        function updatePeriodDisplay() {
-            const s = formatDateDisplay(startDateInput.value);
-            const e = formatDateDisplay(endDateInput.value);
-            periodTextDisplay.textContent = `${s} - ${e}`;
-        }
 
         async function initPage() {
             try {
                 const docRef = doc(db, 'settings', 'profile');
                 const docSnap = await getDoc(docRef);
 
-                let startStr = '';
-                let endStr = '';
+                let startMonthFirstDate = '';
+                let endMonthLastDate = '';
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    profileNameDisplay.textContent = data.namaProfil || 'BUMKal';
 
                     if (data.activeMonthCode && data.activeMonthCode.includes('-')) {
                         const [y, m] = data.activeMonthCode.split('-');
-                        const firstDay = new Date(parseInt(y, 10), parseInt(m, 10) - 1, 1);
-                        const lastDay = new Date(parseInt(y, 10), parseInt(m, 10), 0);
+                        const yearNum = parseInt(y, 10);
+                        const monthNum = parseInt(m, 10);
 
-                        startStr = firstDay.toISOString().split('T')[0];
-                        endStr = lastDay.toISOString().split('T')[0];
+                        const firstDay = new Date(yearNum, monthNum - 1, 1);
+                        const lastDay = new Date(yearNum, monthNum, 0);
+
+                        startMonthFirstDate = `${firstDay.getFullYear()}-${String(firstDay.getMonth() + 1).padStart(2, '0')}-${String(firstDay.getDate()).padStart(2, '0')}`;
+                        endMonthLastDate = `${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
                     }
                 }
 
-                if (!startStr || !endStr) {
+                if (!startMonthFirstDate || !endMonthLastDate) {
                     const now = new Date();
-                    startStr = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-                    endStr = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+                    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                    startMonthFirstDate = firstDay.toISOString().split('T')[0];
+                    endMonthLastDate = lastDay.toISOString().split('T')[0];
                 }
 
-                startDateInput.value = startStr;
-                endDateInput.value = endStr;
-                updatePeriodDisplay();
+                startDateInput.value = startMonthFirstDate;
+                endDateInput.value = endMonthLastDate;
 
-                // Load Accounts ke Select
+                // Load Accounts ke Select (HANYA LEVEL 4)
                 const accSnap = await getDocs(collection(db, 'accounts'));
                 accountSelect.innerHTML = `<option value="">-- Pilih Akun --</option>`;
                 
@@ -369,7 +340,9 @@
                 accSnap.forEach(d => {
                     const data = d.data();
                     const code = String(data.accCode || '').trim();
-                    if (code) {
+                    const level = parseInt(data.level, 10);
+
+                    if (code && (level === 4 || code.split('.').length === 4) && data.isActive !== false) {
                         const name = data.accName || '';
                         const isNormalDebit = code.startsWith('1') || code.startsWith('5') || code.startsWith('6');
                         accountsMap[code] = {
@@ -394,7 +367,6 @@
         }
 
         async function generateBukuBesar() {
-            updatePeriodDisplay();
             const selectedCode = accountSelect.value;
             const sDate = startDateInput.value;
             const eDate = endDateInput.value;
@@ -403,6 +375,7 @@
                 selectedAccCodeName.textContent = "Pilih akun terlebih dahulu";
                 selectedNormalSaldo.textContent = "Saldo Normal: --";
                 bukuBesarTableBody.innerHTML = `<tr><td colspan="5" class="text-center" style="color: #94a3b8; padding: 20px;">Silakan pilih akun untuk melihat buku besar.</td></tr>`;
+                bukuBesarTableFoot.innerHTML = '';
                 return;
             }
 
@@ -411,11 +384,12 @@
             selectedNormalSaldo.textContent = `Saldo Normal: ${accInfo.normalSaldo}`;
 
             try {
-                // 1. Hitung Saldo Awal (Akumulasi sebelum startDate)
                 const qAll = query(collection(db, 'journals'), where('date', '<=', eDate), orderBy('date', 'asc'));
                 const jSnap = await getDocs(qAll);
 
                 let openingBalance = 0;
+                let totalPeriodDebit = 0;
+                let totalPeriodKredit = 0;
                 const rowsData = [];
 
                 jSnap.forEach(docItem => {
@@ -436,6 +410,8 @@
                                         openingBalance += (kredit - debit);
                                     }
                                 } else if (jDate >= sDate && jDate <= eDate) {
+                                    totalPeriodDebit += debit;
+                                    totalPeriodKredit += kredit;
                                     rowsData.push({
                                         date: jDate,
                                         description: desc,
@@ -449,8 +425,8 @@
                 });
 
                 bukuBesarTableBody.innerHTML = '';
+                bukuBesarTableFoot.innerHTML = '';
                 
-                // Baris Saldo Awal
                 let runningBalance = openingBalance;
                 const rowAwal = document.createElement('tr');
                 rowAwal.style.backgroundColor = '#f8fafc';
@@ -467,26 +443,45 @@
                     const emptyRow = document.createElement('tr');
                     emptyRow.innerHTML = `<td colspan="5" class="text-center" style="color: #94a3b8; padding: 15px;">Tidak ada transaksi pada periode ini.</td>`;
                     bukuBesarTableBody.appendChild(emptyRow);
-                    return;
+                } else {
+                    rowsData.forEach(row => {
+                        if (accInfo.normalSaldo === 'DEBIT') {
+                            runningBalance += (row.debit - row.kredit);
+                        } else {
+                            runningBalance += (row.kredit - row.debit);
+                        }
+
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${row.date}</td>
+                            <td>${row.description}</td>
+                            <td class="text-right">${row.debit > 0 ? row.debit.toLocaleString('id-ID') : '-'}</td>
+                            <td class="text-right">${row.kredit > 0 ? row.kredit.toLocaleString('id-ID') : '-'}</td>
+                            <td class="text-right">${runningBalance.toLocaleString('id-ID')}</td>
+                        `;
+                        bukuBesarTableBody.appendChild(tr);
+                    });
                 }
 
-                rowsData.forEach(row => {
-                    if (accInfo.normalSaldo === 'DEBIT') {
-                        runningBalance += (row.debit - row.kredit);
-                    } else {
-                        runningBalance += (row.kredit - row.debit);
-                    }
+                // Baris Footer: Total Mutasi & Saldo Akhir
+                const footMutasi = document.createElement('tr');
+                footMutasi.className = 'summary-row';
+                footMutasi.innerHTML = `
+                    <td colspan="2"><b>Total Mutasi Periode Ini :</b></td>
+                    <td class="text-right"><b>${totalPeriodDebit > 0 ? totalPeriodDebit.toLocaleString('id-ID') : '0'}</b></td>
+                    <td class="text-right"><b>${totalPeriodKredit > 0 ? totalPeriodKredit.toLocaleString('id-ID') : '0'}</b></td>
+                    <td></td>
+                `;
+                bukuBesarTableFoot.appendChild(footMutasi);
 
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${row.date}</td>
-                        <td>${row.description}</td>
-                        <td class="text-right">${row.debit > 0 ? row.debit.toLocaleString('id-ID') : '-'}</td>
-                        <td class="text-right">${row.kredit > 0 ? row.kredit.toLocaleString('id-ID') : '-'}</td>
-                        <td class="text-right">${runningBalance.toLocaleString('id-ID')}</td>
-                    `;
-                    bukuBesarTableBody.appendChild(tr);
-                });
+                const footSaldoAkhir = document.createElement('tr');
+                footSaldoAkhir.className = 'summary-row';
+                footSaldoAkhir.style.backgroundColor = '#f1f5f9';
+                footSaldoAkhir.innerHTML = `
+                    <td colspan="4"><b>Saldo Akhir :</b></td>
+                    <td class="text-right" style="color: #2563eb; font-size: 11px;"><b>Rp ${runningBalance.toLocaleString('id-ID')}</b></td>
+                `;
+                bukuBesarTableFoot.appendChild(footSaldoAkhir);
 
             } catch (err) {
                 console.error("Gagal memuat buku besar:", err);

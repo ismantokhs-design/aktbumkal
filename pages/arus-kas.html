@@ -131,32 +131,6 @@
             flex-direction: column;
         }
 
-        /* Header Laporan Kertas */
-        .report-header {
-            text-align: center;
-            margin-bottom: 16px;
-        }
-
-        .company-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #334155;
-        }
-
-        .report-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: #0f172a;
-            margin-top: 2px;
-            letter-spacing: 0.5px;
-        }
-
-        .period-subtitle {
-            font-size: 11px;
-            color: #475569;
-            margin-top: 2px;
-        }
-
         /* Tampilan Baris Laporan */
         .report-section-title {
             font-size: 11px;
@@ -238,13 +212,6 @@
         <!-- Area Isi Laporan Arus Kas -->
         <div class="report-wrapper">
             <div class="report-paper">
-                <!-- Header Dokumen Laporan -->
-                <div class="report-header">
-                    <div class="company-title" id="profileNameDisplay">BUMKal</div>
-                    <div class="report-title">ARUS KAS</div>
-                    <div class="period-subtitle" id="periodTextDisplay">--</div>
-                </div>
-
                 <!-- Section 1: ARUS KAS MASUK -->
                 <div class="report-section-title">ARUS KAS MASUK</div>
                 <div id="kasMasukList">
@@ -294,9 +261,6 @@
         const startDateInput = document.getElementById('startDate');
         const endDateInput = document.getElementById('endDate');
 
-        const profileNameDisplay = document.getElementById('profileNameDisplay');
-        const periodTextDisplay = document.getElementById('periodTextDisplay');
-
         const kasMasukList = document.getElementById('kasMasukList');
         const totalKasMasuk = document.getElementById('totalKasMasuk');
 
@@ -306,19 +270,6 @@
         const totalArusKasBersih = document.getElementById('totalArusKasBersih');
         const kasAwalPeriode = document.getElementById('kasAwalPeriode');
         const kasAkhirPeriode = document.getElementById('kasAkhirPeriode');
-
-        function formatDateDisplay(dateStr) {
-            if (!dateStr) return '';
-            const [y, m, d] = dateStr.split('-');
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-            return `${d} ${months[parseInt(m, 10) - 1]} ${y}`;
-        }
-
-        function updatePeriodDisplay() {
-            const s = formatDateDisplay(startDateInput.value);
-            const e = formatDateDisplay(endDateInput.value);
-            periodTextDisplay.textContent = `${s} - ${e}`;
-        }
 
         // Inisialisasi tanggal awal (Tanggal 1) dan tanggal akhir bulan aktif dari database
         async function initActiveDates() {
@@ -331,16 +282,13 @@
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    profileNameDisplay.textContent = data.namaProfil || 'BUMKal';
 
                     if (data.activeMonthCode && data.activeMonthCode.includes('-')) {
                         const [y, m] = data.activeMonthCode.split('-');
                         const yearNum = parseInt(y, 10);
                         const monthNum = parseInt(m, 10);
 
-                        // Tanggal 1 di awal bulan aktif
                         const firstDay = new Date(yearNum, monthNum - 1, 1);
-                        // Tanggal terakhir di bulan aktif
                         const lastDay = new Date(yearNum, monthNum, 0);
 
                         const fY = firstDay.getFullYear();
@@ -355,7 +303,6 @@
                     }
                 }
 
-                // Fallback jika profil kosong
                 if (!startStr || !endStr) {
                     const now = new Date();
                     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -367,7 +314,6 @@
                 startDateInput.value = startStr;
                 endDateInput.value = endStr;
 
-                updatePeriodDisplay();
                 await generateArusKasReport();
 
             } catch (err) {
@@ -375,14 +321,11 @@
                 const now = new Date();
                 startDateInput.value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
                 endDateInput.value = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
-                updatePeriodDisplay();
                 await generateArusKasReport();
             }
         }
 
         async function generateArusKasReport() {
-            updatePeriodDisplay();
-
             const sDate = startDateInput.value;
             const eDate = endDateInput.value;
 

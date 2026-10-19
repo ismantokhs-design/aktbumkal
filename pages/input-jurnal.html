@@ -23,7 +23,6 @@
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
-        /* Menyembunyikan Scrollbar Visual (Tetap Bisa Scroll) */
         html, body, *, .modal-box, .list-container, .table-responsive {
             scrollbar-width: none !important;
             -ms-overflow-style: none !important;
@@ -55,7 +54,6 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
-        /* Top Header Area */
         .page-header {
             background-color: #5114B9;
             color: #ffffff;
@@ -88,7 +86,6 @@
             text-transform: uppercase;
         }
 
-        /* Filter Periode Bar */
         .filter-section {
             padding: 10px 12px;
             background-color: #ffffff;
@@ -137,7 +134,6 @@
             align-items: center;
         }
 
-        /* List Container Jurnal */
         .list-container {
             display: flex;
             flex-direction: column;
@@ -158,9 +154,29 @@
         .journal-header-info {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             font-size: 11px;
             font-weight: 700;
             color: #64748b;
+        }
+
+        .card-action-btns {
+            display: flex;
+            gap: 4px;
+        }
+
+        .btn-card-action {
+            background: none;
+            border: none;
+            padding: 2px;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-card-action:hover {
+            background-color: #f1f5f9;
         }
 
         .unit-badge {
@@ -203,7 +219,6 @@
             font-weight: 600;
         }
 
-        /* Floating Action Button (FAB) */
         .fab-add {
             position: fixed;
             bottom: 24px;
@@ -233,7 +248,6 @@
             transform: scale(0.95);
         }
 
-        /* Modal Overlay & Modal Box */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -329,7 +343,6 @@
             border-bottom-color: #5114B9;
         }
 
-        /* Entry Table Jurnal */
         .entry-table {
             width: 100%;
             border-collapse: collapse;
@@ -448,7 +461,6 @@
 <body>
 
     <div class="page-container">
-        <!-- Header Halaman HP -->
         <header class="page-header">
             <div class="header-title-box">
                 <a href="../index.html" class="btn-back">
@@ -458,7 +470,6 @@
             </div>
         </header>
 
-        <!-- Filter Periode Section -->
         <div class="filter-section">
             <div class="periode-box">
                 <span>Periode</span>
@@ -476,24 +487,22 @@
             </div>
         </div>
 
-        <!-- Daftar Card Transaksi Jurnal -->
         <div class="list-container" id="journalListContainer">
             <div style="text-align: center; padding: 40px; color: #94a3b8; font-size: 11px;">
                 Memuat data jurnal...
             </div>
         </div>
 
-        <!-- Floating Action Button (FAB) (+) -->
         <button class="fab-add" id="btnOpenAddModal">
             <span class="material-icons" style="font-size: 26px;">add</span>
         </button>
     </div>
 
-    <!-- Modal Form Tambah Jurnal -->
+    <!-- Modal Form Tambah/Edit Jurnal -->
     <div class="modal-overlay" id="modalJournal">
         <div class="modal-box">
             <div class="modal-header">
-                <div class="modal-title">
+                <div class="modal-title" id="modalHeaderTitle">
                     <span class="material-icons" style="font-size:16px;">add</span>
                     <span>TAMBAH JURNAL</span>
                 </div>
@@ -503,8 +512,8 @@
             </div>
 
             <form id="journalForm">
+                <input type="hidden" id="editingJournalId">
                 <div class="modal-body">
-                    <!-- BARIS 1: TANGGAL & NO REF -->
                     <div class="form-row-2col">
                         <div class="form-group">
                             <label class="form-label" for="trxDate">Tanggal</label>
@@ -517,7 +526,6 @@
                         </div>
                     </div>
 
-                    <!-- BARIS 2: PILIHAN UNIT USAHA -->
                     <div class="form-group">
                         <label class="form-label" for="unitSelect">Unit Usaha</label>
                         <select id="unitSelect" class="form-control-line">
@@ -525,13 +533,11 @@
                         </select>
                     </div>
 
-                    <!-- BARIS 3: KETERANGAN -->
                     <div class="form-group">
                         <label class="form-label" for="description">Keterangan *</label>
                         <input type="text" id="description" class="form-control-line" placeholder="Masukan keterangan transaksi..." required>
                     </div>
 
-                    <!-- TABEL DETAIL ENTRI JURNAL -->
                     <table class="entry-table">
                         <thead>
                             <tr>
@@ -542,7 +548,6 @@
                             </tr>
                         </thead>
                         <tbody id="journalRowsBody">
-                            <!-- Baris Rincian Jurnal Dihasilkan via JS -->
                         </tbody>
                         <tfoot>
                             <tr class="total-row">
@@ -571,7 +576,6 @@
         </div>
     </div>
 
-    <!-- Script Integrasi Firestore -->
     <script type="module">
         import { db } from '../assets/js/firebase-config.js';
         import { 
@@ -580,6 +584,8 @@
             getDoc,
             doc, 
             setDoc, 
+            updateDoc,
+            deleteDoc,
             query, 
             orderBy, 
             where,
@@ -594,6 +600,8 @@
         const journalForm = document.getElementById('journalForm');
         const journalRowsBody = document.getElementById('journalRowsBody');
         const btnAddRow = document.getElementById('btnAddRow');
+        const modalHeaderTitle = document.getElementById('modalHeaderTitle');
+        const editingJournalIdInput = document.getElementById('editingJournalId');
 
         const startDateInput = document.getElementById('startDate');
         const endDateInput = document.getElementById('endDate');
@@ -611,24 +619,49 @@
         let journalEntries = [];
         let cachedDefaultUnitCode = "";
 
-        function initDates() {
-            const now = new Date();
-            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        async function initActiveDates() {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
 
-            startDateInput.value = firstDay.toISOString().split('T')[0];
-            endDateInput.value = lastDay.toISOString().split('T')[0];
-            trxDateInput.value = now.toISOString().split('T')[0];
+                let targetYear = 2026;
+                let targetMonth = 10;
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.activeMonthCode && data.activeMonthCode.includes('-')) {
+                        const [y, m] = data.activeMonthCode.split('-');
+                        targetYear = parseInt(y, 10);
+                        targetMonth = parseInt(m, 10);
+                    }
+                }
+
+                const firstDay = new Date(targetYear, targetMonth - 1, 1);
+                const lastDay = new Date(targetYear, targetMonth, 0);
+
+                const startStr = `${firstDay.getFullYear()}-${String(firstDay.getMonth() + 1).padStart(2, '0')}-${String(firstDay.getDate()).padStart(2, '0')}`;
+                const endStr = `${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
+
+                startDateInput.value = startStr;
+                endDateInput.value = endStr;
+                trxDateInput.value = startStr; // Default tanggal transaksi di awal bulan aktif
+
+            } catch (err) {
+                console.error("Gagal memuat tanggal aktif:", err);
+                const now = new Date();
+                startDateInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+                endDateInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-31`;
+                trxDateInput.value = now.toISOString().split('T')[0];
+            }
         }
 
-        // Fungsi Close Modal Form Jurnal
         function closeModalForm() {
             modalJournal.classList.remove('active');
         }
 
-        // Generate No. Ref Otomatis Format: JU-01-0125-0001
         async function generateAutoRefNo() {
             try {
+                if (editingJournalIdInput.value) return; // Jangan ubah no ref saat mode edit
                 const dateVal = trxDateInput.value;
                 if (!dateVal) return;
 
@@ -670,7 +703,6 @@
             }
         }
 
-        // Fetch Daftar Unit Usaha dari Firestore & Auto-Select Default Unit
         async function loadUnitsList() {
             try {
                 const docRef = doc(db, 'settings', 'profile');
@@ -706,7 +738,6 @@
             }
         }
 
-        // Fetch Akun Level 4 dari Firestore
         async function loadPostableAccounts() {
             try {
                 const q = query(
@@ -819,7 +850,9 @@
         function resetModalForm() {
             journalForm.reset();
             journalRowsBody.innerHTML = '';
-            trxDateInput.value = new Date().toISOString().split('T')[0];
+            editingJournalIdInput.value = '';
+            modalHeaderTitle.innerHTML = '<span class="material-icons" style="font-size:16px;">add</span><span>TAMBAH JURNAL</span>';
+            trxDateInput.value = startDateInput.value || new Date().toISOString().split('T')[0];
             
             if (cachedDefaultUnitCode) {
                 unitSelect.value = cachedDefaultUnitCode;
@@ -832,11 +865,9 @@
             calculateTotals();
         }
 
-        // Listener jika Tanggal atau Unit Usaha Berubah -> Biar No. Ref ikut ter-update otomatis
         trxDateInput.addEventListener('change', () => generateAutoRefNo());
         unitSelect.addEventListener('change', () => generateAutoRefNo());
 
-        // Event listener pembuka & penutup modal
         btnOpenAddModal.addEventListener('click', async () => {
             await loadUnitsList();
             resetModalForm();
@@ -908,8 +939,15 @@
 
                 card.innerHTML = `
                     <div class="journal-header-info">
-                        <span>TGL: ${entry.date}</span>
-                        <span>REF: ${entry.refNo || '-'}</span>
+                        <span>TGL: ${entry.date} &nbsp;|&nbsp; REF: ${entry.refNo || '-'}</span>
+                        <div class="card-action-btns">
+                            <button type="button" class="btn-card-action btn-edit" data-id="${entry.id}" title="Edit Jurnal">
+                                <span class="material-icons" style="font-size: 16px; color: #5114B9;">edit</span>
+                            </button>
+                            <button type="button" class="btn-card-action btn-delete" data-id="${entry.id}" title="Hapus Jurnal">
+                                <span class="material-icons" style="font-size: 16px; color: #ef4444;">delete</span>
+                            </button>
+                        </div>
                     </div>
                     ${unitNameBadge}
                     <div class="journal-ket">${entry.description}</div>
@@ -919,6 +957,64 @@
                 `;
 
                 journalListContainer.appendChild(card);
+            });
+
+            // Event listener tombol Edit
+            document.querySelectorAll('.btn-edit').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.currentTarget.dataset.id;
+                    const entry = journalEntries.find(j => j.id === id);
+                    if (!entry) return;
+
+                    await loadUnitsList();
+                    await loadPostableAccounts();
+
+                    editingJournalIdInput.value = entry.id;
+                    modalHeaderTitle.innerHTML = '<span class="material-icons" style="font-size:16px;">edit</span><span>EDIT JURNAL</span>';
+                    trxDateInput.value = entry.date || '';
+                    refNoInput.value = entry.refNo || '';
+                    unitSelect.value = entry.unitName || '00';
+                    descriptionInput.value = entry.description || '';
+
+                    journalRowsBody.innerHTML = '';
+                    if (entry.items && entry.items.length > 0) {
+                        entry.items.forEach(it => {
+                            addJournalRow(it.accCode, it.debit, it.kredit);
+                        });
+                    } else {
+                        addJournalRow();
+                        addJournalRow();
+                    }
+
+                    calculateTotals();
+                    modalJournal.classList.add('active');
+                });
+            });
+
+            // Event listener tombol Delete
+            document.querySelectorAll('.btn-delete').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.currentTarget.dataset.id;
+                    const confirmRes = await Swal.fire({
+                        title: 'Hapus Jurnal?',
+                        text: "Data jurnal yang dihapus tidak dapat dikembalikan!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ef4444',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: 'Ya, Hapus!'
+                    });
+
+                    if (confirmRes.isConfirmed) {
+                        try {
+                            await deleteDoc(doc(db, 'journals', id));
+                            Swal.fire({ icon: 'success', title: 'Terhapus!', timer: 1200, showConfirmButton: false });
+                            loadJournalEntries();
+                        } catch (err) {
+                            Swal.fire('Gagal', err.message, 'error');
+                        }
+                    }
+                });
             });
         }
 
@@ -958,6 +1054,7 @@
                 return;
             }
 
+            const editingId = editingJournalIdInput.value;
             const payload = {
                 date: trxDateInput.value,
                 refNo: refNoInput.value.trim() || '-',
@@ -965,32 +1062,31 @@
                 description: descriptionInput.value.trim(),
                 totalAmount: totalDebit,
                 items: items,
-                createdAt: serverTimestamp()
+                updatedAt: serverTimestamp()
             };
 
             try {
-                const newDocRef = doc(collection(db, 'journals'));
-                await setDoc(newDocRef, payload);
+                if (editingId) {
+                    // Update data yang sudah ada
+                    await updateDoc(doc(db, 'journals', editingId), payload);
+                    Swal.fire({ icon: 'success', title: 'Berhasil Diperbarui!', timer: 1200, showConfirmButton: false });
+                } else {
+                    // Tambah baru
+                    payload.createdAt = serverTimestamp();
+                    const newDocRef = doc(collection(db, 'journals'));
+                    await setDoc(newDocRef, payload);
+                    Swal.fire({ icon: 'success', title: 'Berhasil Disimpan!', timer: 1200, showConfirmButton: false });
+                }
 
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: 'Entri jurnal berhasil disimpan.',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-
-                // Tutup Modal Form setelah simpan berhasil
                 closeModalForm();
-                
-                // Refresh daftar jurnal
                 loadJournalEntries();
             } catch (err) {
                 Swal.fire('Gagal', err.message, 'error');
             }
         });
 
-        initDates();
+        // Eksekusi Utama
+        await initActiveDates();
         await loadUnitsList();
         await loadPostableAccounts();
         loadJournalEntries();
