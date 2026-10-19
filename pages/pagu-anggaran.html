@@ -24,6 +24,7 @@
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         html, body, *, .modal-box, .list-container {
@@ -127,7 +128,7 @@
             outline: none;
         }
 
-        /* Ringkasan Kartu Pagu (2 Kolom di Atas, 1 Penuh di Bawah) */
+        /* Ringkasan Kartu Pagu */
         .summary-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -168,6 +169,16 @@
             font-size: 13px;
             font-weight: 700;
             color: #1e293b;
+        }
+
+        .summary-badge-serapan {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 2px;
+            display: inline-block;
+            width: fit-content;
         }
 
         /* Daftar Pagu / List Container */
@@ -509,7 +520,7 @@
                 <div class="form-group-hp">
                     <label class="form-label-hp" for="filterTahun">Tahun Anggaran</label>
                     <select id="filterTahun" class="form-control-hp">
-                        <option value="2025">2025 (1 Tahun)</option>
+                        <option value="2025" selected>2025 (1 Tahun)</option>
                         <option value="2026">2026 (1 Tahun)</option>
                     </select>
                 </div>
@@ -527,13 +538,13 @@
                         <option value="9">September</option>
                         <option value="10">Oktober</option>
                         <option value="11">November</option>
-                        <option value="12">Desember</option>
+                        <option value="12" selected>Desember</option>
                     </select>
                 </div>
             </div>
         </div>
 
-        <!-- Ringkasan Kartu Pagu (2 Kolom di Atas, 1 Penuh di Bawah) -->
+        <!-- Ringkasan Kartu Pagu -->
         <div class="summary-grid">
             <div class="summary-card">
                 <div class="summary-card-info">
@@ -546,6 +557,7 @@
                 <div class="summary-card-info">
                     <span class="summary-title">Realisasi</span>
                     <span class="summary-value" id="lblTotalRealisasi" style="color: #d97706;">Rp 0</span>
+                    <span class="summary-badge-serapan" id="lblTotalSerapanBadge" style="color: #16a34a; background-color: #dcfce7;">Serapan: 0%</span>
                 </div>
                 <span class="material-icons" style="font-size: 20px; color: #d97706; opacity: 0.2;">receipt_long</span>
             </div>
@@ -558,7 +570,7 @@
             </div>
         </div>
 
-        <!-- Daftar Kontrol Pagu (List Card HP) -->
+        <!-- Daftar Kontrol Pagu -->
         <div class="list-container" id="paguListContainer">
             <div style="text-align: center; padding: 40px; color: #94a3b8; font-size: 11px;">
                 Memuat data pagu anggaran...
@@ -640,7 +652,7 @@
         });
     </script>
 
-    <!-- Script Integrasi Firestore & Logika Pagu -->
+    <!-- Script Integrasi Firestore & Realisasi Otomatis dari Jurnal (Sorted & Summary Serapan) -->
     <script type="module">
         import { auth, db } from '../assets/js/firebase-config.js';
         import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -684,8 +696,12 @@
         const lblTotalPagu = document.getElementById('lblTotalPagu');
         const lblTotalRealisasi = document.getElementById('lblTotalRealisasi');
         const lblSisaPagu = document.getElementById('lblSisaPagu');
+        const lblTotalSerapanBadge = document.getElementById('lblTotalSerapanBadge');
 
         let paguData = [];
+        let paguAccounts = new Set();
+        let codeToNameUnit = {};
+        let unitCodeMapping = {};
 
         // Format Angka Ribuan Otomatis pada Input
         nominalPaguInput.addEventListener('input', function (e) {
@@ -723,17 +739,26 @@
                 }
                 
                 unitsLoaded.forEach(u => {
-                    const val = u.namaUnit || u.kodeUnit;
+                    const nama = u.namaUnit || '';
+                    const kode = u.kodeUnit || '99';
                     
-                    const optFilter = document.createElement('option');
-                    optFilter.value = val;
-                    optFilter.textContent = val;
-                    filterUnit.appendChild(optFilter);
+                    if (kode && nama) {
+                        codeToNameUnit[kode] = nama;
+                        codeToNameUnit[nama] = nama;
+                        unitCodeMapping[nama] = kode;
+                    }
 
-                    const optForm = document.createElement('option');
-                    optForm.value = val;
-                    optForm.textContent = val;
-                    unitUsahaInput.appendChild(optForm);
+                    if (nama) {
+                        const optFilter = document.createElement('option');
+                        optFilter.value = nama;
+                        optFilter.textContent = nama;
+                        filterUnit.appendChild(optFilter);
+
+                        const optForm = document.createElement('option');
+                        optForm.value = nama;
+                        optForm.textContent = nama;
+                        unitUsahaInput.appendChild(optForm);
+                    }
                 });
             } catch (e) {
                 console.warn("Gagal memuat unit profil:", e);
@@ -750,17 +775,81 @@
         btnCloseModal.addEventListener('click', () => modalPagu.classList.remove('active'));
         btnResetForm.addEventListener('click', () => modalPagu.classList.remove('active'));
 
-        async function loadPaguData() {
+        async function loadDataAndRender() {
             try {
-                const q = query(collection(db, 'pagu_anggaran'), orderBy('namaPagu', 'asc'));
-                const snapshot = await getDocs(q);
-                paguData = [];
-                snapshot.forEach(d => {
-                    paguData.push({ id: d.id, ...d.data() });
+                // 1. Ambil data Chart of Accounts untuk mendeteksi akun berstatus pagu / hasPagu = "Ya"
+                const coaSnap = await getDocs(collection(db, 'accounts'));
+                paguAccounts.clear();
+                coaSnap.forEach(d => {
+                    const acc = d.data();
+                    const paguVal = acc.hasPagu || acc.pagu;
+                    if (paguVal && String(paguVal).toLowerCase() === 'ya') {
+                        if (acc.accCode) paguAccounts.add(String(acc.accCode).trim());
+                    }
                 });
+
+                // 2. Ambil data Jurnal Transaksi
+                const journalSnap = await getDocs(collection(db, 'journals'));
+                let journalRealisasiMap = {}; 
+
+                journalSnap.forEach(d => {
+                    const j = d.data();
+                    if (j.date && j.items && Array.isArray(j.items)) {
+                        const parts = j.date.split('-');
+                        if (parts.length >= 2) {
+                            const jYear = parseInt(parts[0], 10);
+                            const jMonthNum = parseInt(parts[1], 10);
+                            const rawUnit = String(j.unitName || j.unitId || '').trim();
+                            const resolvedUnit = codeToNameUnit[rawUnit] || rawUnit;
+
+                            j.items.forEach(item => {
+                                const code = String(item.accCode || '').trim();
+                                if (paguAccounts.has(code)) {
+                                    const nominal = parseFloat(item.debit) || parseFloat(item.kredit) || 0;
+                                    if (nominal > 0) {
+                                        const key = `${resolvedUnit}_${jYear}`;
+                                        if (!journalRealisasiMap[key]) journalRealisasiMap[key] = { total: 0, monthly: {} };
+                                        
+                                        journalRealisasiMap[key].total += nominal;
+                                        if (!journalRealisasiMap[key].monthly[jMonthNum]) journalRealisasiMap[key].monthly[jMonthNum] = 0;
+                                        journalRealisasiMap[key].monthly[jMonthNum] += nominal;
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+
+                // 3. Ambil data Pagu Anggaran
+                const paguSnap = await getDocs(query(collection(db, 'pagu_anggaran'), orderBy('namaPagu', 'asc')));
+                paguData = [];
+                
+                const targetTahun = filterTahun.value;
+                const targetBulanMax = parseInt(filterBulan.value) || 12;
+
+                paguSnap.forEach(d => {
+                    const item = { id: d.id, ...d.data() };
+                    
+                    const uName = item.unitUsaha || '';
+                    const tahunPagu = String(item.tahunAnggaran || '');
+                    
+                    let realisasiTotal = 0;
+                    Object.keys(journalRealisasiMap).forEach(k => {
+                        if (k.startsWith(`${uName}_${tahunPagu}`)) {
+                            const monthObj = journalRealisasiMap[k].monthly;
+                            for (let m = 1; m <= targetBulanMax; m++) {
+                                realisasiTotal += (monthObj[m] || 0);
+                            }
+                        }
+                    });
+
+                    item.realisasiCalculated = realisasiTotal;
+                    paguData.push(item);
+                });
+
                 renderPaguList();
             } catch (e) {
-                console.error("Gagal memuat pagu:", e);
+                console.error("Gagal memuat data pagu & jurnal:", e);
                 paguListContainer.innerHTML = '<div style="text-align: center; padding: 30px; color: #ef4444; font-size: 11px;">Gagal memuat data pagu.</div>';
             }
         }
@@ -776,6 +865,16 @@
                 return matchUnit && matchTahun;
             });
 
+            // SORTING BERDASARKAN KODE UNIT USAHA
+            filtered.sort((a, b) => {
+                const codeA = unitCodeMapping[a.unitUsaha] || 'Z';
+                const codeB = unitCodeMapping[b.unitUsaha] || 'Z';
+                if (codeA !== codeB) {
+                    return codeA.localeCompare(codeB);
+                }
+                return (a.namaPagu || '').localeCompare(b.namaPagu || '');
+            });
+
             if (filtered.length === 0) {
                 paguListContainer.innerHTML = `
                     <div style="text-align: center; padding: 40px; color: #94a3b8; font-size: 11px;">
@@ -784,6 +883,9 @@
                 lblTotalPagu.textContent = 'Rp 0';
                 lblTotalRealisasi.textContent = 'Rp 0';
                 lblSisaPagu.textContent = 'Rp 0';
+                lblTotalSerapanBadge.textContent = 'Serapan: 0%';
+                lblTotalSerapanBadge.style.color = '#16a34a';
+                lblTotalSerapanBadge.style.backgroundColor = '#dcfce7';
                 return;
             }
 
@@ -792,7 +894,7 @@
 
             filtered.forEach(item => {
                 const paguVal = parseFloat(item.nominalPagu) || 0;
-                const realisasiVal = parseFloat(item.realisasi) || 0; 
+                const realisasiVal = parseFloat(item.realisasiCalculated) || 0; 
                 const sisaVal = paguVal - realisasiVal;
                 const serapan = paguVal > 0 ? ((realisasiVal / paguVal) * 100).toFixed(1) : 0;
 
@@ -840,9 +942,19 @@
                 paguListContainer.appendChild(card);
             });
 
+            const totalSerapanPersen = sumPagu > 0 ? ((sumRealisasi / sumPagu) * 100).toFixed(1) : 0;
+            let totalSerapanColor = '#16a34a';
+            let totalSerapanBg = '#dcfce7';
+            if (totalSerapanPersen > 80) { totalSerapanColor = '#d97706'; totalSerapanBg = '#fef3c7'; }
+            if (totalSerapanPersen > 100) { totalSerapanColor = '#dc2626'; totalSerapanBg = '#fee2e2'; }
+
             lblTotalPagu.textContent = `Rp ${sumPagu.toLocaleString('id-ID')}`;
             lblTotalRealisasi.textContent = `Rp ${sumRealisasi.toLocaleString('id-ID')}`;
             lblSisaPagu.textContent = `Rp ${(sumPagu - sumRealisasi).toLocaleString('id-ID')}`;
+            
+            lblTotalSerapanBadge.textContent = `Serapan: ${totalSerapanPersen}%`;
+            lblTotalSerapanBadge.style.color = totalSerapanColor;
+            lblTotalSerapanBadge.style.backgroundColor = totalSerapanBg;
 
             // Handler Edit
             document.querySelectorAll('.btn-edit').forEach(btn => {
@@ -855,7 +967,6 @@
                         unitUsahaInput.value = found.unitUsaha || '';
                         tahunAnggaranInput.value = found.tahunAnggaran || '2025';
                         
-                        // Format ke ribuan saat diedit
                         const rawNominal = found.nominalPagu || 0;
                         nominalPaguInput.value = Number(rawNominal).toLocaleString('id-ID');
 
@@ -881,21 +992,20 @@
                     if (res.isConfirmed) {
                         await deleteDoc(doc(db, 'pagu_anggaran', id));
                         Swal.fire({ icon: 'success', title: 'Terhapus', timer: 1200, showConfirmButton: false });
-                        loadPaguData();
+                        loadDataAndRender();
                     }
                 });
             });
         }
 
-        filterUnit.addEventListener('change', renderPaguList);
-        filterTahun.addEventListener('change', renderPaguList);
-        filterBulan.addEventListener('change', renderPaguList);
+        filterUnit.addEventListener('change', loadDataAndRender);
+        filterTahun.addEventListener('change', loadDataAndRender);
+        filterBulan.addEventListener('change', loadDataAndRender);
 
         paguForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = paguIdInput.value;
             
-            // Bersihkan titik ribuan sebelum disimpan ke database
             const cleanNominal = nominalPaguInput.value.replace(/\./g, '').replace(',', '.');
 
             const payload = {
@@ -911,12 +1021,11 @@
                     await updateDoc(doc(db, 'pagu_anggaran', id), payload);
                 } else {
                     payload.createdAt = serverTimestamp();
-                    payload.realisasi = 0;
                     await setDoc(doc(collection(db, 'pagu_anggaran')), payload);
                 }
                 Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Pagu anggaran disimpan.', timer: 1200, showConfirmButton: false });
                 modalPagu.classList.remove('active');
-                loadPaguData();
+                loadDataAndRender();
             } catch (err) {
                 Swal.fire('Gagal', err.message, 'error');
             }
@@ -940,7 +1049,7 @@
 
         async function init() {
             await loadProfileUnits();
-            await loadPaguData();
+            await loadDataAndRender();
         }
         init();
     </script>

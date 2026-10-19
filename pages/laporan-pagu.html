@@ -24,6 +24,7 @@
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         html, body, *, .modal-box, .report-container {
@@ -128,11 +129,12 @@
             outline: none;
         }
 
+        /* Tombol Tampilkan yang Smooth & Responsif */
         .btn-filter {
             background-color: #5114B9;
             color: #ffffff;
             border: none;
-            padding: 8px;
+            padding: 9px 12px;
             border-radius: 6px;
             font-size: 11px;
             font-weight: 700;
@@ -143,6 +145,20 @@
             gap: 6px;
             text-transform: uppercase;
             margin-top: 2px;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 4px rgba(81, 20, 185, 0.2);
+            user-select: none;
+        }
+
+        .btn-filter:hover {
+            background-color: #43109a;
+            box-shadow: 0 4px 8px rgba(81, 20, 185, 0.3);
+        }
+
+        .btn-filter:active {
+            transform: scale(0.97);
+            background-color: #350c7b;
+            box-shadow: 0 1px 2px rgba(81, 20, 185, 0.2);
         }
 
         /* Report Body Container */
@@ -157,80 +173,29 @@
             overflow-y: auto;
         }
 
-        .report-title-section {
-            text-align: center;
-            border-bottom: 2px solid #5114B9;
-            padding-bottom: 8px;
-        }
-
-        .report-org {
-            font-size: 12px;
-            font-weight: 800;
-            color: #1e293b;
-            text-transform: uppercase;
-        }
-
-        .report-subtitle {
-            font-size: 11px;
-            font-weight: 700;
-            color: #5114B9;
-            text-transform: uppercase;
-            margin-top: 2px;
-        }
-
-        .report-periode {
-            font-size: 10px;
-            color: #64748b;
-            margin-top: 2px;
-        }
-
-        /* Kartu Konsolidasi (Total Gabungan) */
-        .konsolidasi-card {
+        /* Kotak Ringkasan diletakkan di Bagian Atas Rincian */
+        .summary-info-box {
             background-color: #f8fafc;
-            border: 1px solid #cbd5e1;
+            border: 1px solid #e2e8f0;
             border-radius: 8px;
-            padding: 14px;
+            padding: 10px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            gap: 6px;
         }
 
-        .konsolidasi-title {
-            font-size: 11px;
-            font-weight: 800;
-            color: #5114B9;
-            text-transform: uppercase;
-            text-align: center;
-            border-bottom: 1px dashed #cbd5e1;
-            padding-bottom: 6px;
-        }
-
-        .konsolidasi-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 8px;
-        }
-
-        .k-item {
+        .summary-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            background: #ffffff;
-            padding: 8px 10px;
-            border-radius: 6px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .k-label {
             font-size: 10px;
-            font-weight: 700;
-            color: #64748b;
-            text-transform: uppercase;
         }
 
-        .k-val {
-            font-size: 12px;
+        .summary-label {
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .summary-num {
             font-weight: 700;
             color: #1e293b;
         }
@@ -310,67 +275,6 @@
             font-size: 11px;
             font-weight: 700;
             color: #1e293b;
-        }
-
-        /* Ringkasan Bawah & Tanda Tangan */
-        .summary-info-box {
-            background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin-top: 6px;
-        }
-
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 10px;
-        }
-
-        .summary-label {
-            font-weight: 600;
-            color: #475569;
-        }
-
-        .summary-num {
-            font-weight: 700;
-            color: #1e293b;
-        }
-
-        .signature-section {
-            margin-top: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            font-size: 9px;
-            color: #334155;
-        }
-
-        .sig-date {
-            text-align: right;
-            margin-bottom: 10px;
-        }
-
-        .sig-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            text-align: center;
-            gap: 10px;
-        }
-
-        .sig-person {
-            display: flex;
-            flex-direction: column;
-            gap: 35px;
-        }
-
-        .sig-name {
-            font-weight: 700;
-            text-decoration: underline;
-            text-transform: uppercase;
         }
     </style>
 </head>
@@ -484,7 +388,7 @@
                         <option value="4">April</option>
                         <option value="5">Mei</option>
                         <option value="6">Juni</option>
-                        <option value="7" selected>Juli</option>
+                        <option value="7">Juli</option>
                         <option value="8">Agustus</option>
                         <option value="9">September</option>
                         <option value="10">Oktober</option>
@@ -495,6 +399,7 @@
                 <div class="form-group-hp">
                     <label class="form-label-hp" for="filterTahun">Tahun / Periode</label>
                     <select id="filterTahun" class="form-control-hp">
+                        <option value="2024">2024 (1 Tahun)</option>
                         <option value="2025" selected>2025 (1 Tahun)</option>
                         <option value="2026">2026 (1 Tahun)</option>
                     </select>
@@ -509,50 +414,15 @@
 
         <!-- Konten Laporan -->
         <div class="report-container">
-            <div class="report-title-section">
-                <div class="report-org" id="lblOrgName">BUMKal</div>
-                <div class="report-subtitle" id="lblReportTitle">Laporan Bulanan Konsolidasi Unit Usaha</div>
-                <div class="report-periode" id="lblPeriodeText">Periode Bulan Juli 2025</div>
-            </div>
-
-            <!-- Kartu Konsolidasi Total Keseluruhan -->
-            <div class="konsolidasi-card">
-                <div class="konsolidasi-title" id="lblCardTitle">Total Konsolidasi Keseluruhan</div>
-                <div class="konsolidasi-grid">
-                    <div class="k-item">
-                        <span class="k-label">Total Pagu Anggaran</span>
-                        <span class="k-val" id="totPagu" style="color: #5114B9;">Rp 0</span>
-                    </div>
-                    <div class="k-item">
-                        <span class="k-label">Total Pengeluaran</span>
-                        <span class="k-val" id="totPengeluaran" style="color: #d97706;">Rp 0</span>
-                    </div>
-                    <div class="k-item">
-                        <span class="k-label">Sisa Bulan Lalu</span>
-                        <span class="k-val" id="totSisaLalu" style="color: #475569;">Rp 0</span>
-                    </div>
-                    <div class="k-item">
-                        <span class="k-label">Total Saldo Anggaran</span>
-                        <span class="k-val" id="totSaldo" style="color: #16a34a;">Rp 0</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Rincian Transaksi Format Kartu Vertikal HP -->
-            <div class="section-rincian-title">
-                <span>Rincian Transaksi Pagu</span>
-                <span id="rincianCount" style="font-size: 9px; color: #64748b;">(0 Transaksi)</span>
-            </div>
-            
-            <div class="rincian-list" id="rincianContainer">
-                <!-- Data rincian akan dimuat secara dinamis di sini -->
-            </div>
-
-            <!-- Ringkasan Bawah & Tanda Tangan -->
+            <!-- Kotak Ringkasan diletakkan di Bagian Atas Rincian -->
             <div class="summary-info-box">
                 <div class="summary-row">
                     <span class="summary-label">Pagu Anggaran</span>
                     <span class="summary-num" id="sumPagu">Rp 0</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Sisa Bulan Lalu</span>
+                    <span class="summary-num" id="sumSisaLalu" style="color: #475569;">Rp 0</span>
                 </div>
                 <div class="summary-row">
                     <span class="summary-label">Saldo Anggaran</span>
@@ -568,19 +438,14 @@
                 </div>
             </div>
 
-            <!-- Tanda Tangan -->
-            <div class="signature-section">
-                <div class="sig-date" id="sigDateText">Srihardono, 31 Juli 2025</div>
-                <div class="sig-grid">
-                    <div class="sig-person">
-                        <span>Pengawas BUMKal</span>
-                        <span class="sig-name">BU CARIK</span>
-                    </div>
-                    <div class="sig-person">
-                        <span>Direktur BUMKal</span>
-                        <span class="sig-name" id="sigDirekturName">CHOLIS</span>
-                    </div>
-                </div>
+            <!-- Rincian Transaksi Format Kartu Vertikal HP -->
+            <div class="section-rincian-title">
+                <span>Rincian Transaksi Pagu</span>
+                <span id="rincianCount" style="font-size: 9px; color: #64748b;">(0 Transaksi)</span>
+            </div>
+            
+            <div class="rincian-list" id="rincianContainer">
+                <!-- Data rincian akan dimuat secara dinamis di sini -->
             </div>
         </div>
     </div>
@@ -602,7 +467,7 @@
         });
     </script>
 
-    <!-- Script Integrasi Firestore & Logika Jembatan unitList -->
+    <!-- Script Integrasi Firestore & Logika Sisa Bulan Lalu Dinamis -->
     <script type="module">
         import { auth, db } from '../assets/js/firebase-config.js';
         import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -626,30 +491,21 @@
         const filterTahun = document.getElementById('filterTahun');
         const btnTampilkan = document.getElementById('btnTampilkan');
 
-        const lblOrgName = document.getElementById('lblOrgName');
-        const lblReportTitle = document.getElementById('lblReportTitle');
-        const lblCardTitle = document.getElementById('lblCardTitle');
-        const lblPeriodeText = document.getElementById('lblPeriodeText');
-        const sigDateText = document.getElementById('sigDateText');
-        const sigDirekturName = document.getElementById('sigDirekturName');
-
-        const totPagu = document.getElementById('totPagu');
-        const totPengeluaran = document.getElementById('totPengeluaran');
-        const totSisaLalu = document.getElementById('totSisaLalu');
-        const totSaldo = document.getElementById('totSaldo');
-
         const sumPagu = document.getElementById('sumPagu');
+        const sumSisaLalu = document.getElementById('sumSisaLalu');
         const sumSaldo = document.getElementById('sumSaldo');
         const sumRealisasi = document.getElementById('sumRealisasi');
         const sumBulanIni = document.getElementById('sumBulanIni');
+
         const rincianContainer = document.getElementById('rincianContainer');
         const rincianCount = document.getElementById('rincianCount');
 
         let rawPaguData = [];
         let paguAccounts = new Set();
         let codeToNameUnit = {}; 
+        let systemStartMonth = 1; 
 
-        async function loadProfileHeader() {
+        async function loadProfileAndSystemPeriod() {
             try {
                 const profileDoc = await getDoc(doc(db, 'settings', 'profile'));
                 
@@ -658,9 +514,33 @@
 
                 if (profileDoc.exists()) {
                     const data = profileDoc.data();
-                    if (data.namaProfil) lblOrgName.textContent = data.namaProfil;
-                    if (data.namaDirektur) sigDirekturName.textContent = data.namaDirektur;
                     listUnits = data.unitList || [];
+
+                    if (data.tglMulai && typeof data.tglMulai === 'string') {
+                        const parts = data.tglMulai.split('-');
+                        if (parts.length >= 2) {
+                            let startYear = parseInt(parts[0], 10);
+                            let startMonth = parseInt(parts[1], 10);
+                            systemStartMonth = startMonth;
+
+                            filterBulan.value = String(startMonth);
+
+                            let foundYear = false;
+                            for (let opt of filterTahun.options) {
+                                if (opt.value === String(startYear)) {
+                                    foundYear = true;
+                                    break;
+                                }
+                            }
+                            if (!foundYear) {
+                                let opt = document.createElement('option');
+                                opt.value = startYear;
+                                opt.textContent = `${startYear} (1 Tahun)`;
+                                filterTahun.appendChild(opt);
+                            }
+                            filterTahun.value = String(startYear);
+                        }
+                    }
                 }
 
                 if (listUnits.length === 0) {
@@ -684,13 +564,12 @@
                     }
                 });
             } catch (e) {
-                console.warn("Gagal memuat profil:", e);
+                console.warn("Gagal memuat profil sistem:", e);
             }
         }
 
         async function loadData() {
             try {
-                // 1. Ambil data Chart of Accounts untuk mendeteksi akun berstatus hasPagu = "Ya"
                 const coaSnap = await getDocs(collection(db, 'accounts'));
                 paguAccounts.clear();
                 coaSnap.forEach(d => {
@@ -701,77 +580,76 @@
                     }
                 });
 
-                // 2. Ambil data Pagu Anggaran
                 const paguSnap = await getDocs(query(collection(db, 'pagu_anggaran'), orderBy('namaPagu', 'asc')));
                 rawPaguData = [];
                 paguSnap.forEach(d => {
                     rawPaguData.push({ id: d.id, ...d.data() });
                 });
 
-                // 3. Ambil data Jurnal Transaksi
                 const journalSnap = await getDocs(query(collection(db, 'journals'), orderBy('date', 'asc')));
                 
                 const unitF = filterUnit.value; 
-                const targetMonth = String(filterBulan.value).padStart(2, '0');
-                const targetYear = filterTahun.value;
+                const targetMonthNum = parseInt(filterBulan.value);
+                const targetYear = parseInt(filterTahun.value);
 
-                let totalRealPengeluaran = 0;
+                let cumulativePreviousPengeluaran = 0;
+                let currentMonthPengeluaran = 0;
                 let matchedTransactions = [];
 
                 journalSnap.forEach(d => {
                     const j = d.data();
-                    if (j.date && j.date.startsWith(`${targetYear}-${targetMonth}`)) {
-                        
-                        // JEMBATAN PENGHUBUNG: Membaca unitName dari dokumen journals (misal "00")
-                        const rawUnitJournal = String(j.unitName || j.unitId || '').trim();
-                        const resolvedNamaUnit = codeToNameUnit[rawUnitJournal] || rawUnitJournal;
+                    if (j.date) {
+                        const parts = j.date.split('-');
+                        if (parts.length >= 2) {
+                            const jYear = parseInt(parts[0], 10);
+                            const jMonthNum = parseInt(parts[1], 10);
 
-                        if (unitF && resolvedNamaUnit !== unitF) {
-                            return; 
-                        }
+                            if (jYear === targetYear) {
+                                const rawUnitJournal = String(j.unitName || j.unitId || '').trim();
+                                const resolvedNamaUnit = codeToNameUnit[rawUnitJournal] || rawUnitJournal;
 
-                        // Akumulasi nominal pengeluaran dari item jurnal yang akunnya terdaftar sebagai Pagu
-                        if (j.items && Array.isArray(j.items)) {
-                            j.items.forEach(item => {
-                                const code = String(item.accCode || '').trim();
-                                if (paguAccounts.has(code)) {
-                                    const nominal = parseFloat(item.debit) || parseFloat(item.kredit) || 0;
-                                    if (nominal > 0) {
-                                        totalRealPengeluaran += nominal;
-                                        matchedTransactions.push({
-                                            date: j.date,
-                                            description: j.description || 'Pengeluaran Pagu Anggaran',
-                                            refNo: j.refNo || '-',
-                                            amount: nominal
-                                        });
-                                    }
+                                if (unitF && resolvedNamaUnit !== unitF) {
+                                    return; 
                                 }
-                            });
+
+                                if (j.items && Array.isArray(j.items)) {
+                                    j.items.forEach(item => {
+                                        const code = String(item.accCode || '').trim();
+                                        if (paguAccounts.has(code)) {
+                                            const nominal = parseFloat(item.debit) || parseFloat(item.kredit) || 0;
+                                            if (nominal > 0) {
+                                                if (jMonthNum >= systemStartMonth && jMonthNum < targetMonthNum) {
+                                                    cumulativePreviousPengeluaran += nominal;
+                                                }
+                                                if (jMonthNum === targetMonthNum) {
+                                                    currentMonthPengeluaran += nominal;
+                                                    matchedTransactions.push({
+                                                        date: j.date,
+                                                        description: j.description || 'Pengeluaran Pagu Anggaran',
+                                                        refNo: j.refNo || '-',
+                                                        amount: nominal
+                                                    });
+                                                }
+                                            }
+                                        }
+                                    });
+                                }
+                            }
                         }
                     }
                 });
 
-                renderReport(totalRealPengeluaran, matchedTransactions);
+                renderReport(currentMonthPengeluaran, cumulativePreviousPengeluaran, matchedTransactions);
             } catch (e) {
                 console.error("Gagal memuat laporan pagu:", e);
             }
         }
 
-        function renderReport(realPengeluaran = 0, transactions = []) {
+        function renderReport(currentMonthPengeluaran = 0, cumulativePreviousPengeluaran = 0, transactions = []) {
             const unitF = filterUnit.value;
             const bulanName = filterBulan.options[filterBulan.selectedIndex].text;
             const tahunVal = filterTahun.value;
-
-            if (unitF) {
-                lblReportTitle.textContent = `Laporan Bulanan ${unitF}`;
-                lblCardTitle.textContent = `Total Pagu ${unitF}`;
-            } else {
-                lblReportTitle.textContent = `Laporan Bulanan Konsolidasi Unit Usaha`;
-                lblCardTitle.textContent = `Total Konsolidasi Keseluruhan`;
-            }
-
-            lblPeriodeText.textContent = `Periode Bulan ${bulanName} ${tahunVal}`;
-            sigDateText.textContent = `Srihardono, 31 ${bulanName} ${tahunVal}`;
+            const targetMonthNum = parseInt(filterBulan.value);
 
             let filteredPagu = rawPaguData.filter(item => {
                 let matchUnit = !unitF || item.unitUsaha === unitF;
@@ -780,46 +658,38 @@
             });
 
             let sumP = 0;
-            let sumSisa = 0;
-
             filteredPagu.forEach(item => {
                 const paguVal = parseFloat(item.nominalPagu) || 0;
-                const sisaLaluVal = parseFloat(item.sisaBulanLalu) || 0;
                 sumP += paguVal;
-                sumSisa += sisaLaluVal;
             });
 
-            let totalPeng = realPengeluaran;
-            if (totalPeng === 0 && transactions.length === 0) {
-                filteredPagu.forEach(item => {
-                    totalPeng += parseFloat(item.realisasi) || 0;
-                });
+            let sumSisa = 0;
+            if (targetMonthNum === systemStartMonth) {
+                sumSisa = sumP;
+            } else {
+                sumSisa = sumP - cumulativePreviousPengeluaran;
+                if (sumSisa < 0) sumSisa = 0;
             }
 
-            let sumSal = sumP - totalPeng + sumSisa;
-
-            totPagu.textContent = `Rp ${sumP.toLocaleString('id-ID')}`;
-            totPengeluaran.textContent = `Rp ${totalPeng.toLocaleString('id-ID')}`;
-            totSisaLalu.textContent = `Rp ${sumSisa.toLocaleString('id-ID')}`;
-            totSaldo.textContent = `Rp ${sumSal.toLocaleString('id-ID')}`;
+            let totalPeng = currentMonthPengeluaran;
+            let sumSal = sumSisa - totalPeng;
 
             sumPagu.textContent = `Rp ${sumP.toLocaleString('id-ID')}`;
+            sumSisaLalu.textContent = `Rp ${sumSisa.toLocaleString('id-ID')}`;
             sumSaldo.textContent = `Rp ${sumSal.toLocaleString('id-ID')}`;
             sumRealisasi.textContent = `Rp ${totalPeng.toLocaleString('id-ID')}`;
             sumBulanIni.textContent = `Rp ${totalPeng.toLocaleString('id-ID')}`;
 
-            // Render Kartu Rincian Transaksi Vertikal untuk HP
             rincianContainer.innerHTML = '';
             rincianCount.textContent = `(${transactions.length} Transaksi)`;
 
             if (transactions.length === 0) {
                 rincianContainer.innerHTML = `
                     <div style="text-align: center; padding: 12px; font-size: 10px; color: #64748b; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px;">
-                        Tidak ada transaksi pengeluaran pagu pada periode ini.
+                        Tidak ada transaksi pengeluaran pagu pada periode bulan ${bulanName} ${tahunVal}.
                     </div>
                 `;
             } else {
-                let runningSaldo = sumSal; // Saldo berjalan simulasi dari sisa akhir
                 transactions.forEach((tx, idx) => {
                     const card = document.createElement('div');
                     card.className = 'rincian-card';
@@ -836,7 +706,7 @@
                             </div>
                             <div class="rf-item" style="text-align: right;">
                                 <span class="rf-label">Saldo Berjalan</span>
-                                <span class="rf-val" style="color: #16a34a;">Rp ${(sumP - tx.amount + sumSisa).toLocaleString('id-ID')}</span>
+                                <span class="rf-val" style="color: #16a34a;">Rp ${(sumSisa - tx.amount).toLocaleString('id-ID')}</span>
                             </div>
                         </div>
                     `;
@@ -864,7 +734,7 @@
         });
 
         async function init() {
-            await loadProfileHeader();
+            await loadProfileAndSystemPeriod();
             await loadData();
         }
         init();
