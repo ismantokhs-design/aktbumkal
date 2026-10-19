@@ -461,6 +461,11 @@
                     </div>
 
                     <div class="form-group-hp">
+                        <label class="form-label-hp" for="saldoAwalManual">Saldo Awal (Opsional - Kosongkan jika otomatis dari sistem)</label>
+                        <input type="text" id="saldoAwalManual" class="form-control-hp" placeholder="0">
+                    </div>
+
+                    <div class="form-group-hp">
                         <label class="form-label-hp" for="keterangan">Keterangan</label>
                         <input type="text" id="keterangan" class="form-control-hp" placeholder="Catatan tambahan...">
                     </div>
@@ -519,23 +524,43 @@
         const rekonIdInput = document.getElementById('rekonId');
         const namaBankSelect = document.getElementById('namaBank');
         const noRekeningInput = document.getElementById('noRekening');
+        const saldoAwalManualInput = document.getElementById('saldoAwalManual');
         const keteranganInput = document.getElementById('keterangan');
 
         const filterBulan = document.getElementById('filterBulan');
         const filterTahun = document.getElementById('filterTahun');
 
-        // Fungsi memuat akun dari COA (CashFlowGroup === "Kas dan Bank") dan diurutkan berdasarkan kode akun (A-Z)
+        let bankCashMapping = {};
+        let accountsMapName = {};
+
+        async function loadBankCashMapping() {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    bankCashMapping = data.bankCashMapping || {};
+                }
+            } catch (err) {
+                console.error("Gagal memuat mapping bank cash:", err);
+            }
+        }
+
         async function loadBankAccountsCOA() {
             try {
                 const accSnap = await getDocs(collection(db, 'accounts'));
                 namaBankSelect.innerHTML = '<option value="">Pilih Akun Bank...</option>';
 
                 let accountsList = [];
+                accountsMapName = {};
+
                 accSnap.forEach(d => {
                     const data = d.data();
                     const code = String(data.accCode || '').trim();
                     const name = String(data.accName || '').trim();
                     const cashFlowGroup = String(data.cashFlowGroup || '').trim();
+
+                    accountsMapName[code] = name;
 
                     if (cashFlowGroup === 'Kas dan Bank') {
                         accountsList.push({ code, name });
@@ -580,6 +605,7 @@
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
+                    bankCashMapping = data.bankCashMapping || {};
                     if (data.activeMonthCode && data.activeMonthCode.includes('-')) {
                         const [y, m] = data.activeMonthCode.split('-');
                         filterTahun.value = y;
@@ -594,17 +620,28 @@
 
         async function loadRekonData() {
             try {
-                const bStr = String(filterBulan.value).padStart(2, '0');
-                const t = filterTahun.value;
-                const endPeriodDate = `${t}-${bStr}-31`; // Batas akhir bulan aktif untuk perhitungan saldo kumulatif
+                await loadBankCashMapping();
+                
+                const accSnap = await getDocs(collection(db, 'accounts'));
+                accountsMapName = {};
+                accSnap.forEach(d => {
+                    const data = d.data();
+                    accountsMapName[String(data.accCode || '').trim()] = String(data.accName || '').trim();
+                });
 
-                // Ambil semua jurnal s.d akhir bulan periode terpilih
+                const bNum = parseInt(filterBulan.value, 10);
+                const bStr = String(bNum).padStart(2, '0');
+                const t = filterTahun.value;
+                
+                const startPeriodDate = `${t}-${bStr}-01`;
+                const endPeriodDate = `${t}-${bStr}-31`;
+
                 const qJurnal = query(collection(db, 'journals'), where('date', '<=', endPeriodDate));
                 const jSnap = await getDocs(qJurnal);
 
-                // Petakan mutasi per akun
-                const accountBalances = {}; // Untuk Saldo Bank (1) s.d akhir bulan
-                const monthlyMutations = {}; // Untuk Penerimaan & Penggunaan di bulan tersebut
+                const openingBalances = {};  
+                const accountBalances = {};  
+                const monthlyMutations = {}; 
 
                 jSnap.forEach(docJ => {
                     const j = docJ.data();
@@ -616,21 +653,21 @@
                             const code = String(item.accCode || '').trim();
                             const debit = parseFloat(item.debit) || 0;
                             const kredit = parseFloat(item.kredit) || 0;
-                            const net = debit - kredit; // Untuk aset (debit menambah saldo)
+                            const net = debit - kredit;
 
-                            // Saldo kumulatif s.d akhir bulan terpilih
                             if (jDate <= endPeriodDate) {
                                 accountBalances[code] = (accountBalances[code] || 0) + net;
                             }
 
-                            // Mutasi khusus pada bulan dan tahun terpilih
+                            if (jDate < startPeriodDate) {
+                                openingBalances[code] = (openingBalances[code] || 0) + net;
+                            }
+
                             if (jYear === t && jMonth === bStr) {
                                 if (!monthlyMutations[code]) {
                                     monthlyMutations[code] = { penerimaan: 0, penggunaan: 0 };
                                 }
-                                // Jika akun kas/bank bertambah (debit) di bulan itu
                                 monthlyMutations[code].penerimaan += debit;
-                                // Jika akun kas/bank berkurang (kredit) di bulan itu
                                 monthlyMutations[code].penggunaan += kredit;
                             }
                         });
@@ -653,22 +690,30 @@
                 snap.forEach(d => {
                     const item = { id: d.id, ...d.data() };
                     
-                    // Ambil kode akun dari string namaBank (misal: "1.01.02.001 - Bank BPD" -> ambil "1.01.02.001")
                     const rawNamaBank = item.namaBank || '';
                     const accCodeMatch = rawNamaBank.split(' - ')[0].trim();
 
-                    // Otomatis ambil saldo dari perhitungan jurnal
-                    const sBank = accountBalances[accCodeMatch] || 0;
-                    const bPajak = parseCleanNumber(item.bungaPajakAdm);
-                    const sNetto = sBank - bPajak;
+                    // Saldo Awal Bank
+                    const sAwalAuto = openingBalances[accCodeMatch] || 0;
+                    const sAwalManual = item.saldoAwal !== undefined && item.saldoAwal !== '' ? parseCleanNumber(item.saldoAwal) : null;
+                    const sAwal = sAwalManual !== null ? sAwalManual : sAwalAuto;
 
                     const mutasi = monthlyMutations[accCodeMatch] || { penerimaan: 0, penggunaan: 0 };
                     const tPenerimaan = mutasi.penerimaan;
                     const tPenggunaan = mutasi.penggunaan;
-                    const sSeharusnya = tPenerimaan - tPenggunaan;
 
-                    const coh = parseCleanNumber(item.cashOnHand);
-                    const selisih = sSeharusnya - sNetto - coh;
+                    const sSeharusnya = sAwal + tPenerimaan - tPenggunaan;
+
+                    const bPajak = parseCleanNumber(item.bungaPajakAdm);
+                    const sNetto = sSeharusnya - bPajak;
+
+                    // Akun Kas Fisik / Pendukung yang di-mapping dari profil
+                    const mappedCashCode = bankCashMapping[accCodeMatch] || '';
+                    const mappedCashName = accountsMapName[mappedCashCode] || 'Belum di-mapping';
+                    const sKasFisik = mappedCashCode ? (accountBalances[mappedCashCode] || 0) : 0;
+
+                    // Selisih antara Saldo Netto Bank dan Saldo Kas Fisik Pendukung
+                    const selisih = sNetto - sKasFisik;
 
                     let selisihColor = '#16a34a';
                     let selisihBg = '#dcfce7';
@@ -690,36 +735,33 @@
 
                         <div class="rekon-grid-info">
                             <div class="info-item">
-                                <span class="info-label">Saldo Bank (1)</span>
-                                <span class="info-val">Rp ${sBank.toLocaleString('id-ID')}</span>
+                                <span class="info-label">Saldo Awal Bank (0)</span>
+                                <span class="info-val">Rp ${sAwal.toLocaleString('id-ID')}</span>
                             </div>
                             <div class="info-item">
-                                <span class="info-label">Bunga - (Paj+Adm) (2)</span>
-                                <span class="info-val">Rp ${bPajak.toLocaleString('id-ID')}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Saldo Netto (3)</span>
-                                <span class="info-val" style="color: #5114B9;">Rp ${sNetto.toLocaleString('id-ID')}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Total Penerimaan (4)</span>
+                                <span class="info-label">Total Penerimaan (1)</span>
                                 <span class="info-val" style="color: #16a34a;">Rp ${tPenerimaan.toLocaleString('id-ID')}</span>
                             </div>
                             <div class="info-item">
-                                <span class="info-label">Total Penggunaan (5)</span>
+                                <span class="info-label">Total Penggunaan (2)</span>
                                 <span class="info-val" style="color: #dc2626;">Rp ${tPenggunaan.toLocaleString('id-ID')}</span>
                             </div>
                             <div class="info-item">
-                                <span class="info-label">Sisa Seharusnya (6)</span>
+                                <span class="info-label">Saldo Seharusnya (3)</span>
                                 <span class="info-val">Rp ${sSeharusnya.toLocaleString('id-ID')}</span>
                             </div>
                             <div class="info-item">
-                                <span class="info-label">Cash On Hand (7)</span>
-                                <span class="info-val">Rp ${coh.toLocaleString('id-ID')}</span>
+                                <span class="info-label">Bunga / Paj / Adm (4)</span>
+                                <span class="info-val">Rp ${bPajak.toLocaleString('id-ID')}</span>
                             </div>
                             <div class="info-item">
-                                <span class="info-label">Selisih Dana (8)</span>
-                                <span class="info-val" style="color: ${selisihColor};">Rp ${selisih.toLocaleString('id-ID')}</span>
+                                <span class="info-label">Saldo Netto Bank (5)</span>
+                                <span class="info-val" style="color: #5114B9;">Rp ${sNetto.toLocaleString('id-ID')}</span>
+                            </div>
+                            <div class="info-item" style="grid-column: span 2; background-color: #f1f5f9; padding: 6px 8px; border-radius: 4px; margin-top: 2px;">
+                                <span class="info-label" style="color: #0f172a;">Kas Pendukung / Fisik:</span>
+                                <span class="info-val" style="font-size: 10px; color: #334155;">${mappedCashCode ? `${mappedCashCode} -${mappedCashName}` : '(Mapping belum diset di Pengaturan Profil)'}</span>
+                                <span class="info-val" style="margin-top: 2px; color: #0284c7; font-size: 12px;">Rp ${sKasFisik.toLocaleString('id-ID')}</span>
                             </div>
                         </div>
 
@@ -752,6 +794,7 @@
                                 rekonIdInput.value = id;
                                 namaBankSelect.value = data.namaBank || '';
                                 noRekeningInput.value = data.noRekening || '';
+                                saldoAwalManualInput.value = data.saldoAwal !== undefined ? data.saldoAwal : '';
                                 keteranganInput.value = data.keterangan || '';
                                 modalRekon.classList.add('active');
                             }
@@ -799,6 +842,7 @@
             const payload = {
                 namaBank: namaBankSelect.value.trim(),
                 noRekening: noRekeningInput.value.trim(),
+                saldoAwal: saldoAwalManualInput.value.trim(),
                 keterangan: keteranganInput.value.trim(),
                 bulan: filterBulan.value,
                 tahun: filterTahun.value,

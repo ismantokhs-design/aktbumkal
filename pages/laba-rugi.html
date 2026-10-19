@@ -156,32 +156,6 @@
             flex-direction: column;
         }
 
-        /* Header Laporan Kertas */
-        .report-header {
-            text-align: center;
-            margin-bottom: 16px;
-        }
-
-        .company-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #334155;
-        }
-
-        .report-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: #0f172a;
-            margin-top: 2px;
-            letter-spacing: 0.5px;
-        }
-
-        .period-subtitle {
-            font-size: 11px;
-            color: #475569;
-            margin-top: 2px;
-        }
-
         /* Tampilan Tabel Baris Laba Rugi */
         .lr-section-title {
             font-size: 11px;
@@ -262,13 +236,6 @@
         <!-- Area Isi Laporan Laba Rugi -->
         <div class="report-wrapper">
             <div class="report-paper">
-                <!-- Header Dokumen Laporan -->
-                <div class="report-header">
-                    <div class="company-title" id="profileNameDisplay">BUMKal</div>
-                    <div class="report-title">LABA/RUGI</div>
-                    <div class="period-subtitle" id="periodTextDisplay">--</div>
-                </div>
-
                 <!-- Section 1: Pendapatan Usaha -->
                 <div class="lr-section-title">PENDAPATAN USAHA</div>
                 <div id="pendapatanUsahaList"></div>
@@ -331,9 +298,6 @@
         const endDateInput = document.getElementById('endDate');
         const filterUnitLabaRugi = document.getElementById('filterUnitLabaRugi');
 
-        const profileNameDisplay = document.getElementById('profileNameDisplay');
-        const periodTextDisplay = document.getElementById('periodTextDisplay');
-
         // Containers
         const pendapatanUsahaList = document.getElementById('pendapatanUsahaList');
         const totalPendapatanUsaha = document.getElementById('totalPendapatanUsaha');
@@ -369,7 +333,6 @@
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    profileNameDisplay.textContent = data.namaProfil || 'BUMKal';
 
                     if (data.activeMonthCode) {
                         const parts = data.activeMonthCode.split('-');
@@ -399,7 +362,7 @@
                 // Tanggal 1 di awal bulan
                 const firstDayStr = formatDateString(year, month, 1);
                 
-                // Tanggal terakhir di bulan tersebut (hari ke-0 dari bulan berikutnya adalah hari terakhir bulan ini)
+                // Tanggal terakhir di bulan tersebut
                 const lastDayDate = new Date(year, month, 0);
                 const lastDayStr = formatDateString(year, month, lastDayDate.getDate());
 
@@ -416,26 +379,10 @@
                 endDateInput.value = formatDateString(y, m, lastDate);
             }
 
-            updatePeriodDisplay();
             generateLabaRugiReport();
         }
 
-        function formatDateDisplay(dateStr) {
-            if (!dateStr) return '';
-            const [y, m, d] = dateStr.split('-');
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-            return `${d} ${months[parseInt(m, 10) - 1]} ${y}`;
-        }
-
-        function updatePeriodDisplay() {
-            const s = formatDateDisplay(startDateInput.value);
-            const e = formatDateDisplay(endDateInput.value);
-            periodTextDisplay.textContent = `${s} - ${e}`;
-        }
-
         async function generateLabaRugiReport() {
-            updatePeriodDisplay();
-
             const sDate = startDateInput.value;
             const eDate = endDateInput.value;
             const selectedUnit = filterUnitLabaRugi ? filterUnitLabaRugi.value : '';
