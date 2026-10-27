@@ -298,7 +298,6 @@
         const endDateInput = document.getElementById('endDate');
         const filterUnitLabaRugi = document.getElementById('filterUnitLabaRugi');
 
-        // Containers
         const pendapatanUsahaList = document.getElementById('pendapatanUsahaList');
         const totalPendapatanUsaha = document.getElementById('totalPendapatanUsaha');
 
@@ -315,21 +314,19 @@
 
         const totalLabaRugiAkhir = document.getElementById('totalLabaRugiAkhir');
 
-        // Helper format string YYYY-MM-DD aman dari timezone shift
         function formatDateString(y, m, d) {
             const mm = String(m).padStart(2, '0');
             const dd = String(d).padStart(2, '0');
             return `${y}-${mm}-${dd}`;
         }
 
-        // Inisialisasi Tanggal Berdasarkan Bulan Aktif di Firestore (Tanggal 1 s.d Hari Terakhir)
         async function initActiveMonthDates() {
             try {
                 const docRef = doc(db, 'settings', 'profile');
                 const docSnap = await getDoc(docRef);
 
                 let year = new Date().getFullYear();
-                let month = new Date().getMonth() + 1; // 1 - 12
+                let month = new Date().getMonth() + 1;
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
@@ -344,7 +341,6 @@
                         month = d.getMonth() + 1;
                     }
 
-                    // Populate Unit Usaha options
                     if (filterUnitLabaRugi) {
                         filterUnitLabaRugi.innerHTML = '<option value="">Konsolidasi (Gabungan)</option>';
                         const unitList = data.unitList || [];
@@ -359,10 +355,7 @@
                     }
                 }
 
-                // Tanggal 1 di awal bulan
                 const firstDayStr = formatDateString(year, month, 1);
-                
-                // Tanggal terakhir di bulan tersebut
                 const lastDayDate = new Date(year, month, 0);
                 const lastDayStr = formatDateString(year, month, lastDayDate.getDate());
 
@@ -388,16 +381,40 @@
             const selectedUnit = filterUnitLabaRugi ? filterUnitLabaRugi.value : '';
 
             try {
-                // 1. Fetch Accounts Map
+                // 1. Fetch seluruh master akun dari koleksi 'accounts'
                 const accSnap = await getDocs(collection(db, 'accounts'));
                 const accountsMap = {};
+                
+                const pendUsahaAccounts = {};
+                const bebanUsahaAccounts = {};
+                const pendNonUsahaAccounts = {};
+                const bebanNonUsahaAccounts = {};
+
                 accSnap.forEach(d => {
                     const data = d.data();
-                    accountsMap[String(data.accCode)] = {
-                        name: data.accName || '',
-                        category: data.category || '',
-                        accCode: String(data.accCode)
-                    };
+                    const code = String(data.accCode || '').trim();
+                    const name = data.accName || '';
+                    const repGroup = (data.reportGroup || '').toLowerCase();
+                    const isLevel4 = parseInt(data.level, 10) === 4 || data.isPostable === true || data.isPostable === 'true';
+
+                    accountsMap[code] = { name, reportGroup: repGroup, accCode: code };
+
+                    // Filter utama berdasarkan reportGroup "Laba Rugi"
+                    if (isLevel4 && repGroup.includes('laba rugi')) {
+                        // Pengelompokan berdasarkan awalan kode akun yang lebih spesifik & terstruktur
+                        if (code.startsWith('4.01') || code.startsWith('4.1')) {
+                            pendUsahaAccounts[code] = 0;
+                        } else if (code.startsWith('4.02') || code.startsWith('4.2') || code.startsWith('8')) {
+                            pendNonUsahaAccounts[code] = 0;
+                        } else if (code.startsWith('5') || code.startsWith('6') || code.startsWith('7')) {
+                            bebanUsahaAccounts[code] = 0;
+                        } else if (code.startsWith('9')) {
+                            bebanNonUsahaAccounts[code] = 0;
+                        } else {
+                            // Fallback jika tidak masuk kategori di atas tapi masuk laba rugi
+                            bebanUsahaAccounts[code] = 0;
+                        }
+                    }
                 });
 
                 // 2. Fetch Journals within Date Range
@@ -410,21 +427,9 @@
 
                 const jSnap = await getDocs(qJurnal);
 
-                // Object Penampung Saldo
-                const pendUsahaAccounts = {};
-                const bebanUsahaAccounts = {};
-                const pendNonUsahaAccounts = {};
-                const bebanNonUsahaAccounts = {};
-
-                let sumPendUsaha = 0;
-                let sumBebanUsaha = 0;
-                let sumPendNonUsaha = 0;
-                let sumBebanNonUsaha = 0;
-
                 jSnap.forEach(d => {
                     const journal = d.data();
 
-                    // Filter Unit Usaha jika tidak memilih konsolidasi
                     if (selectedUnit && journal.unitId && journal.unitId !== selectedUnit) {
                         return;
                     }
@@ -436,44 +441,40 @@
                             const kredit = parseFloat(item.kredit) || 0;
 
                             const accInfo = accountsMap[code] || {};
-                            const cat = (accInfo.category || '').toLowerCase();
+                            const repGroup = accInfo.reportGroup || '';
 
-                            // Pendapatan Usaha
-                            if (code.startsWith('4.01') || code.startsWith('4.1') || cat.includes('pendapatan usaha')) {
-                                const val = kredit - debit;
-                                pendUsahaAccounts[code] = (pendUsahaAccounts[code] || 0) + val;
-                                sumPendUsaha += val;
-                            } 
-                            // Pendapatan Non-Usaha
-                            else if (code.startsWith('4.02') || code.startsWith('4.2') || cat.includes('pendapatan non') || cat.includes('pendapatan lain')) {
-                                const val = kredit - debit;
-                                pendNonUsahaAccounts[code] = (pendNonUsahaAccounts[code] || 0) + val;
-                                sumPendNonUsaha += val;
-                            }
-                            // Beban Usaha
-                            else if (code.startsWith('5.01') || code.startsWith('5.1') || code.startsWith('6.01') || cat.includes('beban usaha') || cat.includes('biaya usaha')) {
-                                const val = debit - kredit;
-                                bebanUsahaAccounts[code] = (bebanUsahaAccounts[code] || 0) + val;
-                                sumBebanUsaha += val;
-                            }
-                            // Beban Non-Usaha
-                            else if (code.startsWith('5.02') || code.startsWith('5.2') || code.startsWith('6.02') || cat.includes('beban non') || cat.includes('biaya lain')) {
-                                const val = debit - kredit;
-                                bebanNonUsahaAccounts[code] = (bebanNonUsahaAccounts[code] || 0) + val;
-                                sumBebanNonUsaha += val;
+                            if (repGroup.includes('laba rugi')) {
+                                if (code.startsWith('4.01') || code.startsWith('4.1')) {
+                                    const val = kredit - debit;
+                                    if (pendUsahaAccounts.hasOwnProperty(code)) pendUsahaAccounts[code] += val;
+                                } else if (code.startsWith('4.02') || code.startsWith('4.2') || code.startsWith('8')) {
+                                    const val = kredit - debit;
+                                    if (pendNonUsahaAccounts.hasOwnProperty(code)) pendNonUsahaAccounts[code] += val;
+                                } else if (code.startsWith('5') || code.startsWith('6') || code.startsWith('7')) {
+                                    const val = debit - kredit;
+                                    if (bebanUsahaAccounts.hasOwnProperty(code)) bebanUsahaAccounts[code] += val;
+                                } else if (code.startsWith('9')) {
+                                    const val = debit - kredit;
+                                    if (bebanNonUsahaAccounts.hasOwnProperty(code)) bebanNonUsahaAccounts[code] += val;
+                                }
                             }
                         });
                     }
                 });
 
-                // Helper Render List
+                let sumPendUsaha = Object.values(pendUsahaAccounts).reduce((a, b) => a + b, 0);
+                let sumBebanUsaha = Object.values(bebanUsahaAccounts).reduce((a, b) => a + b, 0);
+                let sumPendNonUsaha = Object.values(pendNonUsahaAccounts).reduce((a, b) => a + b, 0);
+                let sumBebanNonUsaha = Object.values(bebanNonUsahaAccounts).reduce((a, b) => a + b, 0);
+
                 const renderList = (container, dataObj) => {
                     container.innerHTML = '';
-                    if (Object.keys(dataObj).length === 0) {
-                        container.innerHTML = '<div style="font-size:10px; color:#94a3b8; padding-left:12px;">(Tidak ada transaksi)</div>';
+                    const keys = Object.keys(dataObj).sort();
+                    if (keys.length === 0) {
+                        container.innerHTML = '<div style="font-size:10px; color:#94a3b8; padding-left:12px;">(Tidak ada akun)</div>';
                         return;
                     }
-                    Object.keys(dataObj).forEach(code => {
+                    keys.forEach(code => {
                         const accName = accountsMap[code]?.name || code;
                         const row = document.createElement('div');
                         row.className = 'lr-row-item';
@@ -490,7 +491,6 @@
                 renderList(pendapatanNonUsahaList, pendNonUsahaAccounts);
                 renderList(bebanNonUsahaList, bebanNonUsahaAccounts);
 
-                // Render Totals
                 const valLabaUsaha = sumPendUsaha - sumBebanUsaha;
                 const valLabaNonUsaha = sumPendNonUsaha - sumBebanNonUsaha;
                 const valLabaRugiAkhir = valLabaUsaha + valLabaNonUsaha;
@@ -510,12 +510,10 @@
             }
         }
 
-        // Listeners
         startDateInput.addEventListener('change', generateLabaRugiReport);
         endDateInput.addEventListener('change', generateLabaRugiReport);
         filterUnitLabaRugi.addEventListener('change', generateLabaRugiReport);
 
-        // Inisialisasi Awal
         initActiveMonthDates();
     </script>
 </body>

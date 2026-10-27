@@ -245,7 +245,7 @@
     <!-- Script Firestore Integrasi Real-Time -->
     <script type="module">
         import { db } from '../assets/js/firebase-config.js';
-        import { doc, getDoc, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const targetDateInput = document.getElementById('targetDate');
 
@@ -261,7 +261,6 @@
 
         const totalKewajibanDanModal = document.getElementById('totalKewajibanDanModal');
 
-        // Ambil tanggal akhir bulan dari activeMonthCode (misal: "2026-10" -> "2026-10-31")
         async function initTargetDate() {
             try {
                 const docRef = doc(db, 'settings', 'profile');
@@ -302,39 +301,40 @@
 
         async function generateNeracaReport() {
             const eDate = targetDateInput.value;
-
             const yearStr = eDate.split('-')[0];
             const sDateYear = `${yearStr}-01-01`;
 
             try {
-                // 1. Fetch Accounts Map
+                // 1. Fetch seluruh master akun dari koleksi 'accounts'
                 const accSnap = await getDocs(collection(db, 'accounts'));
                 const accountsMap = {};
-                accSnap.forEach(d => {
-                    const data = d.data();
-                    accountsMap[String(data.accCode)] = {
-                        name: data.accName || '',
-                        category: data.category || '',
-                        accCode: String(data.accCode)
-                    };
-                });
-
-                // 2. Fetch Journals s.d Tanggal Terpilih
-                const qJurnal = query(
-                    collection(db, 'journals'),
-                    where('date', '<=', eDate),
-                    orderBy('date', 'asc')
-                );
-
-                const jSnap = await getDocs(qJurnal);
 
                 const asetAccounts = {};
                 const kewajibanAccounts = {};
                 const modalAccounts = {};
 
-                let sumAset = 0;
-                let sumKewajiban = 0;
-                let sumModalPure = 0;
+                accSnap.forEach(d => {
+                    const data = d.data();
+                    const code = String(data.accCode || '').trim();
+                    const name = data.accName || '';
+                    const cat = (data.category || '').toLowerCase();
+                    const isLevel4 = parseInt(data.level, 10) === 4 || data.isPostable === true || data.isPostable === 'true';
+
+                    accountsMap[code] = { name, category: cat, accCode: code };
+
+                    if (isLevel4) {
+                        if (code.startsWith('1') || cat.includes('aset') || cat.includes('aktiva')) {
+                            asetAccounts[code] = 0;
+                        } else if (code.startsWith('2') || cat.includes('kewajiban') || cat.includes('hutang')) {
+                            kewajibanAccounts[code] = 0;
+                        } else if (code.startsWith('3') || cat.includes('modal') || cat.includes('ekuitas')) {
+                            modalAccounts[code] = 0;
+                        }
+                    }
+                });
+
+                // 2. Fetch seluruh jurnal tanpa batasan query
+                const jSnap = await getDocs(collection(db, 'journals'));
 
                 let sumPendapatan = 0;
                 let sumBeban = 0;
@@ -343,6 +343,8 @@
                     const journal = d.data();
                     const jDate = journal.date;
 
+                    if (!jDate || jDate > eDate) return;
+
                     if (journal.items && Array.isArray(journal.items)) {
                         journal.items.forEach(item => {
                             const code = String(item.accCode || '').trim();
@@ -350,32 +352,38 @@
                             const kredit = parseFloat(item.kredit) || 0;
 
                             const accInfo = accountsMap[code] || {};
-                            const cat = (accInfo.category || '').toLowerCase();
+                            const cat = accInfo.category || '';
+                            const repGroup = (accInfo.reportGroup || '').toLowerCase();
 
                             // Aset (Prefix '1') -> Saldo Normal Debet
                             if (code.startsWith('1') || cat.includes('aset') || cat.includes('aktiva')) {
                                 const val = debit - kredit;
-                                asetAccounts[code] = (asetAccounts[code] || 0) + val;
-                                sumAset += val;
+                                if (asetAccounts.hasOwnProperty(code)) {
+                                    asetAccounts[code] += val;
+                                }
                             } 
                             // Kewajiban / Hutang (Prefix '2') -> Saldo Normal Kredit
                             else if (code.startsWith('2') || cat.includes('kewajiban') || cat.includes('hutang')) {
                                 const val = kredit - debit;
-                                kewajibanAccounts[code] = (kewajibanAccounts[code] || 0) + val;
-                                sumKewajiban += val;
+                                if (kewajibanAccounts.hasOwnProperty(code)) {
+                                    kewajibanAccounts[code] += val;
+                                }
                             } 
                             // Modal (Prefix '3') -> Saldo Normal Kredit
                             else if (code.startsWith('3') || cat.includes('modal') || cat.includes('ekuitas')) {
                                 const val = kredit - debit;
-                                modalAccounts[code] = (modalAccounts[code] || 0) + val;
-                                sumModalPure += val;
+                                if (modalAccounts.hasOwnProperty(code)) {
+                                    modalAccounts[code] += val;
+                                }
                             } 
-                            // Perhitungan Laba/Rugi Tahun Berjalan
+                            // Perhitungan Laba/Rugi Tahun Berjalan (Mencakup seluruh Pendapatan [4, 8] & Beban [5, 6, 7, 9])
                             else if (jDate >= sDateYear && jDate <= eDate) {
-                                if (code.startsWith('4') || cat.includes('pendapatan')) {
+                                const isPendapatan = code.startsWith('4') || code.startsWith('8') || cat.includes('pendapatan');
+                                const isBeban = code.startsWith('5') || code.startsWith('6') || code.startsWith('7') || code.startsWith('9') || cat.includes('beban') || cat.includes('biaya');
+
+                                if (isPendapatan) {
                                     sumPendapatan += (kredit - debit);
-                                } 
-                                else if (code.startsWith('5') || code.startsWith('6') || cat.includes('beban') || cat.includes('biaya')) {
+                                } else if (isBeban) {
                                     sumBeban += (debit - kredit);
                                 }
                             }
@@ -383,6 +391,9 @@
                     }
                 });
 
+                const sumAset = Object.values(asetAccounts).reduce((a, b) => a + b, 0);
+                const sumKewajiban = Object.values(kewajibanAccounts).reduce((a, b) => a + b, 0);
+                const sumModalPure = Object.values(modalAccounts).reduce((a, b) => a + b, 0);
                 const sumLabaRugi = sumPendapatan - sumBeban;
 
                 const renderList = (container, dataObj) => {
@@ -390,6 +401,11 @@
                     const sortedCodes = Object.keys(dataObj).sort((a, b) => 
                         a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
                     );
+
+                    if (sortedCodes.length === 0) {
+                        container.innerHTML = '<div style="font-size:10px; color:#94a3b8; padding-left:12px;">(Tidak ada akun)</div>';
+                        return;
+                    }
 
                     sortedCodes.forEach(code => {
                         const accName = accountsMap[code]?.name || code;

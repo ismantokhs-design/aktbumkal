@@ -253,7 +253,6 @@
 
         const totalModalAkhir = document.getElementById('totalModalAkhir');
 
-        // Inisialisasi tanggal awal (Tanggal 1) dan tanggal akhir bulan aktif dari database
         async function initActiveDates() {
             try {
                 const docRef = doc(db, 'settings', 'profile');
@@ -270,9 +269,7 @@
                         const yearNum = parseInt(y, 10);
                         const monthNum = parseInt(m, 10);
 
-                        // Tanggal 1 di awal bulan aktif
                         const firstDay = new Date(yearNum, monthNum - 1, 1);
-                        // Tanggal terakhir di bulan aktif
                         const lastDay = new Date(yearNum, monthNum, 0);
 
                         const fY = firstDay.getFullYear();
@@ -287,7 +284,6 @@
                     }
                 }
 
-                // Fallback jika profil kosong
                 if (!startStr || !endStr) {
                     const now = new Date();
                     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -319,10 +315,11 @@
                 const accountsMap = {};
                 accSnap.forEach(d => {
                     const data = d.data();
-                    const code = String(data.accCode);
+                    const code = String(data.accCode || '').trim();
                     accountsMap[code] = {
                         name: data.accName || '',
-                        category: data.category || ''
+                        category: data.category || '',
+                        reportGroup: (data.reportGroup || '').toLowerCase()
                     };
                 });
 
@@ -352,27 +349,27 @@
                             const accInfo = accountsMap[code] || {};
                             const cat = (accInfo.category || '').toLowerCase();
                             const name = (accInfo.name || '').toLowerCase();
+                            const repGroup = accInfo.reportGroup || '';
 
-                            // Modal Awal & Transaksi Modal Murni (3)
+                            // 1. Akun Modal Murni (Awalan 3 / Ekuitas / Modal)
                             if (code.startsWith('3') || cat.includes('modal') || cat.includes('ekuitas')) {
-                                if (name.includes('prive')) {
+                                if (name.includes('prive') || name.includes('pribadi')) {
                                     if (jDate >= sDate && jDate <= eDate) {
                                         sumPrive += (debit - kredit);
                                     }
                                 } else {
-                                    if (jDate < sDate) {
-                                        modalAwalSum += (kredit - debit);
-                                    } else {
-                                        modalAwalSum += (kredit - debit);
-                                    }
+                                    modalAwalSum += (kredit - debit);
                                 }
                             }
 
-                            // Perhitungan Laba Rugi Periode Berjalan
+                            // 2. Perhitungan Laba/Rugi Periode Berjalan (Menyamakan persis dengan Laporan Laba Rugi)
                             if (jDate >= sDate && jDate <= eDate) {
-                                if (code.startsWith('4') || cat.includes('pendapatan')) {
+                                const isPendapatan = code.startsWith('4') || code.startsWith('8') || cat.includes('pendapatan');
+                                const isBeban = code.startsWith('5') || code.startsWith('6') || code.startsWith('7') || code.startsWith('9') || cat.includes('beban') || cat.includes('biaya');
+
+                                if (isPendapatan) {
                                     sumPendapatan += (kredit - debit);
-                                } else if (code.startsWith('5') || code.startsWith('6') || cat.includes('beban') || cat.includes('biaya')) {
+                                } else if (isBeban) {
                                     sumBeban += (debit - kredit);
                                 }
                             }
@@ -401,7 +398,6 @@
         startDateInput.addEventListener('change', generatePerubahanModalReport);
         endDateInput.addEventListener('change', generatePerubahanModalReport);
 
-        // Inisialisasi awal saat halaman dimuat
         initActiveDates();
     </script>
 </body>

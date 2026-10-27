@@ -218,7 +218,6 @@
                         <span class="material-icons">trending_up</span>
                         <span>Perubahan Modal</span>
                     </a>
-                    <!-- Submenu baru Rekonsiliasi Bank ditambahkan di bawah Perubahan Modal -->
                     <a href="./pages/rekonsiliasi-bank.html" class="menu-item">
                         <span class="material-icons">account_balance</span>
                         <span>Rekonsiliasi Bank</span>
@@ -492,19 +491,16 @@
             document.body.classList.remove('no-scroll');
         });
 
-        // Logika Akordion Eksklusif (Menu lain otomatis tertutup & animasi buka-tutup mulus)
         const menuHeaders = document.querySelectorAll('.menu-category-header');
         menuHeaders.forEach(header => {
             header.addEventListener('click', () => {
                 const section = header.parentElement;
                 const isActive = section.classList.contains('active');
                 
-                // Tutup semua kategori terlebih dahulu
                 document.querySelectorAll('.menu-section').forEach(sec => {
                     sec.classList.remove('active');
                 });
 
-                // Jika sebelumnya belum aktif, buka kategori yang diklik
                 if (!isActive) {
                     section.classList.add('active');
                 }
@@ -516,7 +512,7 @@
     <script type="module">
         import { auth, db } from './assets/js/firebase-config.js';
         import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-        import { doc, getDoc, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const headerHeaderName = document.getElementById('headerHeaderName');
         const drawerProfileName = document.getElementById('drawerProfileName');
@@ -539,6 +535,10 @@
 
         const dynamicChartGroup = document.getElementById('dynamicChartGroup');
         const chartYMax = document.getElementById('chartYMax');
+
+        let globalActiveMonthCode = ''; 
+        let currentStartDate = `${new Date().getFullYear()}-01-01`;
+        let currentEndDate = `${new Date().getFullYear()}-12-31`;
 
         function formatDateIndo(dateStr) {
             if (!dateStr) return '--';
@@ -574,10 +574,6 @@
             return `${monthsFull[now.getMonth()]} ${now.getFullYear()}`;
         }
 
-        let currentStartDate = `${new Date().getFullYear()}-01-01`;
-        let currentEndDate = `${new Date().getFullYear()}-12-31`;
-
-        // Deteksi User Login & Ambil Nama User
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 let userName = user.displayName || user.email || 'Administrator';
@@ -605,8 +601,6 @@
                 const docRef = doc(db, 'settings', 'profile');
                 const docSnap = await getDoc(docRef);
 
-                let activeMonthCode = '';
-
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     const nama = data.namaProfil || 'BUMKal';
@@ -616,7 +610,7 @@
 
                     if (data.tglMulai) currentStartDate = data.tglMulai;
                     if (data.tglSelesai) currentEndDate = data.tglSelesai;
-                    if (data.activeMonthCode) activeMonthCode = data.activeMonthCode;
+                    if (data.activeMonthCode) globalActiveMonthCode = data.activeMonthCode;
 
                     if (filterUnitLabaRugi) {
                         filterUnitLabaRugi.innerHTML = '<option value="">Konsolidasi (Gabungan)</option>';
@@ -642,7 +636,7 @@
                 document.getElementById('endPeriodText').textContent = formatDateIndo(currentEndDate);
 
                 if (activeMonthDisplayText) {
-                    activeMonthDisplayText.textContent = formatMonthName(activeMonthCode, currentStartDate);
+                    activeMonthDisplayText.textContent = formatMonthName(globalActiveMonthCode, currentStartDate);
                 }
 
             } catch (error) {
@@ -663,17 +657,12 @@
                     accountsMap[code] = {
                         name: data.accName || '',
                         category: data.category || '',
+                        cashFlowGroup: data.cashFlowGroup || '',
                         accCode: code
                     };
                 });
 
-                const qJurnal = query(
-                    collection(db, 'journals'),
-                    where('date', '<=', currentEndDate),
-                    orderBy('date', 'asc')
-                );
-
-                const jSnap = await getDocs(qJurnal);
+                const jSnap = await getDocs(collection(db, 'journals'));
 
                 let totalPenerimaanKas = 0;
                 let totalPengeluaranKas = 0;
@@ -686,7 +675,8 @@
                 let totalPiutang = 0;
 
                 const monthlyProfit = Array(12).fill(0);
-                const activeYear = new Date(currentStartDate).getFullYear();
+                const activeYear = globalActiveMonthCode ? parseInt(globalActiveMonthCode.split('-')[0], 10) : new Date(currentStartDate).getFullYear();
+                const activeMonthNum = globalActiveMonthCode ? parseInt(globalActiveMonthCode.split('-')[1], 10) : null;
 
                 jSnap.forEach(docItem => {
                     const journal = docItem.data();
@@ -695,14 +685,34 @@
                         return;
                     }
 
-                    const trxDate = new Date(journal.date);
+                    const dateStr = journal.date;
+                    if (!dateStr) return;
+
+                    const trxDate = new Date(dateStr);
+                    if (isNaN(trxDate.getTime())) return;
+
                     const trxYear = trxDate.getFullYear();
-                    const monthIndex = trxDate.getMonth();
+                    const trxMonth = trxDate.getMonth() + 1; 
+                    const monthIndex = trxDate.getMonth(); 
+
+                    const isInActiveMonth = activeMonthNum ? (trxYear === activeYear && trxMonth === activeMonthNum) : (trxYear === activeYear);
 
                     let monthRevenue = 0;
                     let monthExpense = 0;
 
                     if (journal.items && Array.isArray(journal.items)) {
+                        // Khusus untuk Tipe PENERIMAAN_KAS atau PENGELUARAN_KAS, ambil langsung dari baris kas/bank (index ke-0 atau yang bersesuaian)
+                        if (isInActiveMonth) {
+                            if (journal.type === 'PENERIMAAN_KAS' && journal.items.length > 0) {
+                                totalPenerimaanKas += parseFloat(journal.items[0].debit) || 0;
+                            } else if (journal.type === 'PENGELUARAN_KAS' && journal.items.length > 0) {
+                                const kasItem = journal.items.find(it => parseFloat(it.kredit) > 0);
+                                if (kasItem) {
+                                    totalPengeluaranKas += parseFloat(kasItem.kredit) || 0;
+                                }
+                            }
+                        }
+
                         journal.items.forEach(item => {
                             const code = String(item.accCode || '').trim();
                             const debit = parseFloat(item.debit) || 0;
@@ -711,15 +721,19 @@
                             const accInfo = accountsMap[code] || {};
                             const cat = (accInfo.category || '').toLowerCase();
                             const accName = (accInfo.name || '').toLowerCase();
+                            const cashFlowGroup = (accInfo.cashFlowGroup || '').trim();
 
-                            const isKasBank = code.startsWith('1.01') || code.startsWith('111') ||  
+                            const isKasBank = cashFlowGroup === 'Kas dan Bank' || code.startsWith('1.01') || code.startsWith('111') ||  
                                     cat.includes('kas') || cat.includes('bank') ||  
                                     accName.includes('kas') || accName.includes('bank') || accName.includes('bpd');
 
-                            if (trxYear === activeYear) {
-                                if (isKasBank) {
-                                    totalPenerimaanKas += debit;
-                                    totalPengeluaranKas += kredit;
+                            if (isInActiveMonth) {
+                                // Fallback jika jurnal umum manual (bukan tipe PENERIMAAN/PENGELUARAN_KAS khusus)
+                                if (!journal.type || (journal.type !== 'PENERIMAAN_KAS' && journal.type !== 'PENGELUARAN_KAS')) {
+                                    if (isKasBank) {
+                                        totalPenerimaanKas += debit;
+                                        totalPengeluaranKas += kredit;
+                                    }
                                 }
 
                                 if (code.startsWith('4') || cat.includes('pendapatan') || accName.includes('pendapatan')) {
@@ -735,7 +749,7 @@
                                 }
                             }
 
-                            if (trxDate <= new Date(currentEndDate)) {
+                            if (trxYear === activeYear && (!activeMonthNum || trxMonth <= activeMonthNum)) {
                                 if (isKasBank) {
                                     totalKasBank += (debit - kredit);
                                 }

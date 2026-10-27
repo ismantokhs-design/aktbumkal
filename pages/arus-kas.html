@@ -271,7 +271,6 @@
         const kasAwalPeriode = document.getElementById('kasAwalPeriode');
         const kasAkhirPeriode = document.getElementById('kasAkhirPeriode');
 
-        // Inisialisasi tanggal awal (Tanggal 1) dan tanggal akhir bulan aktif dari database
         async function initActiveDates() {
             try {
                 const docRef = doc(db, 'settings', 'profile');
@@ -330,29 +329,45 @@
             const eDate = endDateInput.value;
 
             try {
-                // 1. Ambil daftar Akun
+                // 1. Ambil daftar Akun dan Inisialisasi Akun Level 4 (Postable) dengan nilai 0
                 const accSnap = await getDocs(collection(db, 'accounts'));
                 const accountsMap = {};
+                
+                const masukAccMap = {};
+                const keluarAccMap = {};
+
                 accSnap.forEach(d => {
                     const data = d.data();
-                    const code = String(data.accCode);
-                    accountsMap[code] = {
-                        name: data.accName || '',
-                        category: data.category || ''
-                    };
+                    const code = String(data.accCode || '').trim();
+                    const name = data.accName || '';
+                    const cat = (data.category || '').toLowerCase();
+                    const isLevel4 = parseInt(data.level, 10) === 4 || data.isPostable === true || data.isPostable === 'true';
+
+                    accountsMap[code] = { name, category: cat };
+
+                    if (isLevel4) {
+                        const isMasuk = code.startsWith('4') || code.startsWith('8') || code.startsWith('3') || cat.includes('pendapatan') || cat.includes('modal') || cat.includes('ekuitas');
+                        const isKeluar = code.startsWith('5') || code.startsWith('6') || code.startsWith('7') || code.startsWith('9') || cat.includes('beban') || cat.includes('biaya');
+
+                        if (isMasuk) {
+                            masukAccMap[code] = 0;
+                        } else if (isKeluar) {
+                            keluarAccMap[code] = 0;
+                        }
+                    }
                 });
 
                 // Helper deteksi akun Kas / Bank
                 const checkIsKasBank = (code) => {
                     const accInfo = accountsMap[code] || {};
-                    const cat = (accInfo.category || '').toLowerCase();
-                    const name = (accInfo.name || '').toLowerCase();
+                    const cat = accInfo.category;
+                    const name = accInfo.name.toLowerCase();
                     return code.startsWith('1.01') || code.startsWith('111') || 
                            cat.includes('kas') || cat.includes('bank') || 
                            name.includes('kas') || name.includes('bank') || name.includes('bpd');
                 };
 
-                // 2. Query SEMUA jurnal s.d tanggal akhir untuk menghitung Saldo Awal Kas
+                // 2. Query SEMUA jurnal s.d tanggal akhir
                 const qJurnalAll = query(
                     collection(db, 'journals'),
                     where('date', '<=', eDate),
@@ -365,15 +380,12 @@
                 let sumMasuk = 0;
                 let sumKeluar = 0;
 
-                const masukAccMap = {};
-                const keluarAccMap = {};
-
                 jSnapAll.forEach(d => {
                     const journal = d.data();
                     const jDate = journal.date;
 
                     if (journal.items && Array.isArray(journal.items)) {
-                        // A. Hitung Kas Awal (Semua akumulasi Kas SEBELUM startDate)
+                        // A. Hitung Kas Awal (Akumulasi SEBELUM startDate)
                         if (jDate < sDate) {
                             journal.items.forEach(item => {
                                 const code = String(item.accCode || '').trim();
@@ -385,52 +397,48 @@
                                 }
                             });
                         } 
-                        // B. Hitung Mutasi Arus Kas DALAM Periode (Antara startDate s.d endDate)
+                        // B. Mutasi Arus Kas DALAM Periode
                         else if (jDate >= sDate && jDate <= eDate) {
-                            let hasKas = false;
                             journal.items.forEach(item => {
                                 const code = String(item.accCode || '').trim();
-                                if (checkIsKasBank(code)) {
-                                    hasKas = true;
+                                const debit = parseFloat(item.debit) || 0;
+                                const kredit = parseFloat(item.kredit) || 0;
+
+                                // Akumulasi langsung berdasarkan peta akun masuk/keluar
+                                if (masukAccMap.hasOwnProperty(code)) {
+                                    const val = kredit > 0 ? kredit : (debit > 0 ? debit : 0);
+                                    masukAccMap[code] += val;
+                                } else if (keluarAccMap.hasOwnProperty(code)) {
+                                    const val = debit > 0 ? debit : (kredit > 0 ? kredit : 0);
+                                    keluarAccMap[code] += val;
                                 }
                             });
-
-                            if (hasKas) {
-                                journal.items.forEach(item => {
-                                    const code = String(item.accCode || '').trim();
-                                    const debit = parseFloat(item.debit) || 0;
-                                    const kredit = parseFloat(item.kredit) || 0;
-
-                                    // Kontra Akun (Bukan Akun Kas/Bank itu sendiri)
-                                    if (!checkIsKasBank(code)) {
-                                        if (kredit > 0) { // Kas Masuk
-                                            masukAccMap[code] = (masukAccMap[code] || 0) + kredit;
-                                            sumMasuk += kredit;
-                                        }
-                                        if (debit > 0) { // Kas Keluar
-                                            keluarAccMap[code] = (keluarAccMap[code] || 0) + debit;
-                                            sumKeluar += debit;
-                                        }
-                                    }
-                                });
-                            }
                         }
                     }
                 });
 
-                // Render List Helper dengan urutan kode akun
+                // Hitung total kas masuk & keluar dari peta akun
+                sumMasuk = Object.values(masukAccMap).reduce((a, b) => a + b, 0);
+                sumKeluar = Object.values(keluarAccMap).reduce((a, b) => a + b, 0);
+
+                // Render List Helper (Menampilkan seluruh akun termasuk yang bernilai 0)
                 const renderList = (container, dataObj) => {
                     container.innerHTML = '';
                     const sortedCodes = Object.keys(dataObj).sort((a, b) => 
                         a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
                     );
 
+                    if (sortedCodes.length === 0) {
+                        container.innerHTML = '<div style="font-size:10px; color:#94a3b8; padding-left:12px;">(Tidak ada)</div>';
+                        return;
+                    }
+
                     sortedCodes.forEach(code => {
                         const accName = accountsMap[code]?.name || code;
                         const row = document.createElement('div');
                         row.className = 'report-row-item';
                         row.innerHTML = `
-                            <span>${accName}</span>
+                            <span>${code} - ${accName}</span>
                             <span class="val-num">${dataObj[code].toLocaleString('id-ID')}</span>
                         `;
                         container.appendChild(row);
@@ -440,7 +448,7 @@
                 renderList(kasMasukList, masukAccMap);
                 renderList(kasKeluarList, keluarAccMap);
 
-                // Re-Kalkulasi Total
+                // Rekalkulasi Total Arus Kas Bersih & Saldo Akhir
                 const bersih = sumMasuk - sumKeluar;
                 const sumKasAkhir = sumKasAwal + bersih;
 
@@ -459,7 +467,6 @@
         startDateInput.addEventListener('change', generateArusKasReport);
         endDateInput.addEventListener('change', generateArusKasReport);
 
-        // Inisialisasi awal saat halaman dimuat
         initActiveDates();
     </script>
 </body>

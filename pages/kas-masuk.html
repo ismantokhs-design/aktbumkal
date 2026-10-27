@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Penerimaan Kas</title>
+    <title>Penerimaan Kas - Akt-BUMKal</title>
     <link rel="manifest" href="../manifest.json">
     <meta name="theme-color" content="#5114B9">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -28,13 +28,24 @@
 
         /* Content List */
         .content-list { padding: 12px; display: flex; flex-direction: column; gap: 10px; flex-grow: 1; }
-        .trx-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .trx-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: background 0.2s; }
         .trx-card-top { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748b; font-weight: 600; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; }
         .trx-card-body { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-        .trx-info { display: flex; flex-direction: column; gap: 2px; }
+        .trx-info { display: flex; flex-direction: column; gap: 2px; flex-grow: 1; }
         .trx-title { font-size: 13px; font-weight: 700; color: #0f172a; line-height: 1.3; }
         .trx-subtitle { font-size: 11px; color: #475569; }
+        
+        .trx-right-section { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
         .trx-amount { font-size: 14px; font-weight: 800; color: #16a34a; white-space: nowrap; }
+        
+        /* Tombol Aksi di Kartu */
+        .trx-actions { display: flex; align-items: center; gap: 6px; }
+        .btn-card-action { border: none; background: #f1f5f9; border-radius: 4px; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; }
+        .btn-card-action.btn-edit { color: #5114B9; }
+        .btn-card-action.btn-edit:hover { background-color: #ede9fe; }
+        .btn-card-action.btn-delete { color: #dc2626; }
+        .btn-card-action.btn-delete:hover { background-color: #fee2e2; }
+        .btn-card-action .material-icons { font-size: 15px; }
 
         /* Floating Action Button (FAB) */
         .fab-btn { position: fixed; bottom: 65px; right: calc(50% - 220px); width: 52px; height: 52px; background-color: #5114B9; color: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(81,20,185,0.4); cursor: pointer; border: none; z-index: 95; }
@@ -53,7 +64,10 @@
         .modal-header { background-color: #5114B9; color: #ffffff; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 14px; }
         .modal-header .close-modal { cursor: pointer; font-size: 20px; }
         
-        .modal-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; max-height: calc(90vh - 120px); }
+        /* Modal Body tanpa Scrollbar */
+        .modal-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; max-height: calc(90vh - 120px); scrollbar-width: none; }
+        .modal-body::-webkit-scrollbar { display: none; }
+
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .form-group { display: flex; flex-direction: column; gap: 5px; }
         .form-group label { font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; }
@@ -64,14 +78,20 @@
         /* Multi-baris Lawan Akun */
         .row-item-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 8px; position: relative; }
         .btn-remove-row { background: none; border: none; color: #dc2626; font-size: 11px; font-weight: 700; cursor: pointer; align-self: flex-end; display: flex; align-items: center; gap: 2px; }
-        .btn-add-row { background-color: #e0e7ff; color: #3730a3; border: 1px dashed #6366f1; border-radius: 6px; padding: 8px; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center; }
+        
+        /* Layout Kanan Kiri untuk Tombol Tambah & Total Nominal */
+        .action-total-container { display: flex; align-items: center; gap: 8px; }
+        .btn-add-row { flex: 1; height: 38px; background-color: #e0e7ff; color: #3730a3; border: 1px dashed #6366f1; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; text-align: center; display: flex; align-items: center; justify-content: center; }
         .btn-add-row:hover { background-color: #c7d2fe; }
 
-        .modal-footer { padding: 12px 16px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; gap: 10px; }
+        .modal-total-box { flex: 1; height: 38px; background-color: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0 10px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 700; color: #0f172a; }
+        .modal-total-value { color: #16a34a; font-size: 13px; }
+
+        .modal-footer { padding: 12px 16px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; gap: 10px; justify-content: space-between; }
         .btn-modal { flex: 1; height: 38px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; border: none; }
         .btn-simpan { background-color: #5114B9; color: #ffffff; }
         .btn-batal { background-color: #ffffff; color: #dc2626; border: 1px solid #dc2626; }
-        .empty-state { text-align: center; padding: 40px; color: #94a3b8; font-size: 12px; }
+        .btn-Hapus-trx { background-color: #fee2e2; color: #dc2626; border: 1px solid #f87171; display: none; }
     </style>
 </head>
 <body>
@@ -109,14 +129,15 @@
         </div>
     </div>
 
-    <!-- Modal Form Tambah Penerimaan Kas -->
+    <!-- Modal Form Tambah / Edit Penerimaan Kas -->
     <div class="modal-overlay" id="trxModal">
         <div class="modal-box">
             <div class="modal-header">
-                <span>TAMBAH PENERIMAAN KAS</span>
+                <span id="modalTitleText">TAMBAH PENERIMAAN KAS</span>
                 <span class="material-icons close-modal" id="closeModalBtn">close</span>
             </div>
             <div class="modal-body">
+                <input type="hidden" id="editDocId">
                 <div class="form-row">
                     <div class="form-group">
                         <label>Tanggal</label>
@@ -124,17 +145,15 @@
                     </div>
                     <div class="form-group">
                         <label>No Ref</label>
-                        <input type="text" id="trxRef" class="form-control" placeholder="-">
+                        <input type="text" id="trxRef" class="form-control" placeholder="Otomatis..." readonly style="background-color: #e2e8f0; font-weight: bold;">
                     </div>
                 </div>
 
-                <!-- Keterangan Dipindah ke Atas -->
                 <div class="form-group">
                     <label>Keterangan *</label>
                     <textarea id="trxMemo" class="form-control" placeholder="Keterangan transaksi..."></textarea>
                 </div>
 
-                <!-- Kolom Diterima Dari -->
                 <div class="form-group">
                     <label>Diterima Dari (Pelanggan/Sumber)</label>
                     <input type="text" id="trxReceiver" class="form-control" placeholder="Contoh: Toko Tani / Budi">
@@ -143,7 +162,7 @@
                 <div class="form-group">
                     <label>Simpan ke (Akun Kas/Bank) *</label>
                     <select id="selectKasAccount" class="form-control">
-                        <option value="">Pilih Akun Kas..</option>
+                        <option value="">--Pilih Akun--</option>
                     </select>
                 </div>
 
@@ -152,9 +171,16 @@
 
                 <div id="rowsContainer" style="display: flex; flex-direction: column; gap: 8px;"></div>
 
-                <button type="button" class="btn-add-row" id="btnAddRow">+ Tambah Baris Akun Lawan</button>
+                <div class="action-total-container">
+                    <button type="button" class="btn-add-row" id="btnAddRow">+ Tambah Baris</button>
+                    <div class="modal-total-box">
+                        <span>Total</span>
+                        <span class="modal-total-value" id="modalTotalDisplay">Rp 0</span>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
+                <button class="btn-modal btn-Hapus-trx" id="btnHapusTrx">HAPUS</button>
                 <button class="btn-modal btn-batal" id="btnBatal">BATAL</button>
                 <button class="btn-modal btn-simpan" id="btnSimpan">SIMPAN</button>
             </div>
@@ -163,7 +189,7 @@
 
     <script type="module">
         import { db } from '../assets/js/firebase-config.js';
-        import { collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const filterStart = document.getElementById('filterStart');
         const filterEnd = document.getElementById('filterEnd');
@@ -171,12 +197,16 @@
         const totalAmountDisplay = document.getElementById('totalAmountDisplay');
 
         const trxModal = document.getElementById('trxModal');
+        const modalTitleText = document.getElementById('modalTitleText');
         const openModalBtn = document.getElementById('openModalBtn');
         const closeModalBtn = document.getElementById('closeModalBtn');
         const btnBatal = document.getElementById('btnBatal');
         const btnSimpan = document.getElementById('btnSimpan');
+        const btnHapusTrx = document.getElementById('btnHapusTrx');
         const btnAddRow = document.getElementById('btnAddRow');
         const rowsContainer = document.getElementById('rowsContainer');
+        const modalTotalDisplay = document.getElementById('modalTotalDisplay');
+        const editDocId = document.getElementById('editDocId');
 
         const trxDate = document.getElementById('trxDate');
         const trxRef = document.getElementById('trxRef');
@@ -186,44 +216,166 @@
 
         let rawJournalsData = [];
         let accountsMap = {};
-        let accountOptionsHtml = '<option value="">Pilih Akun..</option>';
+        let accountNamesMap = {};
+        let accountOptionsHtml = '<option value="">--Pilih Akun--</option>';
         let isAscending = true;
 
-        function initDefaultDates() {
-            const now = new Date();
-            const year = now.getFullYear();
-            filterStart.value = `${year}-01-01`;
-            filterEnd.value = `${year}-12-31`;
-            trxDate.value = now.toISOString().split('T')[0];
+        async function initActiveMonthFromDB() {
+            let year, month;
+            try {
+                const docRef = doc(db, 'settings', 'profile'); 
+                const docSnap = await getDoc(docRef);
+
+                let activeMonthCode = null;
+                if (docSnap.exists() && docSnap.data().activeMonthCode) {
+                    activeMonthCode = docSnap.data().activeMonthCode; 
+                }
+
+                if (activeMonthCode && activeMonthCode.includes('-')) {
+                    const parts = activeMonthCode.split('-');
+                    year = parseInt(parts[0], 10);
+                    month = parseInt(parts[1], 10);
+                } else {
+                    const now = new Date();
+                    year = now.getFullYear();
+                    month = now.getMonth() + 1;
+                }
+            } catch (err) {
+                console.error("Gagal memuat activeMonthCode dari database:", err);
+                const now = new Date();
+                year = now.getFullYear();
+                month = now.getMonth() + 1;
+            }
+
+            const lastDay = new Date(year, month, 0).getDate();
+            const paddedMonth = String(month).padStart(2, '0');
+            
+            filterStart.value = `${year}-${paddedMonth}-01`;
+            filterEnd.value = `${year}-${paddedMonth}-${String(lastDay).padStart(2, '0')}`;
+
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            
+            if (today.getFullYear() === year && (today.getMonth() + 1) === month) {
+                trxDate.value = todayStr;
+            } else {
+                trxDate.value = `${year}-${paddedMonth}-01`;
+            }
         }
 
         async function loadOptions() {
             try {
                 const accSnap = await getDocs(collection(db, 'accounts'));
-                selectKasAccount.innerHTML = '<option value="">Pilih Akun Kas..</option>';
-                accountOptionsHtml = '<option value="">Pilih Akun..</option>';
+                selectKasAccount.innerHTML = '<option value="">--Pilih Akun--</option>';
                 accountsMap = {};
+                accountNamesMap = {};
+
+                let kasBankList = [];
+                let revenueAccountsList = [];
 
                 accSnap.forEach(d => {
                     const acc = d.data();
                     accountsMap[acc.accCode] = acc.accName;
+                    accountNamesMap[acc.accCode] = (acc.accName || '').toLowerCase();
 
-                    if (acc.isPostable === true || acc.isPostable === 'true' || parseInt(acc.level, 10) === 4) {
-                        const optText = `${acc.accCode} - ${acc.accName}`;
-                        const code = String(acc.accCode || '');
-                        const name = String(acc.accName || '').toLowerCase();
+                    const isLevel4 = parseInt(acc.level, 10) === 4 || acc.isPostable === true || acc.isPostable === 'true';
 
-                        if (code.startsWith('1.01') || name.includes('kas') || name.includes('bank')) {
-                            const opt = document.createElement('option');
-                            opt.value = acc.accCode;
-                            opt.textContent = optText;
-                            selectKasAccount.appendChild(opt);
+                    if (isLevel4) {
+                        const cashGroup = String(acc.cashFlowGroup || '').trim();
+                        const reportGroup = String(acc.reportGroup || '').trim();
+                        const normalBalance = String(acc.normalBalance || '').trim().toLowerCase();
+
+                        if (cashGroup === 'Kas dan Bank') {
+                            kasBankList.push(acc);
                         }
-                        accountOptionsHtml += `<option value="${acc.accCode}">${optText}</option>`;
+
+                        if (reportGroup === 'Laba Rugi' && normalBalance === 'kredit') {
+                            revenueAccountsList.push(acc);
+                        }
                     }
                 });
+
+                kasBankList.sort((a, b) => String(a.accCode).localeCompare(String(b.accCode)));
+                kasBankList.forEach(acc => {
+                    const opt = document.createElement('option');
+                    opt.value = acc.accCode;
+                    opt.textContent = `${acc.accCode} - ${acc.accName}`;
+                    selectKasAccount.appendChild(opt);
+                });
+
+                revenueAccountsList.sort((a, b) => String(a.accCode).localeCompare(String(b.accCode)));
+                
+                accountOptionsHtml = '<option value="">--Pilih Akun--</option>';
+                revenueAccountsList.forEach(acc => {
+                    accountOptionsHtml += `<option value="${acc.accCode}">${acc.accCode} - ${acc.accName}</option>`;
+                });
+
             } catch (err) {
                 console.error("Gagal memuat opsi akun:", err);
+            }
+        }
+
+        function calculateModalTotal() {
+            const rowBoxes = rowsContainer.querySelectorAll('.row-item-box');
+            let grandTotal = 0;
+
+            rowBoxes.forEach(box => {
+                const rawAmt = box.querySelector('.row-amount').value.replace(/\D/g, '');
+                grandTotal += parseFloat(rawAmt) || 0;
+            });
+
+            modalTotalDisplay.textContent = `Rp ${grandTotal.toLocaleString('id-ID')}`;
+        }
+
+        async function generateRefNumber() {
+            if (editDocId.value) return; 
+
+            const selectedAccCode = selectKasAccount.value;
+            const dateVal = trxDate.value;
+
+            if (!selectedAccCode || !dateVal) {
+                trxRef.value = '-';
+                return;
+            }
+
+            const accName = (accountNamesMap[selectedAccCode] || '').toLowerCase();
+            let prefix = 'BKM'; 
+            if (selectedAccCode.startsWith('1.01.02') || accName.includes('bank') || accName.includes('bpd') || accName.includes('bri') || accName.includes('bca')) {
+                prefix = 'BBM';
+            }
+
+            const dObj = new Date(dateVal);
+            if (isNaN(dObj.getTime())) {
+                trxRef.value = `${prefix}-0000-0001`;
+                return;
+            }
+            const mm = String(dObj.getMonth() + 1).padStart(2, '0');
+            const yy = String(dObj.getFullYear()).slice(-2);
+            const mmyy = `${mm}${yy}`;
+
+            try {
+                const querySnapshot = await getDocs(collection(db, 'journals'));
+                let maxSeq = 0;
+
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const ref = data.ref || '';
+                    if (ref.startsWith(`${prefix}-${mmyy}-`)) {
+                        const parts = ref.split('-');
+                        if (parts.length === 3) {
+                            const seq = parseInt(parts[2], 10);
+                            if (!isNaN(seq) && seq > maxSeq) {
+                                maxSeq = seq;
+                            }
+                        }
+                    }
+                });
+
+                const nextSeq = String(maxSeq + 1).padStart(4, '0');
+                trxRef.value = `${prefix}-${mmyy}-${nextSeq}`;
+            } catch (err) {
+                console.error("Gagal menghasilkan No Ref:", err);
+                trxRef.value = `${prefix}-${mmyy}-0001`;
             }
         }
 
@@ -233,7 +385,7 @@
             rowDiv.innerHTML = `
                 <button type="button" class="btn-remove-row"><span class="material-icons" style="font-size:14px;">delete</span> Hapus</button>
                 <div class="form-group">
-                    <label>Akun Lawan (Terima dari)</label>
+                    <label>Akun Lawan (Pendapatan)</label>
                     <select class="form-control row-account">${accountOptionsHtml}</select>
                 </div>
                 <div class="form-group">
@@ -249,29 +401,51 @@
             amtInput.addEventListener('input', (e) => {
                 let clean = e.target.value.replace(/\D/g, '');
                 e.target.value = clean ? parseInt(clean, 10).toLocaleString('id-ID') : '';
+                calculateModalTotal();
             });
 
             rowDiv.querySelector('.btn-remove-row').addEventListener('click', () => {
                 if (rowsContainer.children.length > 1) {
                     rowDiv.remove();
+                    calculateModalTotal();
                 } else {
                     Swal.fire('Info', 'Minimal harus ada 1 baris akun lawan.', 'info');
                 }
             });
 
             rowsContainer.appendChild(rowDiv);
+            calculateModalTotal();
         }
 
-        openModalBtn.addEventListener('click', () => {
+        function resetForm() {
+            editDocId.value = "";
+            modalTitleText.textContent = "TAMBAH PENERIMAAN KAS";
+            btnHapusTrx.style.display = "none";
+            selectKasAccount.value = ""; 
+            trxRef.value = "-";
+            trxMemo.value = "";
+            trxReceiver.value = "";
             rowsContainer.innerHTML = '';
             addRowItem();
+            calculateModalTotal();
+        }
+
+        openModalBtn.addEventListener('click', async () => {
+            resetForm();
             trxModal.classList.add('active');
         });
 
+        selectKasAccount.addEventListener('change', generateRefNumber);
+        trxDate.addEventListener('change', generateRefNumber);
+
         btnAddRow.addEventListener('click', () => addRowItem());
+        
         closeModalBtn.addEventListener('click', () => trxModal.classList.remove('active'));
-        btnBatal.addEventListener('click', () => trxModal.classList.remove('active'));
-        trxModal.addEventListener('click', (e) => { if (e.target === trxModal) trxModal.classList.remove('active'); });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && trxModal.classList.contains('active')) {
+                trxModal.classList.remove('active');
+            }
+        });
 
         async function loadPenerimaanKas() {
             try {
@@ -286,7 +460,7 @@
                     const data = docSnap.data();
                     if (data.type === 'PENERIMAAN_KAS') {
                         if ((!start || data.date >= start) && (!end || data.date <= end)) {
-                            rawJournalsData.push(data);
+                            rawJournalsData.push({ id: docSnap.id, ...data });
                             if (data.items && data.items.length > 0) {
                                 grandTotal += parseFloat(data.items[0].debit) || 0;
                             }
@@ -334,11 +508,87 @@
                             <span class="trx-title">${trx.description || 'Penerimaan Kas'}${receiverText}</span>
                             <span class="trx-subtitle">Akun: ${lawanSummary}</span>
                         </div>
-                        <span class="trx-amount">Rp ${nominal}</span>
+                        <div class="trx-right-section">
+                            <span class="trx-amount">Rp ${nominal}</span>
+                            <div class="trx-actions">
+                                <button type="button" class="btn-card-action btn-edit" title="Edit Transaksi">
+                                    <span class="material-icons">edit</span>
+                                </button>
+                                <button type="button" class="btn-card-action btn-delete" title="Hapus Transaksi">
+                                    <span class="material-icons">delete</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 `;
+
+                // Event listener untuk tombol Edit
+                card.querySelector('.btn-edit').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openEditModal(trx);
+                });
+
+                // Event listener untuk tombol Hapus langsung dari kartu
+                card.querySelector('.btn-delete').addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const confirm = await Swal.fire({
+                        title: 'Hapus Transaksi?',
+                        text: 'Data penerimaan kas ini akan dihapus permanen.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc2626',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: 'Ya, Hapus',
+                        cancelButtonText: 'Batal'
+                    });
+
+                    if (confirm.isConfirmed) {
+                        try {
+                            await deleteDoc(doc(db, 'journals', trx.id));
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Terhapus',
+                                text: 'Transaksi berhasil dihapus.',
+                                timer: 1200,
+                                showConfirmButton: false
+                            });
+                            loadPenerimaanKas();
+                        } catch (err) {
+                            console.error("Gagal menghapus:", err);
+                            Swal.fire('Error', err.message, 'error');
+                        }
+                    }
+                });
+
                 trxListContainer.appendChild(card);
             });
+        }
+
+        function openEditModal(trx) {
+            editDocId.value = trx.id;
+            modalTitleText.textContent = "EDIT PENERIMAAN KAS";
+            btnHapusTrx.style.display = "block";
+
+            trxDate.value = trx.date || '';
+            trxRef.value = trx.ref || '-';
+            trxMemo.value = trx.description || '';
+            trxReceiver.value = trx.receiver !== '-' ? trx.receiver : '';
+
+            if (trx.items && trx.items.length > 0) {
+                selectKasAccount.value = trx.items[0].accCode;
+            }
+
+            rowsContainer.innerHTML = '';
+            if (trx.items && trx.items.length > 1) {
+                for (let i = 1; i < trx.items.length; i++) {
+                    addRowItem(trx.items[i].accCode, trx.items[i].kredit);
+                }
+            } else {
+                addRowItem();
+            }
+
+            calculateModalTotal();
+            trxModal.classList.add('active');
         }
 
         function formatDateIndo(dateStr) {
@@ -348,6 +598,10 @@
             if (isNaN(d.getTime())) return dateStr;
             return `${String(d.getDate()).padStart(2, '0')}-${months[d.getMonth()]}-${d.getFullYear()}`;
         }
+
+        btnBatal.addEventListener('click', () => {
+            resetForm();
+        });
 
         btnSimpan.addEventListener('click', async () => {
             if (!trxDate.value || !selectKasAccount.value || !trxMemo.value) {
@@ -378,7 +632,13 @@
             items[0].debit = totalDebit;
 
             try {
-                const newTrx = {
+                const isEdit = editDocId.value;
+
+                if (!isEdit) {
+                    await generateRefNumber();
+                }
+
+                const trxData = {
                     date: trxDate.value,
                     ref: trxRef.value || '-',
                     unitId: '',
@@ -386,28 +646,62 @@
                     receiver: trxReceiver.value.trim() || '-',
                     type: 'PENERIMAAN_KAS',
                     items: items,
-                    createdAt: serverTimestamp()
+                    updatedAt: serverTimestamp()
                 };
 
-                await addDoc(collection(db, 'journals'), newTrx);
+                if (isEdit) {
+                    const docRef = doc(db, 'journals', editDocId.value);
+                    await updateDoc(docRef, trxData);
+                } else {
+                    trxData.createdAt = serverTimestamp();
+                    await addDoc(collection(db, 'journals'), trxData);
+                }
 
                 Swal.fire({
                     icon: 'success',
                     title: 'Berhasil',
-                    text: 'Penerimaan kas berhasil disimpan.',
+                    text: isEdit ? 'Penerimaan kas berhasil diperbarui.' : 'Penerimaan kas berhasil disimpan.',
                     timer: 1500,
                     showConfirmButton: false
                 });
 
-                trxModal.classList.remove('active');
-                trxMemo.value = '';
-                trxReceiver.value = '';
-                trxRef.value = '';
+                resetForm();
                 loadPenerimaanKas();
 
             } catch (err) {
                 console.error("Gagal menyimpan:", err);
                 Swal.fire('Error', err.message, 'error');
+            }
+        });
+
+        btnHapusTrx.addEventListener('click', async () => {
+            const confirm = await Swal.fire({
+                title: 'Hapus Transaksi?',
+                text: 'Data penerimaan kas ini akan dihapus permanen.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Hapus',
+                cancelButtonText: 'Batal'
+            });
+
+            if (confirm.isConfirmed && editDocId.value) {
+                try {
+                    await deleteDoc(doc(db, 'journals', editDocId.value));
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Terhapus',
+                        text: 'Transaksi berhasil dihapus.',
+                        timer: 1200,
+                        showConfirmButton: false
+                    });
+                    trxModal.classList.remove('active');
+                    loadPenerimaanKas();
+                } catch (err) {
+                    console.error("Gagal menghapus:", err);
+                    Swal.fire('Error', err.message, 'error');
+                }
             }
         });
 
@@ -420,8 +714,13 @@
             renderList(rawJournalsData);
         });
 
-        initDefaultDates();
-        loadOptions().then(() => loadPenerimaanKas());
+        async function initApp() {
+            await initActiveMonthFromDB();
+            await loadOptions();
+            await loadPenerimaanKas();
+        }
+
+        initApp();
     </script>
 </body>
 </html>
