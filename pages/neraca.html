@@ -113,6 +113,31 @@
             width: 120px;
         }
 
+        /* Banner Peringatan Belum Tutup Buku */
+        .warning-banner {
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 10px 14px;
+            margin: 12px 12px 0 12px;
+            border-radius: 4px;
+            display: none; /* Default hidden */
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .warning-banner .material-icons {
+            color: #d97706;
+            font-size: 18px;
+            margin-top: 1px;
+        }
+
+        .warning-banner-text {
+            font-size: 11px;
+            color: #92400e;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+
         /* Paper Container */
         .report-wrapper {
             padding: 12px;
@@ -196,6 +221,14 @@
             <input type="date" id="targetDate" class="input-date-inline">
         </div>
 
+        <!-- Banner Peringatan Status Tutup Buku Tahun Lalu -->
+        <div id="warningBanner" class="warning-banner">
+            <span class="material-icons">warning</span>
+            <div class="warning-banner-text" id="warningBannerText">
+                Peringatan: Tahun sebelumnya belum melakukan Tutup Buku Akhir Tahun. Laporan Neraca berpotensi tidak balance karena saldo laba belum dipindahkan.
+            </div>
+        </div>
+
         <!-- Area Isi Laporan Neraca -->
         <div class="report-wrapper">
             <div class="report-paper">
@@ -248,6 +281,8 @@
         import { doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const targetDateInput = document.getElementById('targetDate');
+        const warningBanner = document.getElementById('warningBanner');
+        const warningBannerText = document.getElementById('warningBannerText');
 
         const asetList = document.getElementById('asetList');
         const totalAset = document.getElementById('totalAset');
@@ -302,10 +337,42 @@
         async function generateNeracaReport() {
             const eDate = targetDateInput.value;
             const yearStr = eDate.split('-')[0];
-            const sDateYear = `${yearStr}-01-01`;
+            const currentYearNum = parseInt(yearStr, 10);
+            const prevYearNum = currentYearNum - 1;
 
             try {
-                // 1. Fetch seluruh master akun dari koleksi 'accounts' berdasarkan struktur COA
+                // 1. Cek apakah tahun sebelumnya (prevYearNum) sudah melakukan tutup buku
+                const jSnapAll = await getDocs(collection(db, 'journals'));
+                let prevYearHasClosed = false;
+
+                if (currentYearNum > 2000) {
+                    jSnapAll.forEach(d => {
+                        const jData = d.data();
+                        const jNum = String(jData.journalNumber || jData.nomorJurnal || '');
+                        const jDate = String(jData.date || '');
+                        const jKet = String(jData.keterangan || '').toLowerCase();
+
+                        const nextPrevY = prevYearNum + 1;
+                        const yy = String(nextPrevY).substring(2);
+
+                        // Cek apakah ada jurnal penutup untuk tahun sebelumnya
+                        const isPrevClosing = jNum.includes('JKT-') && (jNum.includes(`-${yy}-`) || jDate.startsWith(String(prevYearNum)) || jDate.startsWith(String(nextPrevY))) || jKet.includes('tutup buku') || jKet.includes('penutup');
+
+                        if (isPrevClosing) {
+                            prevYearHasClosed = true;
+                        }
+                    });
+                }
+
+                // Tampilkan atau sembunyikan banner peringatan
+                if (currentYearNum > 2000 && !prevYearHasClosed && currentYearNum > 2020) { // Menyesuaikan batas tahun awal sistem jika perlu
+                    warningBanner.style.display = 'flex';
+                    warningBannerText.innerHTML = `<b>Peringatan:</b> Tahun <b>${prevYearNum}</b> belum melakukan Tutup Buku Akhir Tahun. Laporan Neraca per tanggal ini berpotensi tidak balance karena saldo laba tahun lalu belum dipindahkan ke Laba Ditahan.`;
+                } else {
+                    warningBanner.style.display = 'none';
+                }
+
+                // 2. Fetch seluruh master akun dari koleksi 'accounts'
                 const accSnap = await getDocs(collection(db, 'accounts'));
                 const accountsMap = {};
 
@@ -329,7 +396,6 @@
                     };
 
                     if (isLevel4 && reportGroup === "Neraca") {
-                        // Klasifikasi berdasarkan awalan kode atau nama/kategori standar neraca
                         if (code.startsWith('1') || name.toLowerCase().includes('kas') || name.toLowerCase().includes('bank') || name.toLowerCase().includes('piutang') || name.toLowerCase().includes('persediaan') || name.toLowerCase().includes('aset')) {
                             asetAccounts[code] = 0;
                         } else if (code.startsWith('2') || name.toLowerCase().includes('hutang') || name.toLowerCase().includes('kewajiban')) {
@@ -340,16 +406,10 @@
                     }
                 });
 
-                // 2. Fetch seluruh jurnal
-                const jSnap = await getDocs(collection(db, 'journals'));
-
-                let sumPendapatan = 0;
-                let sumBeban = 0;
-
-                jSnap.forEach(d => {
+                // 3. Kalkulasi Mutasi Saldo Jurnal hingga eDate
+                jSnapAll.forEach(d => {
                     const journal = d.data();
                     const jDate = journal.date;
-
                     if (!jDate || jDate > eDate) return;
 
                     if (journal.items && Array.isArray(journal.items)) {
@@ -360,25 +420,41 @@
 
                             const accInfo = accountsMap[code] || {};
                             const repGroup = accInfo.reportGroup;
-                            const normalBalance = accInfo.normalBalance;
-                            const accName = (accInfo.name || '').toLowerCase();
 
-                            // Perhitungan Akun Neraca (Aktif sampai tanggal target)
                             if (repGroup === "Neraca") {
                                 if (asetAccounts.hasOwnProperty(code)) {
-                                    // Saldo normal debit (debit - kredit)
                                     asetAccounts[code] += (debit - kredit);
                                 } else if (kewajibanAccounts.hasOwnProperty(code)) {
-                                    // Saldo normal kredit (kredit - debit)
                                     kewajibanAccounts[code] += (kredit - debit);
                                 } else if (modalAccounts.hasOwnProperty(code)) {
-                                    // Saldo normal kredit (kredit - debit)
                                     modalAccounts[code] += (kredit - debit);
                                 }
                             }
+                        });
+                    }
+                });
 
-                            // Perhitungan Laba/Rugi Tahun Berjalan (Berdasarkan reportGroup Laba Rugi dan normalBalance)
-                            if (repGroup === "Laba Rugi" && jDate >= sDateYear && jDate <= eDate) {
+                // 4. Hitung Laba Rugi Tahun Berjalan
+                const sDateYear = `${yearStr}-01-01`;
+                let sumPendapatan = 0;
+                let sumBeban = 0;
+
+                jSnapAll.forEach(d => {
+                    const journal = d.data();
+                    const jDate = journal.date;
+                    if (!jDate || jDate < sDateYear || jDate > eDate) return;
+
+                    if (journal.items && Array.isArray(journal.items)) {
+                        journal.items.forEach(item => {
+                            const code = String(item.accCode || '').trim();
+                            const debit = parseFloat(item.debit) || 0;
+                            const kredit = parseFloat(item.kredit) || 0;
+
+                            const accInfo = accountsMap[code] || {};
+                            const repGroup = accInfo.reportGroup;
+                            const normalBalance = accInfo.normalBalance;
+
+                            if (repGroup === "Laba Rugi") {
                                 if (normalBalance === "Kredit") {
                                     sumPendapatan += (kredit - debit);
                                 } else if (normalBalance === "Debit") {
@@ -389,10 +465,11 @@
                     }
                 });
 
+                let sumLabaRugi = sumPendapatan - sumBeban;
+
                 const sumAset = Object.values(asetAccounts).reduce((a, b) => a + b, 0);
                 const sumKewajiban = Object.values(kewajibanAccounts).reduce((a, b) => a + b, 0);
                 const sumModalPure = Object.values(modalAccounts).reduce((a, b) => a + b, 0);
-                const sumLabaRugi = sumPendapatan - sumBeban;
 
                 const renderList = (container, dataObj) => {
                     container.innerHTML = '';

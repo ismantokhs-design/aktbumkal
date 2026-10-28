@@ -544,6 +544,17 @@
                         </select>
                     </div>
 
+                    <!-- 5. Akun Laba Ditahan (Tutup Tahun) -->
+                    <div class="form-group">
+                        <label class="form-label" for="akunLabaDitahan">Akun Laba Ditahan (Tutup Tahun)</label>
+                        <select id="akunLabaDitahan" class="form-control account-dropdown">
+                            <option value="">Pilih Akun Laba Ditahan...</option>
+                        </select>
+                        <span style="font-size: 10px; color: #64748b;">
+                            Digunakan untuk memindahkan saldo laba/rugi berjalan saat proses tutup tahun buku.
+                        </span>
+                    </div>
+
                     <div class="form-section-header" style="margin-top: 14px;">
                         <span class="form-section-title">Mapping Kas Pendukung Rekonsiliasi Bank</span>
                     </div>
@@ -645,6 +656,7 @@
         const akunTransferBankSelect = document.getElementById('akunTransferBank');
         const akunPiutangKreditSelect = document.getElementById('akunPiutangKredit');
         const akunPendapatanSelect = document.getElementById('akunPendapatan');
+        const akunLabaDitahanSelect = document.getElementById('akunLabaDitahan');
         const mappingBankContainer = document.getElementById('mappingBankContainer');
 
         // Modal Unit Elements
@@ -743,7 +755,7 @@
         }
 
         function populateAccountDropdowns() {
-            const dropdowns = [akunTunaiKasSelect, akunTransferBankSelect, akunPiutangKreditSelect, akunPendapatanSelect];
+            const dropdowns = [akunTunaiKasSelect, akunTransferBankSelect, akunPiutangKreditSelect, akunPendapatanSelect, akunLabaDitahanSelect];
             dropdowns.forEach(sel => {
                 if (!sel) return;
                 const currentVal = sel.value;
@@ -820,6 +832,7 @@
                         akunTransferBank: '',
                         akunPiutangKredit: '',
                         akunPendapatan: '',
+                        akunLabaDitahan: '',
                         bankCashMapping: {},
                         unitList: [
                             { kodeUnit: '00', namaUnit: 'Kantor Pusat', alamatUnit: '', isDefault: true }
@@ -853,6 +866,7 @@
             else if (data.akunPiutang) akunPiutangKreditSelect.value = data.akunPiutang;
 
             if (data.akunPendapatan) akunPendapatanSelect.value = data.akunPendapatan;
+            if (data.akunLabaDitahan) akunLabaDitahanSelect.value = data.akunLabaDitahan;
 
             renderUnitList();
         }
@@ -1018,6 +1032,7 @@
                 akunTransferBank: akunTransferBankSelect.value,
                 akunPiutangKredit: akunPiutangKreditSelect.value,
                 akunPendapatan: akunPendapatanSelect.value,
+                akunLabaDitahan: akunLabaDitahanSelect.value,
                 bankCashMapping: currentBankMapping,
                 unitList: unitList,
                 updatedAt: serverTimestamp()

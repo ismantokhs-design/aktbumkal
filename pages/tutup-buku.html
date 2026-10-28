@@ -401,7 +401,7 @@
                 <div class="step-list">
                     <div class="step-item">
                         <span class="material-icons step-icon">check_circle</span>
-                        <span>Merekap Laba/Rugi Bersih periode ini dan memindahkannya ke saldo Laba Ditahan.</span>
+                        <span>Merekap Laba/Rugi Bersih periode ini dan membuat Jurnal Penutup bertanggal 1 Januari tahun berikutnya ke akun Laba Ditahan.</span>
                     </div>
                     <div class="step-item">
                         <span class="material-icons step-icon">check_circle</span>
@@ -481,6 +481,8 @@
             getDocs,
             query,
             where,
+            addDoc,
+            deleteDoc,
             writeBatch,  
             serverTimestamp  
         } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -497,6 +499,7 @@
         let currentYear = new Date().getFullYear();
         let nextYear = currentYear + 1;
         let isEligibleForClose = false; 
+        let configuredLabaDitahan = '';
 
         let startDateStr = `${currentYear}-01-01`;
         let endDateStr = `${currentYear}-12-31`;
@@ -514,6 +517,9 @@
                     if (data.activeMonthCode) {
                         activeMonthCode = data.activeMonthCode;
                     }
+                    if (data.akunLabaDitahan) {
+                        configuredLabaDitahan = data.akunLabaDitahan;
+                    }
                     if (data.tglMulai && data.tglSelesai) {
                         startDateStr = data.tglMulai;
                         endDateStr = data.tglSelesai;
@@ -530,7 +536,7 @@
                 }
 
                 validateDecemberPeriod(activeMonthCode);
-                await calculateAndRenderBalanceCards(endDateStr);
+                await calculateAndRenderBalanceCards(startDateStr, endDateStr);
 
             } catch (err) {
                 console.error("Gagal memuat periode:", err);
@@ -539,7 +545,7 @@
         }
 
         // Kalkulasi & Render Kartu Akun Neraca Level 4 (Akumulatif sampai akhir periode aktif)
-        async function calculateAndRenderBalanceCards(eDate) {
+        async function calculateAndRenderBalanceCards(sDate, eDate) {
             try {
                 const accSnap = await getDocs(collection(db, 'accounts'));
                 const accountsMap = {};
@@ -571,7 +577,7 @@
                     }
                 });
 
-                // Ambil seluruh jurnal dari awal hingga akhir periode aktif agar saldo kumulatif / tahun lalu ikut terjumlah
+                // Ambil seluruh jurnal hingga akhir periode aktif
                 const qJurnal = query(
                     collection(db, 'journals'),
                     where('date', '<=', eDate)
@@ -580,11 +586,12 @@
 
                 jSnap.forEach(d => {
                     const journal = d.data();
-                    if (journal.items && Array.isArray(journal.items)) {
-                        journal.items.forEach(item => {
+                    const itemsList = journal.items || journal.entries || [];
+                    if (Array.isArray(itemsList)) {
+                        itemsList.forEach(item => {
                             const code = String(item.accCode || '').trim();
                             const debit = parseFloat(item.debit) || 0;
-                            const kredit = parseFloat(item.kredit) || 0;
+                            const kredit = parseFloat(item.kredit) || parseFloat(item.credit) || 0;
 
                             if (accountsMap[code]) {
                                 if (accountsMap[code].normalSaldo === 'DEBIT') {
@@ -661,7 +668,7 @@
             }
         }
 
-        // Fitur Buka Kembali Tahun Lampau (Revisi)
+        // Fitur Buka Kembali Tahun Lampau (Revisi) + Hapus Bersih Jurnal Penutup (JKT-) Tahun Target & Tahun-Tahun Di Atasnya
         btnProsesBukaTahun.addEventListener('click', async () => {
             const targetYearStr = inputReopenYear.value.trim();
 
@@ -672,26 +679,94 @@
 
             const targetY = parseInt(targetYearStr, 10);
 
-            const confirm = await Swal.fire({
-                title: 'Yakin akan di buka?',
-                text: `Membuka kembali tahun ${targetY} akan mengubah periode aktif ke Desember ${targetY} agar Anda dapat merevisi transaksi.`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#eab308',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Ya',
-                cancelButtonText: 'Tidak'
-            });
-
-            if (!confirm.isConfirmed) return;
-
             Swal.fire({
-                title: 'Memproses...',
+                title: 'Memeriksa Data...',
+                text: `Mengecek status tutup buku tahun ${targetY} dan tahun-tahun setelahnya...`,
                 allowOutsideClick: false,
                 didOpen: () => Swal.showLoading()
             });
 
             try {
+                // 1. Ambil seluruh jurnal untuk mendeteksi jurnal penutup
+                const journalsRef = collection(db, 'journals');
+                const querySnapshot = await getDocs(journalsRef);
+
+                let foundTargetClosing = false;
+                let closingDocsToDelete = [];
+
+                querySnapshot.forEach((docSnap) => {
+                    const jData = docSnap.data();
+                    const jNum = String(jData.journalNumber || jData.nomorJurnal || '');
+                    const jDate = String(jData.date || '');
+                    const jKet = String(jData.keterangan || '').toLowerCase();
+
+                    // Cek tahun dari nomor jurnal (misal JKT-0121-0001 -> tahun 2021) atau tanggal jurnal
+                    let journalYear = 0;
+                    if (jNum.includes('JKT-')) {
+                        const parts = jNum.split('-');
+                        if (parts.length >= 2) {
+                            const mmYY = parts[1]; // misal "0121"
+                            if (mmYY.length === 4) {
+                                const yy = mmYY.substring(2);
+                                journalYear = 2000 + parseInt(yy, 10) - 1; // Jika penutup per 1 Jan 2021, maka milik tahun 2020
+                            }
+                        }
+                    }
+                    if (!journalYear && jDate) {
+                        journalYear = parseInt(jDate.substring(0, 4), 10);
+                    }
+
+                    const isClosingKeyword = jNum.includes('JKT-') || jKet.includes('tutup buku') || jKet.includes('penutup');
+
+                    // Jika jurnal penutup ini berada pada tahun target atau TAHUN-TAHUN SETELAHNYA (>= targetY)
+                    if (isClosingKeyword) {
+                        // Cek apakah tanggal/tahun jurnal ini >= targetY
+                        if (journalYear >= targetY || jDate.startsWith(String(targetY)) || jDate > `${targetY}-12-31`) {
+                            closingDocsToDelete.push(docSnap.ref);
+                            if (journalYear === targetY || jDate.startsWith(String(targetY))) {
+                                foundTargetClosing = true;
+                            }
+                        }
+                    }
+                });
+
+                // 2. Validasi apakah tahun target tersebut memang pernah ditutup
+                if (!foundTargetClosing && closingDocsToDelete.length === 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Belum Melakukan Tutup Buku',
+                        text: `Tahun ${targetY} belum pernah melalui proses Tutup Buku Akhir Tahun (tidak ditemukan data jurnal penutup). Anda hanya bisa membuka tahun yang sudah ditutup sebelumnya.`,
+                        confirmButtonColor: '#5114B9'
+                    });
+                    return;
+                }
+
+                // 3. Konfirmasi ke user bahwa tahun target dan tahun setelahnya akan dibersihkan jurnal penutupnya
+                const confirm = await Swal.fire({
+                    title: 'Yakin akan di buka?',
+                    text: `Membuka tahun ${targetY} akan mengubah periode aktif ke Desember ${targetY} serta menghapus jurnal penutup tahun ${targetY} dan seluruh tahun setelahnya secara otomatis agar alur akuntansi kembali sinkron. Lanjutkan?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#eab308',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Ya, Buka Tahun',
+                    cancelButtonText: 'Batal'
+                });
+
+                if (!confirm.isConfirmed) return;
+
+                Swal.fire({
+                    title: 'Memproses...',
+                    text: 'Membersihkan jurnal penutup terkait dan memperbarui periode aktif...',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                // 4. Eksekusi hapus seluruh jurnal penutup target & di atasnya
+                const deletePromises = closingDocsToDelete.map(ref => deleteDoc(ref));
+                await Promise.all(deletePromises);
+
+                // 5. Update Profile Settings ke Desember tahun target
                 const docRef = doc(db, 'settings', 'profile');
                 const batch = writeBatch(db);
                 batch.update(docRef, {
@@ -705,8 +780,8 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'Berhasil!',
-                    text: `Tahun ${targetY} berhasil dibuka kembali (Periode aktif: Desember ${targetY}).`,
-                    timer: 1500,
+                    text: `Tahun ${targetY} berhasil dibuka kembali. Jurnal penutup terkait telah dibersihkan.`,
+                    timer: 1800,
                     showConfirmButton: false
                 }).then(() => {
                     window.location.reload();
@@ -718,13 +793,23 @@
             }
         });
 
-        // Eksekusi Tutup Buku Akhir Tahun dengan Konfirmasi Ya/Tidak
+        // Eksekusi Tutup Buku Akhir Tahun & Buat Jurnal Penutup Bertanggal 1 Januari Tahun Berikutnya
         btnEksekusiTutupBuku.addEventListener('click', async () => {
             if (!isEligibleForClose) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Akses Ditolak',
                     text: `Tutup buku hanya dapat dilakukan di bulan Desember ${currentYear}.`,
+                    confirmButtonColor: '#5114B9'
+                });
+                return;
+            }
+
+            if (!configuredLabaDitahan) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Mapping Laba Ditahan Kosong',
+                    text: 'Akun Laba Ditahan belum di-mapping di menu Pengaturan Profil (Tab 3: Mapping Akun). Silakan atur terlebih dahulu.',
                     confirmButtonColor: '#5114B9'
                 });
                 return;
@@ -737,15 +822,15 @@
                 showCancelButton: true,
                 confirmButtonColor: '#5114B9',
                 cancelButtonColor: '#64748b',
-                confirmButtonText: 'Ya',
-                cancelButtonText: 'Tidak'
+                confirmButtonText: 'Ya, Tutup Buku',
+                cancelButtonText: 'Batal'
             });
 
             if (!confirmResult.isConfirmed) return;
 
             Swal.fire({
                 title: 'Memproses Tutup Buku...',
-                text: 'Mohon tunggu sebentar',
+                text: 'Menghitung laba/rugi dan membuat jurnal penutup...',
                 allowOutsideClick: false,
                 didOpen: () => {
                     Swal.showLoading();
@@ -753,6 +838,105 @@
             });
 
             try {
+                // 1. Hitung total Pendapatan dan Beban selama tahun berjalan (startDateStr s.d endDateStr)
+                const accSnap = await getDocs(collection(db, 'accounts'));
+                const accountCategories = {};
+                accSnap.forEach(d => {
+                    const data = d.data();
+                    const code = String(data.accCode || '').trim();
+                    const cat = (data.category || '').toLowerCase();
+                    accountCategories[code] = cat;
+                });
+
+                const qJurnal = query(
+                    collection(db, 'journals'),
+                    where('date', '>=', startDateStr),
+                    where('date', '<=', endDateStr)
+                );
+                const jSnap = await getDocs(qJurnal);
+
+                let totalPendapatan = 0;
+                let totalBeban = 0;
+
+                jSnap.forEach(d => {
+                    const journal = d.data();
+                    const itemsList = journal.items || journal.entries || [];
+                    if (Array.isArray(itemsList)) {
+                        itemsList.forEach(item => {
+                            const code = String(item.accCode || '').trim();
+                            const debit = parseFloat(item.debit) || 0;
+                            const kredit = parseFloat(item.kredit) || parseFloat(item.credit) || 0;
+                            const cat = (accountCategories[code] || '').toLowerCase();
+
+                            if (code.startsWith('4') || cat.includes('pendapatan') || cat.includes('penjualan')) {
+                                totalPendapatan += (kredit - debit);
+                            } else if (code.startsWith('5') || code.startsWith('6') || code.startsWith('7') || code.startsWith('8') || code.startsWith('9') || cat.includes('beban') || cat.includes('biaya')) {
+                                totalBeban += (debit - kredit);
+                            }
+                        });
+                    }
+                });
+
+                const labaBersih = totalPendapatan - totalBeban;
+
+                // 2. Buat Nomor Jurnal Penutup Otomatis
+                const mmYY = `01${String(nextYear).substring(2)}`;
+                const journalsSnap = await getDocs(collection(db, 'journals'));
+                let maxSeq = 0;
+                const prefixJKT = `JKT-${mmYY}-`;
+
+                journalsSnap.forEach(d => {
+                    const jData = d.data();
+                    const jNum = jData.journalNumber || jData.nomorJurnal || '';
+                    if (jNum.startsWith(prefixJKT)) {
+                        const seqStr = jNum.replace(prefixJKT, '');
+                        const seqNum = parseInt(seqStr, 10);
+                        if (!isNaN(seqNum) && seqNum > maxSeq) {
+                            maxSeq = seqNum;
+                        }
+                    }
+                });
+
+                const nextSeq = maxSeq + 1;
+                const journalNumber = `${prefixJKT}${String(nextSeq).padStart(4, '0')}`;
+                const labaDitahanCode = configuredLabaDitahan.split(' - ')[0].trim();
+
+                // 3. Susun Entri Jurnal Penutup (Bertanggal 1 Januari Tahun Berikutnya)
+                let closingEntries = [];
+                if (labaBersih >= 0) {
+                    closingEntries = [
+                        {
+                            accCode: labaDitahanCode,
+                            debit: 0,
+                            kredit: labaBersih
+                        }
+                    ];
+                } else {
+                    const rugiBersih = Math.abs(labaBersih);
+                    closingEntries = [
+                        {
+                            accCode: labaDitahanCode,
+                            debit: rugiBersih,
+                            kredit: 0
+                        }
+                    ];
+                }
+
+                const jurnalTanggalBaru = `${nextYear}-01-01`;
+
+                const journalPayload = {
+                    journalNumber: journalNumber,
+                    date: jurnalTanggalBaru,
+                    keterangan: `Jurnal Penutup Tutup Buku Akhir Tahun ${currentYear} (Laba/Rugi Bersih)`,
+                    items: closingEntries,
+                    totalDebit: Math.abs(labaBersih),
+                    totalKredit: Math.abs(labaBersih),
+                    createdAt: serverTimestamp()
+                };
+
+                await addDoc(collection(db, 'journals'), journalPayload);
+
+                // 4. Update Profile Periode Aktif ke Tahun Berikutnya
                 const batch = writeBatch(db);
                 const profileRef = doc(db, 'settings', 'profile');
 
@@ -772,7 +956,7 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'Berhasil!',
-                    text: `Tutup Buku Tahun ${currentYear} Berhasil! Periode aktif otomatis diperbarui ke Tahun ${nextYear}.`,
+                    text: `Tutup Buku Tahun ${currentYear} Berhasil! Jurnal penutup dicatat per tanggal ${jurnalTanggalBaru} ke Laba Ditahan (${configuredLabaDitahan}). Periode aktif beralih ke Tahun ${nextYear}.`,
                     confirmButtonColor: '#5114B9'
                 }).then(() => {
                     window.location.href = '../index.html';

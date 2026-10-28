@@ -23,12 +23,13 @@
         .page-header h1 { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 
         /* Filter & Search Bar */
-        .filter-bar { background-color: #f1f5f9; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #cbd5e1; gap: 8px; flex-shrink: 0; }
-        .filter-bar input { width: 100%; height: 32px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; outline: none; background: #ffffff; }
+        .filter-bar { background-color: #f1f5f9; padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid #cbd5e1; flex-shrink: 0; }
+        .filter-row { display: flex; gap: 8px; width: 100%; }
+        .filter-bar input, .filter-bar select { width: 100%; height: 34px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; outline: none; background: #ffffff; color: #0f172a; }
 
         /* Content List */
         .content-list { padding: 12px; display: flex; flex-direction: column; gap: 10px; flex-grow: 1; overflow-y: auto; padding-bottom: 80px; }
-        .item-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .item-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .item-card-top { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748b; font-weight: 600; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; }
         .item-card-body { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
         
@@ -37,6 +38,12 @@
         .item-title { font-size: 13px; font-weight: 700; color: #0f172a; line-height: 1.3; }
         .item-subtitle { font-size: 11px; color: #475569; }
         .item-price { font-size: 13px; font-weight: 800; color: #5114B9; white-space: nowrap; text-align: right; }
+
+        /* Tombol Aksi Card (Edit & Hapus) */
+        .item-card-actions { display: flex; justify-content: flex-end; gap: 6px; border-top: 1px solid #f1f5f9; padding-top: 6px; }
+        .btn-action-sm { padding: 4px 10px; font-size: 11px; font-weight: 700; border-radius: 4px; cursor: pointer; border: none; display: flex; align-items: center; gap: 4px; }
+        .btn-edit-sm { background-color: #ede9fe; color: #5114B9; }
+        .btn-delete-sm { background-color: #fee2e2; color: #dc2626; }
 
         /* Floating Action Button (FAB) - Draggable */
         .fab-btn { 
@@ -103,7 +110,12 @@
         </header>
 
         <div class="filter-bar">
-            <input type="text" id="searchBarang" placeholder="Cari nama barang atau kode SKU...">
+            <div class="filter-row">
+                <input type="text" id="searchBarang" placeholder="Cari nama barang atau kode SKU...">
+                <select id="filterUnitSelect">
+                    <option value="">Semua Unit</option>
+                </select>
+            </div>
         </div>
 
         <div class="content-list" id="barangListContainer">
@@ -142,6 +154,13 @@
                             <option value="Barang Dalam Proses">Dalam Proses</option>
                         </select>
                     </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Unit / Cabang *</label>
+                    <select id="itemUnitLocation" class="form-control">
+                        <option value="" selected disabled>Memuat Unit...</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
@@ -185,15 +204,17 @@
 
     <script type="module">
         import { db } from '../assets/js/firebase-config.js';
-        import { collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { collection, getDocs, getDoc, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const barangListContainer = document.getElementById('barangListContainer');
         const totalCountDisplay = document.getElementById('totalCountDisplay');
         const searchBarang = document.getElementById('searchBarang');
+        const filterUnitSelect = document.getElementById('filterUnitSelect');
 
         const barangModal = document.getElementById('barangModal');
         const modalBox = document.getElementById('modalBox');
         const modalHeader = document.getElementById('modalHeader');
+        const modalTitleText = document.getElementById('modalTitleText');
         const openModalBtn = document.getElementById('openModalBtn');
         const closeModalBtn = document.getElementById('closeModalBtn');
         const btnBatal = document.getElementById('btnBatal');
@@ -201,6 +222,7 @@
 
         const itemSku = document.getElementById('itemSku');
         const itemCategory = document.getElementById('itemCategory');
+        const itemUnitLocation = document.getElementById('itemUnitLocation');
         const itemName = document.getElementById('itemName');
         const itemUnit = document.getElementById('itemUnit');
         const itemSellPrice = document.getElementById('itemSellPrice');
@@ -210,6 +232,49 @@
 
         let rawBarangData = [];
         let compressedPhotoBase64 = '';
+        let editingProductId = null;
+
+        // Load unitList dari settings/profile untuk Form Modal & Filter Unit
+        async function loadUnitListOptions() {
+            try {
+                const settingsDocRef = doc(db, 'settings', 'profile');
+                const settingsSnap = await getDoc(settingsDocRef);
+                
+                if (settingsSnap.exists() && settingsSnap.data().unitList) {
+                    const unitList = settingsSnap.data().unitList;
+                    
+                    // Reset isi dropdown modal & filter
+                    itemUnitLocation.innerHTML = '';
+                    filterUnitSelect.innerHTML = `<option value="">Semua Unit</option>`;
+
+                    unitList.forEach(u => {
+                        const unitName = u.namaUnit || u.kodeUnit;
+
+                        // Opsi untuk Modal Form
+                        const optionModal = document.createElement('option');
+                        optionModal.value = unitName;
+                        optionModal.textContent = `${u.namaUnit} (${u.kodeUnit})`;
+                        if (u.isDefault === true || u.isDefault === "true") {
+                            optionModal.selected = true;
+                        }
+                        itemUnitLocation.appendChild(optionModal);
+
+                        // Opsi untuk Filter Dropdown di Atas
+                        const optionFilter = document.createElement('option');
+                        optionFilter.value = unitName;
+                        optionFilter.textContent = `${u.namaUnit} (${u.kodeUnit})`;
+                        filterUnitSelect.appendChild(optionFilter);
+                    });
+                } else {
+                    itemUnitLocation.innerHTML = `<option value="Kantor Pusat">Kantor Pusat</option>`;
+                    filterUnitSelect.innerHTML = `<option value="">Semua Unit</option><option value="Kantor Pusat">Kantor Pusat</option>`;
+                }
+            } catch (err) {
+                console.error("Gagal memuat unitList:", err);
+                itemUnitLocation.innerHTML = `<option value="Kantor Pusat">Kantor Pusat</option>`;
+            }
+        }
+        loadUnitListOptions();
 
         // ==========================================
         // FITUR DRAGGABLE TOMBOL FAB (+) & MODAL
@@ -245,13 +310,14 @@
             openModalBtn.releasePointerCapture(e.pointerId);
         });
 
-        // Handler Klik Tombol FAB (hanya buka modal jika tidak sedang digeser)
         openModalBtn.addEventListener('click', (e) => {
             if (fabHasMoved) return;
             resetModalPosition();
+            editingProductId = null;
+            modalTitleText.textContent = "TAMBAH PRODUK BARU";
             itemSku.value = '';
             itemName.value = '';
-            itemUnit.value = 'Karung';
+            itemUnit.value = '';
             itemSellPrice.value = '';
             itemBuyPrice.value = '';
             itemPhoto.value = '';
@@ -279,14 +345,12 @@
         document.addEventListener('mouseup', () => { isModalDragging = false; modalHeader.style.cursor = 'move'; });
         function resetModalPosition() { modalCurrentX = 0; modalCurrentY = 0; modalBox.style.transform = 'translate(0px, 0px)'; }
 
-        // Shortcut Tombol ESC
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && barangModal.classList.contains('active')) {
                 barangModal.classList.remove('active');
             }
         });
 
-        // Kompresi Foto Maksimal Lebar/Tinggi 350px
         itemPhoto.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -338,7 +402,7 @@
 
         closeModalBtn.addEventListener('click', () => barangModal.classList.remove('active'));
         btnBatal.addEventListener('click', () => barangModal.classList.remove('active'));
-        barangModal.classList.remove('active'); // Pastikan tertutup awal
+        barangModal.classList.remove('active');
         barangModal.addEventListener('click', (e) => { if (e.target === barangModal) barangModal.classList.remove('active'); });
 
         async function loadBarangData() {
@@ -348,7 +412,7 @@
                 querySnapshot.forEach(docSnap => {
                     rawBarangData.push({ id: docSnap.id, ...docSnap.data() });
                 });
-                renderList(rawBarangData);
+                applyFilters();
             } catch (err) {
                 console.error("Gagal memuat produk:", err);
                 barangListContainer.innerHTML = `<div class="empty-state">Gagal memuat data produk dari database.</div>`;
@@ -367,12 +431,13 @@
                 const sellPrice = parseFloat(item.sellPrice || 0).toLocaleString('id-ID');
                 const buyPrice = parseFloat(item.buyPrice || 0).toLocaleString('id-ID');
                 const photoUrl = item.photo || 'https://via.placeholder.com/44?text=No+Img';
+                const unitLoc = item.unitLocation || item.unit || '-';
 
                 const card = document.createElement('div');
                 card.className = 'item-card';
                 card.innerHTML = `
                     <div class="item-card-top">
-                        <span>SKU: ${item.sku || '-'}</span>
+                        <span>SKU: ${item.sku || '-'} | Unit: <strong>${unitLoc}</strong></span>
                         <span>[${item.category || 'Umum'}]</span>
                     </div>
                     <div class="item-card-body">
@@ -385,11 +450,108 @@
                             Jual<br>Rp ${sellPrice}
                         </div>
                     </div>
+                    <div class="item-card-actions">
+                        <button class="btn-action-sm btn-edit-sm" data-id="${item.id}">
+                            <span class="material-icons" style="font-size: 14px;">edit</span> Edit
+                        </button>
+                        <button class="btn-action-sm btn-delete-sm" data-id="${item.id}">
+                            <span class="material-icons" style="font-size: 14px;">delete</span> Hapus
+                        </button>
+                    </div>
                 `;
                 barangListContainer.appendChild(card);
             });
 
+            attachCardEventListeners();
             totalCountDisplay.textContent = `${dataArray.length} Item`;
+        }
+
+        function attachCardEventListeners() {
+            document.querySelectorAll('.btn-edit-sm').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    const prod = rawBarangData.find(p => p.id === id);
+                    if (!prod) return;
+
+                    resetModalPosition();
+                    editingProductId = prod.id;
+                    modalTitleText.textContent = "EDIT PRODUK / BARANG";
+
+                    itemSku.value = prod.sku || '';
+                    itemCategory.value = prod.category || 'Barang Jadi';
+                    itemUnitLocation.value = prod.unitLocation || '';
+                    itemName.value = prod.name || '';
+                    itemUnit.value = prod.unit || '';
+                    itemSellPrice.value = prod.sellPrice ? prod.sellPrice.toLocaleString('id-ID') : '';
+                    itemBuyPrice.value = prod.buyPrice ? prod.buyPrice.toLocaleString('id-ID') : '';
+                    
+                    compressedPhotoBase64 = prod.photo || '';
+                    if (compressedPhotoBase64) {
+                        previewImg.src = compressedPhotoBase64;
+                        previewImg.style.display = 'block';
+                    } else {
+                        previewImg.style.display = 'none';
+                    }
+
+                    barangModal.classList.add('active');
+                });
+            });
+
+            document.querySelectorAll('.btn-delete-sm').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    const prod = rawBarangData.find(p => p.id === id);
+                    if (!prod) return;
+
+                    const confirmResult = await Swal.fire({
+                        title: 'Hapus Produk?',
+                        text: `Apakah Anda yakin ingin menghapus produk "${prod.name}"?`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, Hapus',
+                        cancelButtonText: 'Batal'
+                    });
+
+                    if (!confirmResult.isConfirmed) return;
+
+                    try {
+                        Swal.fire({ title: 'Memeriksa transaksi...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+                        const salesSnapshot = await getDocs(collection(db, 'sales'));
+                        let isUsedInSales = false;
+
+                        salesSnapshot.forEach(saleDoc => {
+                            const saleData = saleDoc.data();
+                            if (saleData.items && Array.isArray(saleData.items)) {
+                                const found = saleData.items.some(item => item.productId === id || item.code === prod.sku);
+                                if (found) {
+                                    isUsedInSales = true;
+                                }
+                            }
+                        });
+
+                        if (isUsedInSales) {
+                            Swal.fire('Gagal Dihapus', 'Produk ini tidak dapat dihapus karena sudah memiliki riwayat transaksi penjualan.', 'error');
+                            return;
+                        }
+
+                        await deleteDoc(doc(db, 'products', id));
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Terhapus',
+                            text: 'Produk berhasil dihapus.',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+
+                        loadBarangData();
+                    } catch (err) {
+                        console.error("Gagal menghapus produk:", err);
+                        Swal.fire('Error', err.message, 'error');
+                    }
+                });
+            });
         }
 
         btnSimpan.addEventListener('click', async () => {
@@ -402,26 +564,37 @@
             const buy = parseInt(itemBuyPrice.value.replace(/\D/g, ''), 10) || 0;
 
             try {
-                const newProduct = {
+                const productPayload = {
                     sku: itemSku.value.trim(),
                     name: itemName.value.trim(),
                     category: itemCategory.value,
+                    unitLocation: itemUnitLocation.value,
                     unit: itemUnit.value.trim(),
                     sellPrice: sell,
                     buyPrice: buy,
-                    photo: compressedPhotoBase64,
-                    createdAt: serverTimestamp()
+                    photo: compressedPhotoBase64
                 };
 
-                await addDoc(collection(db, 'products'), newProduct);
-
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil',
-                    text: 'Produk baru berhasil disimpan.',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
+                if (editingProductId) {
+                    await updateDoc(doc(db, 'products', editingProductId), productPayload);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Perubahan produk berhasil disimpan.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                } else {
+                    productPayload.createdAt = serverTimestamp();
+                    await addDoc(collection(db, 'products'), productPayload);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Produk baru berhasil disimpan.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                }
 
                 barangModal.classList.remove('active');
                 loadBarangData();
@@ -432,14 +605,25 @@
             }
         });
 
-        searchBarang.addEventListener('input', (e) => {
-            const keyword = e.target.value.toLowerCase();
-            const filtered = rawBarangData.filter(item => 
-                (item.name && item.name.toLowerCase().includes(keyword)) ||
-                (item.sku && item.sku.toLowerCase().includes(keyword))
-            );
+        // Fungsi Filter Gabungan (Pencarian Text & Filter Unit)
+        function applyFilters() {
+            const keyword = searchBarang.value.toLowerCase();
+            const selectedUnit = filterUnitSelect.value;
+
+            const filtered = rawBarangData.filter(item => {
+                const matchKeyword = (item.name && item.name.toLowerCase().includes(keyword)) ||
+                                     (item.sku && item.sku.toLowerCase().includes(keyword));
+                
+                const matchUnit = !selectedUnit || item.unitLocation === selectedUnit;
+
+                return matchKeyword && matchUnit;
+            });
+
             renderList(filtered);
-        });
+        }
+
+        searchBarang.addEventListener('input', applyFilters);
+        filterUnitSelect.addEventListener('change', applyFilters);
 
         loadBarangData();
     </script>
