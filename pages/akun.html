@@ -129,10 +129,13 @@
             border-top-right-radius: 4px;
         }
 
-        /* Search Filter Area (Ukuran Font Diperkecil) */
+        /* Filter / Search Bar */
         .filter-section {
             padding: 8px 10px;
             background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
         .search-box-container {
@@ -161,6 +164,51 @@
             cursor: pointer;
             background: none;
             border: none;
+        }
+
+        /* Filter Level Selector khusus Sub Klasifikasi */
+        .subklas-filter-wrapper {
+            display: none; 
+            gap: 6px;
+            align-items: center;
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+
+        .subklas-filter-wrapper.active {
+            display: flex;
+        }
+
+        .filter-chip {
+            padding: 4px 10px;
+            font-size: 10px;
+            font-weight: 700;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            background-color: #f8fafc;
+            color: #475569;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+
+        .filter-chip.active {
+            background-color: #5114B9;
+            border-color: #5114B9;
+            color: #ffffff;
+        }
+
+        /* Informasi Total Akun Bar */
+        .total-info-bar {
+            padding: 4px 10px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #475569;
+            background-color: #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         /* Card List Container (Ukuran Font Diperkecil) */
@@ -292,6 +340,9 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
             display: flex;
             flex-direction: column;
+            position: relative;
+            transform: translate(0px, 0px);
+            transition: transform 0.05s linear;
         }
 
         .modal-header {
@@ -304,6 +355,8 @@
             position: sticky;
             top: 0;
             z-index: 10;
+            cursor: move;
+            user-select: none;
         }
 
         .modal-title {
@@ -418,6 +471,20 @@
                     <span class="material-icons" style="font-size: 18px;">search</span>
                 </button>
             </div>
+
+            <!-- Filter Level khusus Sub Klasifikasi -->
+            <div class="subklas-filter-wrapper" id="subKlasFilterWrapper">
+                <div class="filter-chip active" data-level="all">Semua Level</div>
+                <div class="filter-chip" data-level="1">Level 1</div>
+                <div class="filter-chip" data-level="2">Level 2</div>
+                <div class="filter-chip" data-level="3">Level 3</div>
+            </div>
+        </div>
+
+        <!-- Informasi Total Akun -->
+        <div class="total-info-bar">
+            <span id="totalInfoLabel">Total Akun Ditampilkan:</span>
+            <span id="totalInfoCount" style="color: #5114B9; font-weight: 800;">0 Akun</span>
         </div>
 
         <!-- Daftar Card Akun -->
@@ -435,8 +502,8 @@
 
     <!-- Modal Form Tambah / Edit Akun -->
     <div class="modal-overlay" id="modalAccount">
-        <div class="modal-box">
-            <div class="modal-header">
+        <div class="modal-box" id="modalBox">
+            <div class="modal-header" id="modalHeader">
                 <div class="modal-title">
                     <span class="material-icons" style="font-size:16px;">post_add</span>
                     <span id="modalHeaderTitle">Tambah Akun Baru</span>
@@ -554,7 +621,7 @@
         </div>
     </div>
 
-    <!-- Script Integrasi Firestore -->
+    <!-- Script Integrasi Firestore & Shortcut Tombol ESC -->
     <script type="module">
         import { db } from '../assets/js/firebase-config.js';
         import { 
@@ -569,12 +636,58 @@
             serverTimestamp 
         } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+        // Fitur Geser-geser Modal (Draggable)
+        const modalBox = document.getElementById('modalBox');
+        const modalHeader = document.getElementById('modalHeader');
+        const modalAccount = document.getElementById('modalAccount');
+
+        let isDragging = false;
+        let startX, startY, currentX = 0, currentY = 0;
+
+        modalHeader.addEventListener('mousedown', (e) => {
+            if (e.target.closest('#btnCloseModal')) return;
+            isDragging = true;
+            startX = e.clientX - currentX;
+            startY = e.clientY - currentY;
+            modalHeader.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            currentX = e.clientX - startX;
+            currentY = e.clientY - startY;
+            modalBox.style.transform = `translate(${currentX}px, ${currentY}px)`;
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            modalHeader.style.cursor = 'move';
+        });
+
+        function resetModalPosition() {
+            currentX = 0;
+            currentY = 0;
+            modalBox.style.transform = 'translate(0px, 0px)';
+        }
+
+        // Shortcut Tombol ESC untuk Menutup Form Input
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (modalAccount.classList.contains('active')) {
+                    modalAccount.classList.remove('active');
+                }
+            }
+        });
+
         const accountListContainer = document.getElementById('accountListContainer');
         const tabSubKlasifikasi = document.getElementById('tabSubKlasifikasi');
         const tabAkun = document.getElementById('tabAkun');
         const searchInput = document.getElementById('searchInput');
+        const subKlasFilterWrapper = document.getElementById('subKlasFilterWrapper');
+        const totalInfoLabel = document.getElementById('totalInfoLabel');
+        const totalInfoCount = document.getElementById('totalInfoCount');
 
-        const modalAccount = document.getElementById('modalAccount');
         const btnOpenAddModal = document.getElementById('btnOpenAddModal');
         const btnCloseModal = document.getElementById('btnCloseModal');
         const btnResetForm = document.getElementById('btnResetForm');
@@ -596,11 +709,13 @@
 
         let accountsData = [];
         let activeTabMode = 'akun';
+        let selectedSubKlasLevel = 'all';
 
         tabSubKlasifikasi.addEventListener('click', () => {
             tabSubKlasifikasi.classList.add('active');
             tabAkun.classList.remove('active');
             activeTabMode = 'sub_klasifikasi';
+            subKlasFilterWrapper.classList.add('active');
             renderCardList();
         });
 
@@ -608,7 +723,17 @@
             tabAkun.classList.add('active');
             tabSubKlasifikasi.classList.remove('active');
             activeTabMode = 'akun';
+            subKlasFilterWrapper.classList.remove('active');
             renderCardList();
+        });
+
+        document.querySelectorAll('.filter-chip').forEach(chip => {
+            chip.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                selectedSubKlasLevel = e.currentTarget.dataset.level;
+                renderCardList();
+            });
         });
 
         function resetFormFields() {
@@ -632,13 +757,18 @@
             hasPaguInput.setAttribute('tabindex', '-1');
 
             isPostableInput.value = 'false';
+            
             isActiveInput.value = 'true';
+            isActiveInput.disabled = true;
+            isActiveInput.setAttribute('tabindex', '-1');
+
             parentGroupWrapper.style.display = 'none';
             parentAccountInput.innerHTML = '<option value="" selected disabled>--Pilih Akun Induk--</option>';
             modalHeaderTitle.textContent = 'Tambah Akun Baru';
         }
 
         btnOpenAddModal.addEventListener('click', () => {
+            resetModalPosition();
             resetFormFields();
             modalAccount.classList.add('active');
         });
@@ -653,14 +783,20 @@
 
         levelInput.addEventListener('change', () => {
             const selectedLevel = parseInt(levelInput.value, 10);
-            
-            if (selectedLevel === 4) {
+            const currentCode = accCodeInput.value.trim();
+            const hasChildren = accountsData.some(a => a.parentCode === currentCode || (a.accCode && a.accCode.startsWith(currentCode + '.')));
+
+            if (selectedLevel === 4 && !hasChildren) {
                 isPostableInput.value = 'true';
                 cashFlowGroupInput.disabled = false;
                 cashFlowGroupInput.removeAttribute('tabindex');
                 hasPaguInput.disabled = false;
                 hasPaguInput.removeAttribute('tabindex');
                 if (!hasPaguInput.value) hasPaguInput.value = '';
+                
+                isActiveInput.value = 'true';
+                isActiveInput.disabled = false;
+                isActiveInput.removeAttribute('tabindex');
             } else {
                 isPostableInput.value = 'false';
                 cashFlowGroupInput.value = '-';
@@ -669,6 +805,10 @@
                 hasPaguInput.value = '';
                 hasPaguInput.disabled = true;
                 hasPaguInput.setAttribute('tabindex', '-1');
+                
+                isActiveInput.value = 'true';
+                isActiveInput.disabled = true;
+                isActiveInput.setAttribute('tabindex', '-1');
             }
 
             if (selectedLevel === 1) {
@@ -730,6 +870,18 @@
             }
             
             accCodeInput.value = `${parentCode}.${formattedChildNum}`;
+
+            const hasChildren = accountsData.some(a => a.parentCode === accCodeInput.value || a.accCode.startsWith(accCodeInput.value + '.'));
+            if (selectedLevel === 4 && !hasChildren) {
+                isPostableInput.value = 'true';
+                isActiveInput.disabled = false;
+                isActiveInput.removeAttribute('tabindex');
+            } else {
+                isPostableInput.value = 'false';
+                isActiveInput.value = 'true';
+                isActiveInput.disabled = true;
+                isActiveInput.setAttribute('tabindex', '-1');
+            }
         });
 
         async function loadAccounts() {
@@ -757,9 +909,18 @@
             const keyword = searchInput.value.toLowerCase().trim();
 
             let filtered = accountsData.filter(item => {
-                const isLevel4 = parseInt(item.level, 10) === 4;
-                if (activeTabMode === 'sub_klasifikasi') return !isLevel4;
-                return isLevel4;
+                const itemLevel = parseInt(item.level, 10);
+                const isLevel4 = itemLevel === 4;
+
+                if (activeTabMode === 'sub_klasifikasi') {
+                    if (isLevel4) return false;
+                    if (selectedSubKlasLevel !== 'all') {
+                        return itemLevel === parseInt(selectedSubKlasLevel, 10);
+                    }
+                    return true;
+                } else {
+                    return isLevel4;
+                }
             });
 
             if (keyword) {
@@ -768,6 +929,13 @@
                     (item.accName && item.accName.toLowerCase().includes(keyword))
                 );
             }
+
+            if (activeTabMode === 'sub_klasifikasi') {
+                totalInfoLabel.textContent = `Total Sub Klasifikasi (${selectedSubKlasLevel === 'all' ? 'Level 1-3' : 'Level ' + selectedSubKlasLevel}):`;
+            } else {
+                totalInfoLabel.textContent = `Total Akun Transaksi (Level 4):`;
+            }
+            totalInfoCount.textContent = `${filtered.length} Akun`;
 
             if (filtered.length === 0) {
                 accountListContainer.innerHTML = `
@@ -778,6 +946,9 @@
             }
 
             filtered.forEach((item) => {
+                const itemLevel = parseInt(item.level, 10);
+                const isLevel4 = itemLevel === 4;
+
                 let parentCategory = item.cashFlowGroup && item.cashFlowGroup !== '-' ? item.cashFlowGroup : '';
                 if (!parentCategory && item.parentCode) {
                     const parentObj = accountsData.find(a => a.accCode === item.parentCode);
@@ -788,6 +959,15 @@
                 const card = document.createElement('div');
                 card.className = 'account-card';
 
+                let deleteButtonHtml = '';
+                if (isLevel4) {
+                    deleteButtonHtml = `
+                        <button class="btn-card-action btn-delete" data-id="${item.id}" data-name="${item.accName}">
+                            <span class="material-icons" style="font-size: 16px; color: #ef4444;">delete</span>
+                        </button>
+                    `;
+                }
+
                 card.innerHTML = `
                     <div class="card-info">
                         <span class="card-category">${parentCategory}</span>
@@ -797,9 +977,7 @@
                         <button class="btn-card-action btn-edit" data-id="${item.id}">
                             <span class="material-icons" style="font-size: 16px;">edit</span>
                         </button>
-                        <button class="btn-card-action btn-delete" data-id="${item.id}" data-name="${item.accName}">
-                            <span class="material-icons" style="font-size: 16px; color: #ef4444;">delete</span>
-                        </button>
+                        ${deleteButtonHtml}
                     </div>
                 `;
 
@@ -812,6 +990,7 @@
                     const id = e.currentTarget.dataset.id;
                     const item = accountsData.find(a => a.id === id);
                     if (item) {
+                        resetModalPosition();
                         accountIdInput.value = item.id;
                         levelInput.value = item.level || '';
                         levelInput.dispatchEvent(new Event('change'));
@@ -826,7 +1005,11 @@
                         normalBalanceInput.value = item.normalBalance || '';
                         reportGroupInput.value = item.reportGroup || '';
                         
-                        if (parseInt(item.level, 10) === 4) {
+                        const itemLevel = parseInt(item.level, 10);
+                        const hasChildren = accountsData.some(a => a.parentCode === item.accCode || (a.accCode && a.accCode.startsWith(item.accCode + '.')));
+
+                        if (itemLevel === 4 && !hasChildren) {
+                            isPostableInput.value = 'true';
                             cashFlowGroupInput.disabled = false;
                             cashFlowGroupInput.removeAttribute('tabindex');
                             cashFlowGroupInput.value = item.cashFlowGroup || '-';
@@ -834,7 +1017,12 @@
                             hasPaguInput.disabled = false;
                             hasPaguInput.removeAttribute('tabindex');
                             hasPaguInput.value = item.hasPagu || '';
+
+                            isActiveInput.value = item.isActive !== false ? 'true' : 'false';
+                            isActiveInput.disabled = false;
+                            isActiveInput.removeAttribute('tabindex');
                         } else {
+                            isPostableInput.value = 'false';
                             cashFlowGroupInput.disabled = true;
                             cashFlowGroupInput.setAttribute('tabindex', '-1');
                             cashFlowGroupInput.value = '-';
@@ -842,10 +1030,11 @@
                             hasPaguInput.disabled = true;
                             hasPaguInput.setAttribute('tabindex', '-1');
                             hasPaguInput.value = '';
-                        }
 
-                        isPostableInput.value = item.isPostable ? 'true' : 'false';
-                        isActiveInput.value = item.isActive !== false ? 'true' : 'false';
+                            isActiveInput.value = 'true';
+                            isActiveInput.disabled = true;
+                            isActiveInput.setAttribute('tabindex', '-1');
+                        }
 
                         modalHeaderTitle.textContent = 'Edit Data Akun';
                         modalAccount.classList.add('active');
@@ -913,8 +1102,11 @@
             }
 
             const selectedLevel = parseInt(levelInput.value, 10);
+            const currentAccCode = accCodeInput.value.trim();
 
-            if (selectedLevel === 4) {
+            const hasChildren = accountsData.some(a => a.parentCode === currentAccCode || (a.accCode && a.accCode.startsWith(currentAccCode + '.')));
+
+            if (selectedLevel === 4 && !hasChildren) {
                 if (!cashFlowGroupInput.value || cashFlowGroupInput.value === '-') {
                     Swal.fire('Peringatan', 'Silakan pilih Cash Flow Group untuk Level 4.', 'warning');
                     cashFlowGroupInput.focus();
@@ -930,7 +1122,7 @@
 
             const confirmResult = await Swal.fire({
                 title: 'Konfirmasi Simpan',
-                text: 'Apakah Anda yakin ingin menyimpan data akun ini?',
+                text: 'Apakah Anda yakin ingin menyimpan perubahan akun ini?',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#5114B9',
@@ -943,24 +1135,38 @@
             if (!confirmResult.isConfirmed) return;
 
             const id = accountIdInput.value;
+            const newNormalBalance = normalBalanceInput.value;
+            const newReportGroup = reportGroupInput.value;
+            const isPostableVal = (selectedLevel === 4 && !hasChildren) ? true : false;
+            const isActiveVal = isPostableVal ? (isActiveInput.value === 'true') : true;
 
             const payload = {
                 level: selectedLevel,
                 parentCode: selectedLevel > 1 ? parentAccountInput.value : null,
-                accCode: accCodeInput.value.trim(),
+                accCode: currentAccCode,
                 accName: accNameInput.value.trim(),
-                normalBalance: normalBalanceInput.value,
-                reportGroup: reportGroupInput.value,
-                cashFlowGroup: cashFlowGroupInput.value,
-                hasPagu: selectedLevel === 4 ? hasPaguInput.value : '-',
-                isPostable: isPostableInput.value === 'true',
-                isActive: isActiveInput.value === 'true',
+                normalBalance: newNormalBalance,
+                reportGroup: newReportGroup,
+                cashFlowGroup: isPostableVal ? cashFlowGroupInput.value : '-',
+                hasPagu: isPostableVal ? hasPaguInput.value : '-',
+                isPostable: isPostableVal,
+                isActive: isActiveVal,
                 updatedAt: serverTimestamp()
             };
 
             try {
                 if (id) {
                     await updateDoc(doc(db, 'accounts', id), payload);
+
+                    const childAccounts = accountsData.filter(a => a.id !== id && a.accCode && a.accCode.startsWith(currentAccCode + '.'));
+                    for (let child of childAccounts) {
+                        const childRef = doc(db, 'accounts', child.id);
+                        await updateDoc(childRef, {
+                            normalBalance: newNormalBalance,
+                            reportGroup: newReportGroup,
+                            updatedAt: serverTimestamp()
+                        });
+                    }
                 } else {
                     payload.createdAt = serverTimestamp();
                     const newDocRef = doc(collection(db, 'accounts'));
@@ -975,6 +1181,7 @@
                     showConfirmButton: false
                 });
 
+                modalAccount.classList.remove('active');
                 resetFormFields();
                 loadAccounts();
 

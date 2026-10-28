@@ -305,7 +305,7 @@
             const sDateYear = `${yearStr}-01-01`;
 
             try {
-                // 1. Fetch seluruh master akun dari koleksi 'accounts'
+                // 1. Fetch seluruh master akun dari koleksi 'accounts' berdasarkan struktur COA
                 const accSnap = await getDocs(collection(db, 'accounts'));
                 const accountsMap = {};
 
@@ -317,23 +317,30 @@
                     const data = d.data();
                     const code = String(data.accCode || '').trim();
                     const name = data.accName || '';
-                    const cat = (data.category || '').toLowerCase();
+                    const reportGroup = String(data.reportGroup || '').trim();
+                    const normalBalance = String(data.normalBalance || '').trim();
                     const isLevel4 = parseInt(data.level, 10) === 4 || data.isPostable === true || data.isPostable === 'true';
 
-                    accountsMap[code] = { name, category: cat, accCode: code };
+                    accountsMap[code] = { 
+                        name, 
+                        reportGroup, 
+                        normalBalance, 
+                        accCode: code 
+                    };
 
-                    if (isLevel4) {
-                        if (code.startsWith('1') || cat.includes('aset') || cat.includes('aktiva')) {
+                    if (isLevel4 && reportGroup === "Neraca") {
+                        // Klasifikasi berdasarkan awalan kode atau nama/kategori standar neraca
+                        if (code.startsWith('1') || name.toLowerCase().includes('kas') || name.toLowerCase().includes('bank') || name.toLowerCase().includes('piutang') || name.toLowerCase().includes('persediaan') || name.toLowerCase().includes('aset')) {
                             asetAccounts[code] = 0;
-                        } else if (code.startsWith('2') || cat.includes('kewajiban') || cat.includes('hutang')) {
+                        } else if (code.startsWith('2') || name.toLowerCase().includes('hutang') || name.toLowerCase().includes('kewajiban')) {
                             kewajibanAccounts[code] = 0;
-                        } else if (code.startsWith('3') || cat.includes('modal') || cat.includes('ekuitas')) {
+                        } else if (code.startsWith('3') || name.toLowerCase().includes('modal') || name.toLowerCase().includes('ekuitas') || name.toLowerCase().includes('laba')) {
                             modalAccounts[code] = 0;
                         }
                     }
                 });
 
-                // 2. Fetch seluruh jurnal tanpa batasan query
+                // 2. Fetch seluruh jurnal
                 const jSnap = await getDocs(collection(db, 'journals'));
 
                 let sumPendapatan = 0;
@@ -352,38 +359,29 @@
                             const kredit = parseFloat(item.kredit) || 0;
 
                             const accInfo = accountsMap[code] || {};
-                            const cat = accInfo.category || '';
-                            const repGroup = (accInfo.reportGroup || '').toLowerCase();
+                            const repGroup = accInfo.reportGroup;
+                            const normalBalance = accInfo.normalBalance;
+                            const accName = (accInfo.name || '').toLowerCase();
 
-                            // Aset (Prefix '1') -> Saldo Normal Debet
-                            if (code.startsWith('1') || cat.includes('aset') || cat.includes('aktiva')) {
-                                const val = debit - kredit;
+                            // Perhitungan Akun Neraca (Aktif sampai tanggal target)
+                            if (repGroup === "Neraca") {
                                 if (asetAccounts.hasOwnProperty(code)) {
-                                    asetAccounts[code] += val;
+                                    // Saldo normal debit (debit - kredit)
+                                    asetAccounts[code] += (debit - kredit);
+                                } else if (kewajibanAccounts.hasOwnProperty(code)) {
+                                    // Saldo normal kredit (kredit - debit)
+                                    kewajibanAccounts[code] += (kredit - debit);
+                                } else if (modalAccounts.hasOwnProperty(code)) {
+                                    // Saldo normal kredit (kredit - debit)
+                                    modalAccounts[code] += (kredit - debit);
                                 }
-                            } 
-                            // Kewajiban / Hutang (Prefix '2') -> Saldo Normal Kredit
-                            else if (code.startsWith('2') || cat.includes('kewajiban') || cat.includes('hutang')) {
-                                const val = kredit - debit;
-                                if (kewajibanAccounts.hasOwnProperty(code)) {
-                                    kewajibanAccounts[code] += val;
-                                }
-                            } 
-                            // Modal (Prefix '3') -> Saldo Normal Kredit
-                            else if (code.startsWith('3') || cat.includes('modal') || cat.includes('ekuitas')) {
-                                const val = kredit - debit;
-                                if (modalAccounts.hasOwnProperty(code)) {
-                                    modalAccounts[code] += val;
-                                }
-                            } 
-                            // Perhitungan Laba/Rugi Tahun Berjalan (Mencakup seluruh Pendapatan [4, 8] & Beban [5, 6, 7, 9])
-                            else if (jDate >= sDateYear && jDate <= eDate) {
-                                const isPendapatan = code.startsWith('4') || code.startsWith('8') || cat.includes('pendapatan');
-                                const isBeban = code.startsWith('5') || code.startsWith('6') || code.startsWith('7') || code.startsWith('9') || cat.includes('beban') || cat.includes('biaya');
+                            }
 
-                                if (isPendapatan) {
+                            // Perhitungan Laba/Rugi Tahun Berjalan (Berdasarkan reportGroup Laba Rugi dan normalBalance)
+                            if (repGroup === "Laba Rugi" && jDate >= sDateYear && jDate <= eDate) {
+                                if (normalBalance === "Kredit") {
                                     sumPendapatan += (kredit - debit);
-                                } else if (isBeban) {
+                                } else if (normalBalance === "Debit") {
                                     sumBeban += (debit - kredit);
                                 }
                             }

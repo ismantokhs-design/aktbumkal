@@ -10,33 +10,55 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
-        body { background-color: #f8fafc; display: flex; justify-content: center; min-height: 100vh; color: #1e293b; }
-        .page-container { width: 100%; max-width: 480px; background-color: #ffffff; display: flex; flex-direction: column; min-height: 100vh; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; padding-bottom: 70px; }
+        html, body, *, .modal-box, .content-list { scrollbar-width: none !important; -ms-overflow-style: none !important; }
+        ::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; background: transparent !important; }
+
+        body { background-color: #f8fafc; display: flex; justify-content: center; min-height: 100vh; color: #1e293b; overflow: hidden; }
+        .page-container { width: 100%; max-width: 480px; background-color: #ffffff; display: flex; flex-direction: column; height: 100vh; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; }
         
         /* Header */
-        .page-header { background-color: #5114B9; color: #ffffff; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .page-header { background-color: #5114B9; color: #ffffff; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; flex-shrink: 0; }
         .header-left { display: flex; align-items: center; gap: 14px; }
         .btn-back { color: #ffffff; text-decoration: none; display: flex; align-items: center; }
         .page-header h1 { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 
         /* Filter & Search Bar */
-        .filter-bar { background-color: #f1f5f9; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #cbd5e1; gap: 8px; }
+        .filter-bar { background-color: #f1f5f9; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #cbd5e1; gap: 8px; flex-shrink: 0; }
         .filter-bar input { width: 100%; height: 32px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; outline: none; background: #ffffff; }
 
         /* Content List */
-        .content-list { padding: 12px; display: flex; flex-direction: column; gap: 10px; flex-grow: 1; }
+        .content-list { padding: 12px; display: flex; flex-direction: column; gap: 10px; flex-grow: 1; overflow-y: auto; padding-bottom: 80px; }
         .item-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .item-card-top { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748b; font-weight: 600; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; }
-        .item-card-body { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-        .item-info { display: flex; flex-direction: column; gap: 2px; }
+        .item-card-body { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        
+        .item-thumb { width: 44px; height: 44px; border-radius: 6px; object-fit: cover; border: 1px solid #cbd5e1; background: #f1f5f9; flex-shrink: 0; }
+        .item-info { display: flex; flex-direction: column; gap: 2px; flex-grow: 1; }
         .item-title { font-size: 13px; font-weight: 700; color: #0f172a; line-height: 1.3; }
         .item-subtitle { font-size: 11px; color: #475569; }
         .item-price { font-size: 13px; font-weight: 800; color: #5114B9; white-space: nowrap; text-align: right; }
 
-        /* Floating Action Button (FAB) */
-        .fab-btn { position: fixed; bottom: 65px; right: calc(50% - 220px); width: 52px; height: 52px; background-color: #5114B9; color: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(81,20,185,0.4); cursor: pointer; border: none; z-index: 95; }
-        .fab-btn:active { transform: scale(0.95); }
-        @media (max-width: 500px) { .fab-btn { right: 20px; } }
+        /* Floating Action Button (FAB) - Draggable */
+        .fab-btn { 
+            position: fixed; 
+            bottom: 65px; 
+            right: 25px; 
+            width: 52px; 
+            height: 52px; 
+            background-color: #5114B9; 
+            color: #ffffff; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            box-shadow: 0 4px 12px rgba(81,20,185,0.4); 
+            cursor: grab; 
+            border: none; 
+            z-index: 95; 
+            touch-action: none;
+            user-select: none;
+        }
+        .fab-btn:active { cursor: grabbing; }
 
         /* Bottom Total Bar */
         .bottom-total-bar { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; background-color: #0f172a; color: #ffffff; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; z-index: 90; }
@@ -45,9 +67,10 @@
         /* Modal Overlay */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; padding: 16px; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
-        .modal-box { background-color: #ffffff; width: 100%; max-width: 440px; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 90vh; }
         
-        .modal-header { background-color: #5114B9; color: #ffffff; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 14px; }
+        .modal-box { background-color: #ffffff; width: 100%; max-width: 440px; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 90vh; position: relative; transform: translate(0px, 0px); }
+        
+        .modal-header { background-color: #5114B9; color: #ffffff; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 14px; cursor: move; user-select: none; }
         .modal-header .close-modal { cursor: pointer; font-size: 20px; }
         
         .modal-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; max-height: calc(90vh - 120px); }
@@ -56,6 +79,12 @@
         .form-group label { font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; }
         .form-control { width: 100%; height: 38px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; outline: none; background-color: #f8fafc; color: #0f172a; }
         .form-control:focus { border-color: #5114B9; background-color: #ffffff; }
+
+        /* Upload Foto Styling */
+        .upload-container { display: flex; align-items: center; gap: 12px; background: #f8fafc; border: 1px dashed #cbd5e1; padding: 8px 12px; border-radius: 6px; }
+        .preview-img { width: 44px; height: 44px; border-radius: 6px; object-fit: cover; border: 1px solid #cbd5e1; background: #e2e8f0; display: none; }
+        .file-input-wrapper { display: flex; flex-direction: column; gap: 2px; flex-grow: 1; }
+        .file-input-wrapper input[type="file"] { font-size: 11px; color: #475569; }
 
         .modal-footer { padding: 12px 16px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; gap: 10px; }
         .btn-modal { flex: 1; height: 38px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; border: none; }
@@ -81,7 +110,8 @@
             <div class="empty-state">Memuat data produk...</div>
         </div>
 
-        <button class="fab-btn" id="openModalBtn">
+        <!-- Tombol Tambah (+) Bisa Digeser-geser (Draggable) -->
+        <button class="fab-btn" id="openModalBtn" title="Geser atau Klik">
             <span class="material-icons" style="font-size: 28px;">add</span>
         </button>
 
@@ -93,8 +123,8 @@
 
     <!-- Modal Form Tambah / Edit Produk -->
     <div class="modal-overlay" id="barangModal">
-        <div class="modal-box">
-            <div class="modal-header">
+        <div class="modal-box" id="modalBox">
+            <div class="modal-header" id="modalHeader">
                 <span id="modalTitleText">TAMBAH PRODUK BARU</span>
                 <span class="material-icons close-modal" id="closeModalBtn">close</span>
             </div>
@@ -134,6 +164,17 @@
                     <label>Harga Beli / HPP (Rp)</label>
                     <input type="text" id="itemBuyPrice" class="form-control" placeholder="0" inputmode="numeric">
                 </div>
+
+                <div class="form-group">
+                    <label>Foto Produk (Maks 350px)</label>
+                    <div class="upload-container">
+                        <img id="previewImg" class="preview-img" alt="Preview">
+                        <div class="file-input-wrapper">
+                            <input type="file" id="itemPhoto" accept="image/*">
+                            <span style="font-size: 10px; color: #64748b;">Format: JPG/PNG (Otomatis resize max 350px)</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn-modal btn-batal" id="btnBatal">BATAL</button>
@@ -151,6 +192,8 @@
         const searchBarang = document.getElementById('searchBarang');
 
         const barangModal = document.getElementById('barangModal');
+        const modalBox = document.getElementById('modalBox');
+        const modalHeader = document.getElementById('modalHeader');
         const openModalBtn = document.getElementById('openModalBtn');
         const closeModalBtn = document.getElementById('closeModalBtn');
         const btnBatal = document.getElementById('btnBatal');
@@ -162,8 +205,126 @@
         const itemUnit = document.getElementById('itemUnit');
         const itemSellPrice = document.getElementById('itemSellPrice');
         const itemBuyPrice = document.getElementById('itemBuyPrice');
+        const itemPhoto = document.getElementById('itemPhoto');
+        const previewImg = document.getElementById('previewImg');
 
         let rawBarangData = [];
+        let compressedPhotoBase64 = '';
+
+        // ==========================================
+        // FITUR DRAGGABLE TOMBOL FAB (+) & MODAL
+        // ==========================================
+        let isFabDragging = false;
+        let fabStartX, fabStartY, fabHasMoved = false;
+        let fabPosX = 0, fabPosY = 0;
+
+        openModalBtn.addEventListener('pointerdown', (e) => {
+            isFabDragging = true;
+            fabHasMoved = false;
+            fabStartX = e.clientX - fabPosX;
+            fabStartY = e.clientY - fabPosY;
+            openModalBtn.setPointerCapture(e.pointerId);
+        });
+
+        openModalBtn.addEventListener('pointermove', (e) => {
+            if (!isFabDragging) return;
+            const newX = e.clientX - fabStartX;
+            const newY = e.clientY - fabStartY;
+            
+            if (Math.abs(newX - fabPosX) > 3 || Math.abs(newY - fabPosY) > 3) {
+                fabHasMoved = true;
+            }
+
+            fabPosX = newX;
+            fabPosY = newY;
+            openModalBtn.style.transform = `translate(${fabPosX}px, ${fabPosY}px)`;
+        });
+
+        openModalBtn.addEventListener('pointerup', (e) => {
+            isFabDragging = false;
+            openModalBtn.releasePointerCapture(e.pointerId);
+        });
+
+        // Handler Klik Tombol FAB (hanya buka modal jika tidak sedang digeser)
+        openModalBtn.addEventListener('click', (e) => {
+            if (fabHasMoved) return;
+            resetModalPosition();
+            itemSku.value = '';
+            itemName.value = '';
+            itemUnit.value = 'Karung';
+            itemSellPrice.value = '';
+            itemBuyPrice.value = '';
+            itemPhoto.value = '';
+            compressedPhotoBase64 = '';
+            previewImg.style.display = 'none';
+            barangModal.classList.add('active');
+        });
+
+        // Draggable Modal Box
+        let isModalDragging = false, modalStartX, modalStartY, modalCurrentX = 0, modalCurrentY = 0;
+        modalHeader.addEventListener('mousedown', (e) => {
+            if (e.target.closest('.close-modal')) return;
+            isModalDragging = true;
+            modalStartX = e.clientX - modalCurrentX;
+            modalStartY = e.clientY - modalCurrentY;
+            modalHeader.style.cursor = 'grabbing';
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (!isModalDragging) return;
+            e.preventDefault();
+            modalCurrentX = e.clientX - modalStartX;
+            modalCurrentY = e.clientY - modalStartY;
+            modalBox.style.transform = `translate(${modalCurrentX}px, ${modalCurrentY}px)`;
+        });
+        document.addEventListener('mouseup', () => { isModalDragging = false; modalHeader.style.cursor = 'move'; });
+        function resetModalPosition() { modalCurrentX = 0; modalCurrentY = 0; modalBox.style.transform = 'translate(0px, 0px)'; }
+
+        // Shortcut Tombol ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && barangModal.classList.contains('active')) {
+                barangModal.classList.remove('active');
+            }
+        });
+
+        // Kompresi Foto Maksimal Lebar/Tinggi 350px
+        itemPhoto.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDim = 350;
+
+                    if (width > height) {
+                        if (width > maxDim) {
+                            height = Math.round((height * maxDim) / width);
+                            width = maxDim;
+                        }
+                    } else {
+                        if (height > maxDim) {
+                            width = Math.round((width * maxDim) / height);
+                            height = maxDim;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    compressedPhotoBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                    previewImg.src = compressedPhotoBase64;
+                    previewImg.style.display = 'block';
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
 
         function formatNumberInput(inputElem) {
             inputElem.addEventListener('input', (e) => {
@@ -175,28 +336,18 @@
         formatNumberInput(itemSellPrice);
         formatNumberInput(itemBuyPrice);
 
-        openModalBtn.addEventListener('click', () => {
-            itemSku.value = '';
-            itemName.value = '';
-            itemUnit.value = 'Karung';
-            itemSellPrice.value = '';
-            itemBuyPrice.value = '';
-            barangModal.classList.add('active');
-        });
-
         closeModalBtn.addEventListener('click', () => barangModal.classList.remove('active'));
         btnBatal.addEventListener('click', () => barangModal.classList.remove('active'));
+        barangModal.classList.remove('active'); // Pastikan tertutup awal
         barangModal.addEventListener('click', (e) => { if (e.target === barangModal) barangModal.classList.remove('active'); });
 
         async function loadBarangData() {
             try {
                 const querySnapshot = await getDocs(collection(db, 'products'));
                 rawBarangData = [];
-
                 querySnapshot.forEach(docSnap => {
                     rawBarangData.push({ id: docSnap.id, ...docSnap.data() });
                 });
-
                 renderList(rawBarangData);
             } catch (err) {
                 console.error("Gagal memuat produk:", err);
@@ -215,6 +366,7 @@
             dataArray.forEach(item => {
                 const sellPrice = parseFloat(item.sellPrice || 0).toLocaleString('id-ID');
                 const buyPrice = parseFloat(item.buyPrice || 0).toLocaleString('id-ID');
+                const photoUrl = item.photo || 'https://via.placeholder.com/44?text=No+Img';
 
                 const card = document.createElement('div');
                 card.className = 'item-card';
@@ -224,6 +376,7 @@
                         <span>[${item.category || 'Umum'}]</span>
                     </div>
                     <div class="item-card-body">
+                        <img src="${photoUrl}" class="item-thumb" alt="Foto">
                         <div class="item-info">
                             <span class="item-title">${item.name || 'Tanpa Nama'}</span>
                             <span class="item-subtitle">Satuan: ${item.unit || '-'} | HPP: Rp ${buyPrice}</span>
@@ -256,6 +409,7 @@
                     unit: itemUnit.value.trim(),
                     sellPrice: sell,
                     buyPrice: buy,
+                    photo: compressedPhotoBase64,
                     createdAt: serverTimestamp()
                 };
 

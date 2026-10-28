@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Penjualan</title>
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background-color: #f8fafc; display: flex; justify-content: center; min-height: 100vh; color: #1e293b; }
+        .page-container { width: 100%; max-width: 480px; background-color: #5114B9; display: flex; flex-direction: column; min-height: 100vh; }
+        .page-header { background-color: #5114B9; color: #ffffff; padding: 14px 16px; display: flex; align-items: center; gap: 14px; position: sticky; top: 0; z-index: 100; }
+        .page-header h1 { font-size: 16px; font-weight: 700; }
+        .btn-back { color: #ffffff; text-decoration: none; display: flex; align-items: center; }
+        .content-body { background-color: #f8fafc; border-radius: 12px 12px 0 0; margin-top: 10px; flex-grow: 1; padding: 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; padding-bottom: 40px; }
+        .filter-box { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; display: flex; gap: 8px; align-items: center; }
+        .form-group-filter { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+        .form-group-filter label { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; }
+        .form-control-sm { width: 100%; height: 36px; padding: 0 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; outline: none; }
+        .btn-filter { background-color: #5114B9; color: #ffffff; border: none; border-radius: 6px; height: 36px; padding: 0 14px; font-weight: 700; font-size: 12px; cursor: pointer; margin-top: 17px; }
+        
+        .summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .summary-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 6px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .summary-label { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; }
+        .summary-val { font-size: 12px; font-weight: 700; color: #0f172a; margin-top: 2px; }
+        .summary-val.green { color: #16a34a; }
+        
+        .section-title { font-size: 13px; font-weight: 700; color: #0f172a; }
+        .transaction-list { display: flex; flex-direction: column; gap: 10px; }
+        .trx-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .trx-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px; font-size: 11px; }
+        .trx-date { font-weight: 700; color: #5114B9; }
+        .trx-badge { background: #ede9fe; color: #5114B9; padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 10px; }
+        .trx-agent-info { font-size: 12px; font-weight: 700; color: #0f172a; }
+        .trx-agent-sub { font-size: 11px; font-weight: 400; color: #64748b; }
+        .trx-items-container { background: #f8fafc; padding: 8px; border-radius: 6px; display: flex; flex-direction: column; gap: 4px; }
+        .trx-item-row { display: flex; justify-content: space-between; font-size: 11px; color: #334155; }
+        .trx-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #cbd5e1; padding-top: 6px; font-size: 11px; }
+        .trx-total-price { font-weight: 700; color: #0f172a; font-size: 12px; }
+        .trx-action-row { display: flex; gap: 6px; justify-content: flex-end; border-top: 1px solid #f1f5f9; padding-top: 6px; }
+        .btn-action-sm { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .btn-action-sm.whatsapp { background: #dcfce7; border-color: #86efac; color: #15803d; }
+        .btn-action-sm.print { background: #ede9fe; border-color: #c4b5fd; color: #5114B9; }
+        .empty-state { text-align: center; padding: 30px; color: #64748b; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <header class="page-header">
+            <a href="../index.html" class="btn-back"><span class="material-icons">arrow_back</span></a>
+            <h1>Laporan Penjualan</h1>
+        </header>
+
+        <div class="content-body">
+            <div class="filter-box">
+                <div class="form-group-filter">
+                    <label>Dari</label>
+                    <input type="date" id="startDate" class="form-control-sm">
+                </div>
+                <div class="form-group-filter">
+                    <label>Sampai</label>
+                    <input type="date" id="endDate" class="form-control-sm">
+                </div>
+                <button type="button" class="btn-filter" id="btnFilter">Filter</button>
+            </div>
+
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <span class="summary-label">Total Qty</span>
+                    <span class="summary-val" id="sumTotalQty">0</span>
+                </div>
+                <div class="summary-card">
+                    <span class="summary-label">Omset</span>
+                    <span class="summary-val green" id="sumTotalOmset">Rp 0</span>
+                </div>
+            </div>
+
+            <div class="section-title">Daftar Transaksi Penjualan</div>
+            <div class="transaction-list" id="transactionListContainer">
+                <div class="empty-state">Memuat data...</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        // Fungsi untuk mengambil activeMonthCode dan mengisi rentang tanggal default (Tanggal 01 s/d Akhir Bulan)
+        async function initReportDateRange() {
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+
+            try {
+                const settingsDocRef = doc(db, 'settings', 'profile');
+                const settingsSnap = await getDoc(settingsDocRef);
+
+                if (settingsSnap.exists() && settingsSnap.data().activeMonthCode) {
+                    const activeMonthCode = settingsSnap.data().activeMonthCode; // Contoh: "2020-12"
+                    const [year, month] = activeMonthCode.split('-').map(Number);
+
+                    // Tanggal awal: Tgl 01 bulan aktif (misal: 2020-12-01)
+                    const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+
+                    // Tanggal akhir: Hari terakhir di bulan aktif tersebut
+                    const lastDay = new Date(year, month, 0).getDate();
+                    const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+                    startDateInput.value = startDate;
+                    endDateInput.value = endDate;
+                } else {
+                    setDefaultCurrentMonth(startDateInput, endDateInput);
+                }
+            } catch (err) {
+                console.error("Gagal memuat activeMonthCode:", err);
+                setDefaultCurrentMonth(startDateInput, endDateInput);
+            }
+
+            // Setelah tanggal terisi, Anda bisa memanggil fungsi load data laporan di sini atau biarkan skrip eksternal (`laporan-penjualan.js`) yang menghandlenya.
+        }
+
+        function setDefaultCurrentMonth(startEl, endEl) {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            startEl.value = `${year}-${String(month).padStart(2, '0')}-01`;
+            const lastDay = new Date(year, month, 0).getDate();
+            endEl.value = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+        }
+
+        initReportDateRange();
+    </script>
+    <script type="module" src="../assets/js/laporan-penjualan.js"></script>
+</body>
+</html>

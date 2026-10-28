@@ -222,6 +222,10 @@
                         <span class="material-icons">account_balance</span>
                         <span>Rekonsiliasi Bank</span>
                     </a>
+                    <a href="./pages/laporan-penjualan.html" class="menu-item">
+                        <span class="material-icons">point_of_sale</span>
+                        <span>Laporan Penjualan</span>
+                    </a>
                     <a href="./pages/laporan-pagu.html" class="menu-item">
                         <span class="material-icons">assignment_turned_in</span>
                         <span>Laporan Pagu</span>
@@ -653,11 +657,12 @@
 
                 accSnap.forEach(d => {
                     const data = d.data();
-                    const code = String(data.accCode || '');
+                    const code = String(data.accCode || '').trim();
                     accountsMap[code] = {
                         name: data.accName || '',
-                        category: data.category || '',
-                        cashFlowGroup: data.cashFlowGroup || '',
+                        reportGroup: String(data.reportGroup || '').trim(),
+                        cashFlowGroup: String(data.cashFlowGroup || '').trim(),
+                        normalBalance: String(data.normalBalance || '').trim(),
                         accCode: code
                     };
                 });
@@ -701,7 +706,6 @@
                     let monthExpense = 0;
 
                     if (journal.items && Array.isArray(journal.items)) {
-                        // Khusus untuk Tipe PENERIMAAN_KAS atau PENGELUARAN_KAS, ambil langsung dari baris kas/bank (index ke-0 atau yang bersesuaian)
                         if (isInActiveMonth) {
                             if (journal.type === 'PENERIMAAN_KAS' && journal.items.length > 0) {
                                 totalPenerimaanKas += parseFloat(journal.items[0].debit) || 0;
@@ -719,16 +723,13 @@
                             const kredit = parseFloat(item.kredit) || 0;
 
                             const accInfo = accountsMap[code] || {};
-                            const cat = (accInfo.category || '').toLowerCase();
-                            const accName = (accInfo.name || '').toLowerCase();
-                            const cashFlowGroup = (accInfo.cashFlowGroup || '').trim();
+                            const cashFlowGroup = accInfo.cashFlowGroup;
+                            const reportGroup = accInfo.reportGroup;
+                            const normalBalance = accInfo.normalBalance;
 
-                            const isKasBank = cashFlowGroup === 'Kas dan Bank' || code.startsWith('1.01') || code.startsWith('111') ||  
-                                    cat.includes('kas') || cat.includes('bank') ||  
-                                    accName.includes('kas') || accName.includes('bank') || accName.includes('bpd');
+                            const isKasBank = (cashFlowGroup === "Kas dan Bank");
 
-                            if (isInActiveMonth) {
-                                // Fallback jika jurnal umum manual (bukan tipe PENERIMAAN/PENGELUARAN_KAS khusus)
+                            if (true) {
                                 if (!journal.type || (journal.type !== 'PENERIMAAN_KAS' && journal.type !== 'PENGELUARAN_KAS')) {
                                     if (isKasBank) {
                                         totalPenerimaanKas += debit;
@@ -736,31 +737,31 @@
                                     }
                                 }
 
-                                if (code.startsWith('4') || cat.includes('pendapatan') || accName.includes('pendapatan')) {
-                                    const rev = (kredit - debit);
-                                    totalPendapatan += rev;
-                                    monthRevenue += rev;
-                                }
-
-                                if (code.startsWith('5') || code.startsWith('6') || cat.includes('biaya') || cat.includes('beban')) {
-                                    const exp = (debit - kredit);
-                                    totalBiaya += exp;
-                                    monthExpense += exp;
+                                if (reportGroup === "Laba Rugi") {
+                                    if (normalBalance === "Kredit") {
+                                        const rev = (kredit - debit);
+                                        totalPendapatan += rev;
+                                        monthRevenue += rev;
+                                    } else if (normalBalance === "Debit") {
+                                        const exp = (debit - kredit);
+                                        if (exp !== 0) {
+                                            totalBiaya += exp;
+                                            monthExpense += exp;
+                                        }
+                                    }
                                 }
                             }
 
-                            if (trxYear === activeYear && (!activeMonthNum || trxMonth <= activeMonthNum)) {
-                                if (isKasBank) {
-                                    totalKasBank += (debit - kredit);
-                                }
+                            if (isKasBank) {
+                                totalKasBank += (debit - kredit);
+                            }
 
-                                if (code.startsWith('2') || cat.includes('hutang') || cat.includes('kewajiban')) {
-                                    totalHutang += (kredit - debit);
-                                }
+                            if (code.startsWith('2') || (accInfo.name || '').toLowerCase().includes('hutang')) {
+                                totalHutang += (kredit - debit);
+                            }
 
-                                if (code.startsWith('1.02') || cat.includes('piutang') || accName.includes('piutang')) {
-                                    totalPiutang += (debit - kredit);
-                                }
+                            if (code.startsWith('1.02') || (accInfo.name || '').toLowerCase().includes('piutang')) {
+                                totalPiutang += (debit - kredit);
                             }
                         });
                     }

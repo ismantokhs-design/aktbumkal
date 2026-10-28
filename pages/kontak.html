@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Kontak / Pelanggan</title>
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+        html, body, *, .modal-box, .content-list { scrollbar-width: none !important; -ms-overflow-style: none !important; }
+        ::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; background: transparent !important; }
+
+        body { background-color: #f8fafc; display: flex; justify-content: center; min-height: 100vh; color: #1e293b; overflow: hidden; }
+        .page-container { width: 100%; max-width: 480px; background-color: #ffffff; display: flex; flex-direction: column; height: 100vh; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; }
+        
+        /* Header */
+        .page-header { background-color: #5114B9; color: #ffffff; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; flex-shrink: 0; }
+        .header-left { display: flex; align-items: center; gap: 14px; }
+        .btn-back { color: #ffffff; text-decoration: none; display: flex; align-items: center; }
+        .page-header h1 { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Filter & Search Bar */
+        .filter-bar { background-color: #f1f5f9; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #cbd5e1; gap: 8px; flex-shrink: 0; }
+        .filter-bar input { width: 100%; height: 32px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; outline: none; background: #ffffff; }
+
+        /* Content List */
+        .content-list { padding: 12px; display: flex; flex-direction: column; gap: 10px; flex-grow: 1; overflow-y: auto; padding-bottom: 80px; }
+        .item-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .item-card-top { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748b; font-weight: 600; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; }
+        .item-card-body { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        
+        .item-thumb { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 1px solid #cbd5e1; background: #f1f5f9; flex-shrink: 0; }
+        .item-info { display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0; }
+        .item-title { font-size: 13px; font-weight: 700; color: #0f172a; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-subtitle { font-size: 11px; color: #475569; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        /* Tombol Aksi di Kartu */
+        .item-action-buttons { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
+        .btn-action { width: 30px; height: 30px; border-radius: 6px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #ffffff; }
+        .btn-action.whatsapp { background-color: #16a34a; }
+        .btn-action.edit { background-color: #d97706; }
+        .btn-action.delete { background-color: #dc2626; }
+        .btn-action:active { transform: scale(0.95); }
+
+        /* Floating Action Button (FAB) */
+        .fab-btn { 
+            position: fixed; bottom: 65px; right: 25px; width: 52px; height: 52px; background-color: #5114B9; color: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(81,20,185,0.4); cursor: grab; border: none; z-index: 95; touch-action: none; user-select: none;
+        }
+        .fab-btn:active { cursor: grabbing; }
+
+        /* Bottom Total Bar */
+        .bottom-total-bar { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; background-color: #0f172a; color: #ffffff; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; z-index: 90; }
+        .bottom-total-value { color: #a78bfa; font-size: 15px; }
+
+        /* Modal Overlay */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; padding: 16px; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        
+        .modal-box { background-color: #ffffff; width: 100%; max-width: 440px; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 90vh; position: relative; transform: translate(0px, 0px); }
+        
+        .modal-header { background-color: #5114B9; color: #ffffff; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 14px; cursor: move; user-select: none; }
+        .modal-header .close-modal { cursor: pointer; font-size: 20px; }
+        
+        .modal-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; max-height: calc(90vh - 120px); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; }
+        .form-control { width: 100%; height: 38px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; outline: none; background-color: #f8fafc; color: #0f172a; }
+        .form-control:focus { border-color: #5114B9; background-color: #ffffff; }
+        textarea.form-control { height: 60px; padding: 8px 10px; resize: none; }
+
+        /* Upload Foto Styling */
+        .upload-container { display: flex; align-items: center; gap: 12px; background: #f8fafc; border: 1px dashed #cbd5e1; padding: 8px 12px; border-radius: 6px; }
+        .preview-img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 1px solid #cbd5e1; background: #e2e8f0; display: none; }
+        .file-input-wrapper { display: flex; flex-direction: column; gap: 2px; flex-grow: 1; }
+        .file-input-wrapper input[type="file"] { font-size: 11px; color: #475569; }
+
+        .modal-footer { padding: 12px 16px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; gap: 10px; }
+        .btn-modal { flex: 1; height: 38px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; border: none; }
+        .btn-simpan { background-color: #5114B9; color: #ffffff; }
+        .btn-batal { background-color: #ffffff; color: #dc2626; border: 1px solid #dc2626; }
+        .empty-state { text-align: center; padding: 40px; color: #94a3b8; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <header class="page-header">
+            <div class="header-left">
+                <a href="../index.html" class="btn-back"><span class="material-icons">arrow_back</span></a>
+                <h1>Master Kontak</h1>
+            </div>
+        </header>
+
+        <div class="filter-bar">
+            <input type="text" id="searchKontak" placeholder="Cari nama kontak, telepon, atau perusahaan..." autocomplete="off">
+        </div>
+
+        <div class="content-list" id="kontakListContainer">
+            <div class="empty-state">Memuat data kontak...</div>
+        </div>
+
+        <!-- Tombol Tambah (+) Bisa Digeser-geser -->
+        <button class="fab-btn" id="openModalBtn" title="Geser atau Klik">
+            <span class="material-icons" style="font-size: 28px;">add</span>
+        </button>
+
+        <div class="bottom-total-bar">
+            <span>TOTAL KONTAK</span>
+            <span class="bottom-total-value" id="totalCountDisplay">0 Kontak</span>
+        </div>
+    </div>
+
+    <!-- Modal Form Tambah/Edit Kontak -->
+    <div class="modal-overlay" id="kontakModal">
+        <div class="modal-box" id="modalBox">
+            <div class="modal-header" id="modalHeader">
+                <span id="modalTitleText">TAMBAH KONTAK BARU</span>
+                <span class="material-icons close-modal" id="closeModalBtn">close</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tipe Kontak *</label>
+                        <select id="kontakType" class="form-control" autocomplete="off">
+                            <option value="" selected disabled>--Pilih Tipe--</option>
+                            <option value="AGEN">AGEN</option>
+                            <option value="KARYAWAN">KARYAWAN</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>No. Telepon / WA *</label>
+                        <input type="text" id="kontakPhone" class="form-control" placeholder="Contoh: 08123456789" inputmode="tel" autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Nama Kontak *</label>
+                    <input type="text" id="kontakName" class="form-control" placeholder="Contoh: Budi Santoso" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>Perusahaan / Instansi</label>
+                    <input type="text" id="kontakCompany" class="form-control" placeholder="Contoh: CV. Maju Jaya" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>Alamat</label>
+                    <textarea id="kontakAddress" class="form-control" placeholder="Alamat lengkap..." autocomplete="off"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Foto / Profil (Maks 350px)</label>
+                    <div class="upload-container">
+                        <img id="previewImg" class="preview-img" alt="Preview">
+                        <div class="file-input-wrapper">
+                            <input type="file" id="kontakPhoto" accept="image/*" autocomplete="off">
+                            <span style="font-size: 10px; color: #64748b;">Format: JPG/PNG (Otomatis resize max 350px)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-batal" id="btnBatal">BATAL</button>
+                <button class="btn-modal btn-simpan" id="btnSimpan">SIMPAN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panggil Logic JavaScript Terpisah -->
+    <script type="module" src="../assets/js/master-kontak.js"></script>
+</body>
+</html>

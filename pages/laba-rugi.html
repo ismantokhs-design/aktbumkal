@@ -233,63 +233,15 @@
             </div>
         </div>
 
-        <!-- Area Isi Laporan Laba Rugi -->
+        <!-- Area Isi Laporan Laba Rugi Dinamis Berbasis Level 2 -->
         <div class="report-wrapper">
-            <div class="report-paper">
-                <!-- Section 1: Pendapatan Usaha -->
-                <div class="lr-section-title">PENDAPATAN USAHA</div>
-                <div id="pendapatanUsahaList"></div>
-                <div class="lr-row-summary">
-                    <span>Total Pendapatan Usaha</span>
-                    <span class="val-num" id="totalPendapatanUsaha">0</span>
-                </div>
-
-                <!-- Section 2: Beban Usaha -->
-                <div class="lr-section-title" style="margin-top: 14px;">BEBAN USAHA</div>
-                <div id="bebanUsahaList"></div>
-                <div class="lr-row-summary">
-                    <span>Total Beban Usaha</span>
-                    <span class="val-num" id="totalBebanUsaha">0</span>
-                </div>
-
-                <!-- Total Laba Usaha -->
-                <div class="lr-row-summary" style="margin-top: 4px;">
-                    <span>LABA USAHA</span>
-                    <span class="val-num" id="labaUsaha">0</span>
-                </div>
-
-                <!-- Section 3: Pendapatan Non Usaha -->
-                <div class="lr-section-title" style="margin-top: 14px;">PENDAPATAN NON USAHA</div>
-                <div id="pendapatanNonUsahaList"></div>
-                <div class="lr-row-summary">
-                    <span>Total Pendapatan Non Usaha</span>
-                    <span class="val-num" id="totalPendapatanNonUsaha">0</span>
-                </div>
-
-                <!-- Section 4: Beban Non Usaha -->
-                <div class="lr-section-title" style="margin-top: 14px;">BEBAN NON USAHA</div>
-                <div id="bebanNonUsahaList"></div>
-                <div class="lr-row-summary">
-                    <span>Total Beban Non Usaha</span>
-                    <span class="val-num" id="totalBebanNonUsaha">0</span>
-                </div>
-
-                <!-- Total Laba Non Usaha -->
-                <div class="lr-row-summary" style="margin-top: 4px;">
-                    <span>TOTAL LABA NON USAHA</span>
-                    <span class="val-num" id="totalLabaNonUsaha">0</span>
-                </div>
-
-                <!-- TOTAL AKHIR LABA/RUGI -->
-                <div class="lr-row-total" style="margin-top: 16px;">
-                    <span>LABA/RUGI</span>
-                    <span class="val-num" id="totalLabaRugiAkhir">0</span>
-                </div>
+            <div class="report-paper" id="reportPaperContent">
+                <!-- Konten laporan akan digenerate secara dinamis berdasarkan master level 2 COA -->
             </div>
         </div>
     </div>
 
-    <!-- Script Firestore Integrasi Real-Time -->
+    <!-- Script Firestore Integrasi Real-Time Berbasis Level 2 COA -->
     <script type="module">
         import { db } from '../assets/js/firebase-config.js';
         import { doc, getDoc, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -297,22 +249,7 @@
         const startDateInput = document.getElementById('startDate');
         const endDateInput = document.getElementById('endDate');
         const filterUnitLabaRugi = document.getElementById('filterUnitLabaRugi');
-
-        const pendapatanUsahaList = document.getElementById('pendapatanUsahaList');
-        const totalPendapatanUsaha = document.getElementById('totalPendapatanUsaha');
-
-        const bebanUsahaList = document.getElementById('bebanUsahaList');
-        const totalBebanUsaha = document.getElementById('totalBebanUsaha');
-        const labaUsaha = document.getElementById('labaUsaha');
-
-        const pendapatanNonUsahaList = document.getElementById('pendapatanNonUsahaList');
-        const totalPendapatanNonUsaha = document.getElementById('totalPendapatanNonUsaha');
-
-        const bebanNonUsahaList = document.getElementById('bebanNonUsahaList');
-        const totalBebanNonUsaha = document.getElementById('totalBebanNonUsaha');
-        const totalLabaNonUsaha = document.getElementById('totalLabaNonUsaha');
-
-        const totalLabaRugiAkhir = document.getElementById('totalLabaRugiAkhir');
+        const reportPaperContent = document.getElementById('reportPaperContent');
 
         function formatDateString(y, m, d) {
             const mm = String(m).padStart(2, '0');
@@ -384,35 +321,70 @@
                 // 1. Fetch seluruh master akun dari koleksi 'accounts'
                 const accSnap = await getDocs(collection(db, 'accounts'));
                 const accountsMap = {};
-                
-                const pendUsahaAccounts = {};
-                const bebanUsahaAccounts = {};
-                const pendNonUsahaAccounts = {};
-                const bebanNonUsahaAccounts = {};
+                const level2Map = {}; // Menyimpan akun level 2 (parent) dengan key accCode
 
                 accSnap.forEach(d => {
                     const data = d.data();
                     const code = String(data.accCode || '').trim();
                     const name = data.accName || '';
+                    const level = parseInt(data.level, 10);
+                    const parentCode = String(data.parentCode || '').trim();
                     const repGroup = (data.reportGroup || '').toLowerCase();
-                    const isLevel4 = parseInt(data.level, 10) === 4 || data.isPostable === true || data.isPostable === 'true';
+                    const normalBalance = String(data.normalBalance || '').toLowerCase();
+                    const isPostable = data.isPostable === true || data.isPostable === 'true';
 
-                    accountsMap[code] = { name, reportGroup: repGroup, accCode: code };
+                    accountsMap[code] = { 
+                        name, 
+                        level, 
+                        parentCode, 
+                        reportGroup: repGroup, 
+                        normalBalance,
+                        isPostable,
+                        accCode: code 
+                    };
 
-                    // Filter utama berdasarkan reportGroup "Laba Rugi"
-                    if (isLevel4 && repGroup.includes('laba rugi')) {
-                        // Pengelompokan berdasarkan awalan kode akun yang lebih spesifik & terstruktur
-                        if (code.startsWith('4.01') || code.startsWith('4.1')) {
-                            pendUsahaAccounts[code] = 0;
-                        } else if (code.startsWith('4.02') || code.startsWith('4.2') || code.startsWith('8')) {
-                            pendNonUsahaAccounts[code] = 0;
-                        } else if (code.startsWith('5') || code.startsWith('6') || code.startsWith('7')) {
-                            bebanUsahaAccounts[code] = 0;
-                        } else if (code.startsWith('9')) {
-                            bebanNonUsahaAccounts[code] = 0;
+                    // Kumpulkan akun level 2 yang masuk ke Laba Rugi
+                    if (level === 2 && repGroup.includes('laba rugi')) {
+                        level2Map[code] = {
+                            code,
+                            name,
+                            normalBalance,
+                            items: {} // akan diisi akun level 4 di bawahnya
+                        };
+                    }
+                });
+
+                // Petakan akun level 4 (postable) ke masing-masing parent level 2 berdasarkan parentCode atau awalan kode
+                accSnap.forEach(d => {
+                    const data = d.data();
+                    const code = String(data.accCode || '').trim();
+                    const level = parseInt(data.level, 10);
+                    const parentCode = String(data.parentCode || '').trim();
+                    const repGroup = (data.reportGroup || '').toLowerCase();
+                    const isPostable = data.isPostable === true || data.isPostable === 'true' || level === 4;
+
+                    if (isPostable && repGroup.includes('laba rugi')) {
+                        // Cari parent level 2 yang cocok (berdasarkan parentCode atau awalan kode terdekat)
+                        let matchedParentCode = parentCode;
+                        if (!level2Map[matchedParentCode]) {
+                            // Fallback cari level 2 yang kodenya menjadi awalan dari kode akun ini
+                            const sortedL2Keys = Object.keys(level2Map).sort((a, b) => b.length - a.length);
+                            for (let l2Key of sortedL2Keys) {
+                                if (code.startsWith(l2Key)) {
+                                    matchedParentCode = l2Key;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (level2Map[matchedParentCode]) {
+                            level2Map[matchedParentCode].items[code] = 0;
                         } else {
-                            // Fallback jika tidak masuk kategori di atas tapi masuk laba rugi
-                            bebanUsahaAccounts[code] = 0;
+                            // Jika belum ada level 2 yang cocok, masukkan ke level 2 pertama atau buat default
+                            const firstL2Key = Object.keys(level2Map)[0];
+                            if (firstL2Key) {
+                                level2Map[firstL2Key].items[code] = 0;
+                            }
                         }
                     }
                 });
@@ -441,69 +413,127 @@
                             const kredit = parseFloat(item.kredit) || 0;
 
                             const accInfo = accountsMap[code] || {};
-                            const repGroup = accInfo.reportGroup || '';
-
-                            if (repGroup.includes('laba rugi')) {
-                                if (code.startsWith('4.01') || code.startsWith('4.1')) {
-                                    const val = kredit - debit;
-                                    if (pendUsahaAccounts.hasOwnProperty(code)) pendUsahaAccounts[code] += val;
-                                } else if (code.startsWith('4.02') || code.startsWith('4.2') || code.startsWith('8')) {
-                                    const val = kredit - debit;
-                                    if (pendNonUsahaAccounts.hasOwnProperty(code)) pendNonUsahaAccounts[code] += val;
-                                } else if (code.startsWith('5') || code.startsWith('6') || code.startsWith('7')) {
-                                    const val = debit - kredit;
-                                    if (bebanUsahaAccounts.hasOwnProperty(code)) bebanUsahaAccounts[code] += val;
-                                } else if (code.startsWith('9')) {
-                                    const val = debit - kredit;
-                                    if (bebanNonUsahaAccounts.hasOwnProperty(code)) bebanNonUsahaAccounts[code] += val;
+                            if (accInfo.reportGroup && accInfo.reportGroup.includes('laba rugi')) {
+                                // Cari di level2Map akun mana yang memiliki item code ini
+                                for (let l2Code in level2Map) {
+                                    if (level2Map[l2Code].items.hasOwnProperty(code)) {
+                                        // Hitung nilai berdasarkan saldo normal akun
+                                        const isCreditNormal = accInfo.normalBalance === 'kredit';
+                                        const val = isCreditNormal ? (kredit - debit) : (debit - kredit);
+                                        level2Map[l2Code].items[code] += val;
+                                        break;
+                                    }
                                 }
                             }
                         });
                     }
                 });
 
-                let sumPendUsaha = Object.values(pendUsahaAccounts).reduce((a, b) => a + b, 0);
-                let sumBebanUsaha = Object.values(bebanUsahaAccounts).reduce((a, b) => a + b, 0);
-                let sumPendNonUsaha = Object.values(pendNonUsahaAccounts).reduce((a, b) => a + b, 0);
-                let sumBebanNonUsaha = Object.values(bebanNonUsahaAccounts).reduce((a, b) => a + b, 0);
+                // 3. Render Dinamis Berdasarkan Level 2
+                reportPaperContent.innerHTML = '';
 
-                const renderList = (container, dataObj) => {
-                    container.innerHTML = '';
-                    const keys = Object.keys(dataObj).sort();
-                    if (keys.length === 0) {
-                        container.innerHTML = '<div style="font-size:10px; color:#94a3b8; padding-left:12px;">(Tidak ada akun)</div>';
-                        return;
-                    }
-                    keys.forEach(code => {
-                        const accName = accountsMap[code]?.name || code;
-                        const row = document.createElement('div');
-                        row.className = 'lr-row-item';
-                        row.innerHTML = `
-                            <span>${code} - ${accName}</span>
-                            <span class="val-num">${dataObj[code].toLocaleString('id-ID')}</span>
-                        `;
-                        container.appendChild(row);
+                // Pisahkan kelompok berdasarkan karakteristik nama/kode level 2 (Pendapatan, HPP, Beban Usaha, Pendapatan/Beban Non Usaha)
+                let pendapatanUsahaTotal = 0;
+                let hppTotal = 0;
+                let bebanUsahaTotal = 0;
+                let pendapatanNonUsahaTotal = 0;
+                let bebanNonUsahaTotal = 0;
+
+                const l2Codes = Object.keys(level2Map).sort();
+
+                l2Codes.forEach(l2Code => {
+                    const l2Obj = level2Map[l2Code];
+                    const l2NameLower = l2Obj.name.toLowerCase();
+                    const itemCodes = Object.keys(l2Obj.items).sort();
+                    
+                    let subTotal = 0;
+                    itemCodes.forEach(code => {
+                        subTotal += l2Obj.items[code];
                     });
-                };
 
-                renderList(pendapatanUsahaList, pendUsahaAccounts);
-                renderList(bebanUsahaList, bebanUsahaAccounts);
-                renderList(pendapatanNonUsahaList, pendNonUsahaAccounts);
-                renderList(bebanNonUsahaList, bebanNonUsahaAccounts);
+                    // Render Section Title Level 2
+                    const sectionTitle = document.createElement('div');
+                    sectionTitle.className = 'lr-section-title';
+                    if (l2Code !== l2Codes[0]) sectionTitle.style.marginTop = '14px';
+                    sectionTitle.textContent = l2Obj.name;
+                    reportPaperContent.appendChild(sectionTitle);
 
-                const valLabaUsaha = sumPendUsaha - sumBebanUsaha;
-                const valLabaNonUsaha = sumPendNonUsaha - sumBebanNonUsaha;
-                const valLabaRugiAkhir = valLabaUsaha + valLabaNonUsaha;
+                    // Render Items List
+                    const itemListContainer = document.createElement('div');
+                    if (itemCodes.length === 0) {
+                        itemListContainer.innerHTML = '<div style="font-size:10px; color:#94a3b8; padding-left:12px;">(Tidak ada akun)</div>';
+                    } else {
+                        itemCodes.forEach(code => {
+                            const accName = accountsMap[code]?.name || code;
+                            const row = document.createElement('div');
+                            row.className = 'lr-row-item';
+                            row.innerHTML = `
+                                <span>${code} - ${accName}</span>
+                                <span class="val-num">${l2Obj.items[code].toLocaleString('id-ID')}</span>
+                            `;
+                            itemListContainer.appendChild(row);
+                        });
+                    }
+                    reportPaperContent.appendChild(itemListContainer);
 
-                totalPendapatanUsaha.textContent = sumPendUsaha.toLocaleString('id-ID');
-                totalBebanUsaha.textContent = sumBebanUsaha.toLocaleString('id-ID');
-                labaUsaha.textContent = valLabaUsaha.toLocaleString('id-ID');
+                    // Render Subtotal Summary for this Level 2
+                    const summaryRow = document.createElement('div');
+                    summaryRow.className = 'lr-row-summary';
+                    summaryRow.innerHTML = `
+                        <span>Total ${l2Obj.name}</span>
+                        <span class="val-num">${subTotal.toLocaleString('id-ID')}</span>
+                    `;
+                    reportPaperContent.appendChild(summaryRow);
 
-                totalPendapatanNonUsaha.textContent = sumPendNonUsaha.toLocaleString('id-ID');
-                totalBebanNonUsaha.textContent = sumBebanNonUsaha.toLocaleString('id-ID');
-                totalLabaNonUsaha.textContent = valLabaNonUsaha.toLocaleString('id-ID');
+                    // Klasifikasikan total untuk perhitungan Laba Kotor & Bersih
+                    if (l2NameLower.includes('pendapatan usaha') || (l2Code.startsWith('4.01') || l2Code.startsWith('4.1'))) {
+                        pendapatanUsahaTotal += subTotal;
+                    } else if (l2NameLower.includes('harga pokok') || l2NameLower.includes('hpp') || l2Code.startsWith('5.01')) {
+                        hppTotal += subTotal;
+                    } else if (l2NameLower.includes('beban') && (l2Code.startsWith('5') || l2Code.startsWith('6') || l2Code.startsWith('7'))) {
+                        bebanUsahaTotal += subTotal;
+                    } else if (l2NameLower.includes('pendapatan') && (l2Code.startsWith('4.02') || l2Code.startsWith('4.2') || l2Code.startsWith('8'))) {
+                        pendapatanNonUsahaTotal += subTotal;
+                    } else if (l2NameLower.includes('beban') && l2Code.startsWith('9')) {
+                        bebanNonUsahaTotal += subTotal;
+                    } else {
+                        // Default fallback jika tidak masuk kategori khusus
+                        if (l2Obj.normalBalance === 'kredit') {
+                            pendapatanUsahaTotal += subTotal;
+                        } else {
+                            bebanUsahaTotal += subTotal;
+                        }
+                    }
 
-                totalLabaRugiAkhir.textContent = valLabaRugiAkhir.toLocaleString('id-ID');
+                    // Jika kelompok ini adalah HPP, selipkan baris Laba Kotor di bawahnya
+                    if (l2NameLower.includes('harga pokok') || l2NameLower.includes('hpp') || l2Code.startsWith('5.01')) {
+                        const valLabaKotor = pendapatanUsahaTotal - hppTotal;
+                        const labaKotorRow = document.createElement('div');
+                        labaKotorRow.className = 'lr-row-summary';
+                        labaKotorRow.style.cssText = 'margin-top: 4px; border-top: 1px dashed #cbd5e1; padding-top: 6px;';
+                        labaKotorRow.innerHTML = `
+                            <span>LABA / RUGI KOTOR</span>
+                            <span class="val-num">${valLabaKotor.toLocaleString('id-ID')}</span>
+                        `;
+                        reportPaperContent.appendChild(labaKotorRow);
+                    }
+                });
+
+                // Hitung total akhir Laba / Rugi Bersih
+                // Total Pendapatan - HPP - Beban Usaha + Pendapatan Non Usaha - Beban Non Usaha
+                let totalPendapatanAll = pendapatanUsahaTotal + pendapatanNonUsahaTotal;
+                let totalBebanAll = hppTotal + bebanUsahaTotal + bebanNonUsahaTotal;
+                let valLabaRugiAkhir = totalPendapatanAll - totalBebanAll;
+
+                // Render Baris Total Akhir Laba/Rugi
+                const finalTotalRow = document.createElement('div');
+                finalTotalRow.className = 'lr-row-total';
+                finalTotalRow.style.marginTop = '16px';
+                finalTotalRow.innerHTML = `
+                    <span>LABA/RUGI</span>
+                    <span class="val-num">${valLabaRugiAkhir.toLocaleString('id-ID')}</span>
+                `;
+                reportPaperContent.appendChild(finalTotalRow);
 
             } catch (err) {
                 console.error("Gagal menghitung Laporan Laba Rugi:", err);

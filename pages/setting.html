@@ -509,27 +509,38 @@
                 <!-- TAB 3: MAPPING AKUN TRANSAKSI & REKONSILIASI -->
                 <div id="tab-mapping" class="tab-content">
                     <div class="form-section-header">
-                        <span class="form-section-title">Mapping Akun Umum</span>
+                        <span class="form-section-title">Mapping Akun Transaksi Penjualan</span>
                     </div>
 
+                    <!-- 1. Akun untuk Tunai (Kas) -->
                     <div class="form-group">
-                        <label class="form-label" for="akunKasUtama">Akun Kas Utama</label>
-                        <select id="akunKasUtama" class="form-control account-dropdown">
-                            <option value="">Pilih Akun Kas...</option>
+                        <label class="form-label" for="akunTunaiKas">Akun Penjualan Tunai (Kas)</label>
+                        <select id="akunTunaiKas" class="form-control account-dropdown">
+                            <option value="">Pilih Akun Kas Toko / Tunai...</option>
                         </select>
                     </div>
 
+                    <!-- 2. Akun untuk Transfer Bank -->
                     <div class="form-group">
-                        <label class="form-label" for="akunPiutang">Akun Piutang Usaha</label>
-                        <select id="akunPiutang" class="form-control account-dropdown">
-                            <option value="">Pilih Akun Piutang...</option>
+                        <label class="form-label" for="akunTransferBank">Akun Penjualan Transfer Bank</label>
+                        <select id="akunTransferBank" class="form-control account-dropdown">
+                            <option value="">Pilih Akun Rekening Bank...</option>
                         </select>
                     </div>
 
+                    <!-- 3. Akun untuk Piutang / Kredit -->
                     <div class="form-group">
-                        <label class="form-label" for="akunPendapatan">Akun Pendapatan Utama</label>
+                        <label class="form-label" for="akunPiutangKredit">Akun Penjualan Piutang / Kredit</label>
+                        <select id="akunPiutangKredit" class="form-control account-dropdown">
+                            <option value="">Pilih Akun Piutang Usaha...</option>
+                        </select>
+                    </div>
+
+                    <!-- 4. Akun Pendapatan Penjualan -->
+                    <div class="form-group">
+                        <label class="form-label" for="akunPendapatan">Akun Pendapatan Penjualan</label>
                         <select id="akunPendapatan" class="form-control account-dropdown">
-                            <option value="">Pilih Akun Pendapatan...</option>
+                            <option value="">Pilih Akun Pendapatan Penjualan...</option>
                         </select>
                     </div>
 
@@ -630,8 +641,9 @@
         const btnResetSetting = document.getElementById('btnResetSetting');
 
         // Mapping Elements
-        const akunKasUtamaSelect = document.getElementById('akunKasUtama');
-        const akunPiutangSelect = document.getElementById('akunPiutang');
+        const akunTunaiKasSelect = document.getElementById('akunTunaiKas');
+        const akunTransferBankSelect = document.getElementById('akunTransferBank');
+        const akunPiutangKreditSelect = document.getElementById('akunPiutangKredit');
         const akunPendapatanSelect = document.getElementById('akunPendapatan');
         const mappingBankContainer = document.getElementById('mappingBankContainer');
 
@@ -655,7 +667,7 @@
         let allAccountsCOA = [];
         let bankAccountsList = [];
         let cashAccountsList = [];
-        let savedBankMapping = {}; // Format: { "1.01.02.001": "1.01.01.002", ... }
+        let savedBankMapping = {};
 
         // Kontrol Perpindahan Tab
         function switchTab(activeBtn, activeTab) {
@@ -670,7 +682,7 @@
         btnTabUnit.addEventListener('click', () => switchTab(btnTabUnit, tabUnit));
         btnTabMapping.addEventListener('click', () => switchTab(btnTabMapping, tabMapping));
 
-        // Load COA from Firestore
+        // Load COA dari Firestore (Hanya mengambil akun Level 4 / Tepat 3 buah titik) dan sort A-Z
         async function loadChartOfAccounts() {
             try {
                 const accSnap = await getDocs(collection(db, 'accounts'));
@@ -678,30 +690,50 @@
                 bankAccountsList = [];
                 cashAccountsList = [];
 
+                let rawAccounts = [];
                 accSnap.forEach(d => {
                     const data = d.data();
-                    const code = String(data.accCode || '').trim();
-                    const name = String(data.accName || '').trim();
-                    const group = String(data.cashFlowGroup || '').trim();
+                    const code = String(data.accCode || data.code || data.kodeAkun || data.kode || '').trim();
+                    const name = String(data.accName || data.name || data.namaAkun || data.nama || '').trim();
+                    const group = String(data.cashFlowGroup || data.group || data.kategori || '').trim();
 
-                    const accObj = { code, name, group };
-                    allAccountsCOA.push(accObj);
+                    if (!code) return;
+                    rawAccounts.push({ code, name, group });
+                });
 
-                    if (group === 'Kas dan Bank') {
-                        // Pisahkan antara Bank dan Kas Tunai berdasarkan nama atau kode
-                        const lowerName = name.toLowerCase();
-                        if (lowerName.includes('bank') || code.startsWith('1.01.02')) {
-                            bankAccountsList.push(accObj);
-                        } else if (lowerName.includes('kas') || code.startsWith('1.01.01')) {
-                            cashAccountsList.push(accObj);
+                // Filter MUTLAK HANYA Level 4 (yaitu yang memiliki tepat 3 titik, contoh: 1.01.01.001)
+                allAccountsCOA = rawAccounts.filter(acc => {
+                    const dotCount = (acc.code.match(/\./g) || []).length;
+                    return dotCount >= 3; 
+                });
+
+                // Jika hasil filter kosong, fallback ke semua akun
+                if (allAccountsCOA.length === 0) {
+                    allAccountsCOA = [...rawAccounts];
+                }
+
+                allAccountsCOA.forEach(acc => {
+                    const lowerName = acc.name.toLowerCase();
+                    const lowerGroup = acc.group.toLowerCase();
+
+                    if (lowerGroup.includes('kas') || lowerGroup.includes('bank') || lowerName.includes('kas') || lowerName.includes('bank') || acc.code.startsWith('1.01')) {
+                        if (lowerName.includes('bank') || acc.code.startsWith('1.01.02')) {
+                            bankAccountsList.push(acc);
+                        } else {
+                            cashAccountsList.push(acc);
                         }
                     }
                 });
 
-                // Urutkan berdasarkan kode akun
-                allAccountsCOA.sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true }));
-                bankAccountsList.sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true }));
-                cashAccountsList.sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true }));
+                if (cashAccountsList.length === 0) {
+                    cashAccountsList = [...allAccountsCOA];
+                }
+
+                // SORTING KODE AKUN (A - Z / Numeric Ascending)
+                const sortByCode = (a, b) => a.code.localeCompare(b.code, undefined, { numeric: true });
+                allAccountsCOA.sort(sortByCode);
+                bankAccountsList.sort(sortByCode);
+                cashAccountsList.sort(sortByCode);
 
                 populateAccountDropdowns();
                 renderBankMappingUI();
@@ -711,7 +743,7 @@
         }
 
         function populateAccountDropdowns() {
-            const dropdowns = [akunKasUtamaSelect, akunPiutangSelect, akunPendapatanSelect];
+            const dropdowns = [akunTunaiKasSelect, akunTransferBankSelect, akunPiutangKreditSelect, akunPendapatanSelect];
             dropdowns.forEach(sel => {
                 if (!sel) return;
                 const currentVal = sel.value;
@@ -734,16 +766,14 @@
             if (bankAccountsList.length === 0) {
                 mappingBankContainer.innerHTML = `
                     <div style="text-align: center; padding: 12px; color: #94a3b8; font-size: 11px;">
-                        Tidak ada akun Bank ditemukan pada CashFlowGroup "Kas dan Bank". Pastikan penamaan akun mengandung kata "Bank".
+                        Tidak ada akun Bank spesifik. Menampilkan seluruh akun kas/bank tersedia.
                     </div>`;
-                return;
+                bankAccountsList = [...cashAccountsList];
             }
 
             bankAccountsList.forEach(bank => {
                 const card = document.createElement('div');
                 card.className = 'mapping-bank-card';
-
-                const currentMappedCash = savedBankMapping[bank.code] || '';
 
                 let cashOptionsHTML = '<option value="">-- Pilih Kas Pendukung / Fisik --</option>';
                 cashAccountsList.forEach(cash => {
@@ -786,8 +816,9 @@
                         alamat: 'Srihardono, Pundong, Bantul, Yogyakarta 55771',
                         tglMulai: '2026-01-01',
                         tglSelesai: '2026-12-31',
-                        akunKasUtama: '',
-                        akunPiutang: '',
+                        akunTunaiKas: '',
+                        akunTransferBank: '',
+                        akunPiutangKredit: '',
                         akunPendapatan: '',
                         bankCashMapping: {},
                         unitList: [
@@ -813,8 +844,14 @@
             tglMulaiInput.value = data.tglMulai || '2026-01-01';
             tglSelesaiInput.value = data.tglSelesai || '2026-12-31';
 
-            if (data.akunKasUtama) akunKasUtamaSelect.value = data.akunKasUtama;
-            if (data.akunPiutang) akunPiutangSelect.value = data.akunPiutang;
+            if (data.akunTunaiKas) akunTunaiKasSelect.value = data.akunTunaiKas;
+            else if (data.akunKasUtama) akunTunaiKasSelect.value = data.akunKasUtama;
+
+            if (data.akunTransferBank) akunTransferBankSelect.value = data.akunTransferBank;
+
+            if (data.akunPiutangKredit) akunPiutangKreditSelect.value = data.akunPiutangKredit;
+            else if (data.akunPiutang) akunPiutangKreditSelect.value = data.akunPiutang;
+
             if (data.akunPendapatan) akunPendapatanSelect.value = data.akunPendapatan;
 
             renderUnitList();
@@ -947,7 +984,6 @@
                 return;
             }
 
-            // Kumpulkan data mapping bank dari UI
             const currentBankMapping = {};
             document.querySelectorAll('.bank-cash-mapping-select').forEach(sel => {
                 const bankCode = sel.dataset.bankcode;
@@ -959,7 +995,7 @@
 
             const confirmResult = await Swal.fire({
                 title: 'Simpan Pengaturan?',
-                text: 'Apakah Anda yakin ingin memperbarui profil, unit usaha, dan mapping akun?',
+                text: 'Apakah Anda yakin ingin memperbarui profil, unit usaha, dan mapping akun transaksi?',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#5114B9',
@@ -978,8 +1014,9 @@
                 alamat: alamatInput.value.trim(),
                 tglMulai: tglMulaiInput.value,
                 tglSelesai: tglSelesaiInput.value,
-                akunKasUtama: akunKasUtamaSelect.value,
-                akunPiutang: akunPiutangSelect.value,
+                akunTunaiKas: akunTunaiKasSelect.value,
+                akunTransferBank: akunTransferBankSelect.value,
+                akunPiutangKredit: akunPiutangKreditSelect.value,
                 akunPendapatan: akunPendapatanSelect.value,
                 bankCashMapping: currentBankMapping,
                 unitList: unitList,
@@ -996,7 +1033,7 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'Berhasil!',
-                    text: 'Pengaturan dan mapping akun bank berhasil disimpan.',
+                    text: 'Pengaturan dan mapping akun transaksi berhasil disimpan.',
                     timer: 1500,
                     showConfirmButton: false
                 });
