@@ -166,7 +166,7 @@
             border: none;
         }
 
-        /* Filter Level Selector khusus Sub Klasifikasi */
+        /* Filter Level khusus Sub Klasifikasi */
         .subklas-filter-wrapper {
             display: none; 
             gap: 6px;
@@ -1181,7 +1181,7 @@
                     showConfirmButton: false
                 });
 
-                modalAccount.classList.remove('active');
+                // HANYA MERESET FORM, MODAL TETAP TERBUKA
                 resetFormFields();
                 loadAccounts();
 

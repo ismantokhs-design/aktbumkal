@@ -211,6 +211,56 @@
             gap: 10px;
         }
 
+        /* Multiselect Tag Container CSS */
+        .multiselect-container {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background-color: #ffffff;
+            padding: 6px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .multiselect-container:focus-within {
+            border-color: #5114B9;
+            box-shadow: 0 0 0 2px rgba(81, 20, 185, 0.1);
+        }
+        .selected-tags-box {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            min-height: 24px;
+        }
+        .account-tag {
+            background-color: #ede9fe;
+            color: #5114B9;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .account-tag .remove-tag {
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            color: #5114B9;
+        }
+        .account-tag .remove-tag:hover {
+            color: #dc2626;
+        }
+        .multiselect-select {
+            border: none;
+            outline: none;
+            font-size: 12px;
+            background: transparent;
+            color: #1e293b;
+            cursor: pointer;
+            padding: 4px;
+        }
+
         /* List Unit Usaha */
         .unit-list-box {
             display: flex;
@@ -458,8 +508,8 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label" for="pengawas">Nama Pengawas BUMKal</label>
-                        <input type="text" id="pengawas" class="form-control" placeholder="Nama Pengawas / Ketua Pengawas">
+                        <label class="form-label" for="pengawas">Nama Penasehat BUMKal</label>
+                        <input type="text" id="pengawas" class="form-control" placeholder="Nama Penasehat BUMKal">
                     </div>
 
                     <div class="form-group">
@@ -553,6 +603,39 @@
                         <span style="font-size: 10px; color: #64748b;">
                             Digunakan untuk memindahkan saldo laba/rugi berjalan saat proses tutup tahun buku.
                         </span>
+                    </div>
+
+                    <!-- 6. Akun Aset (Bisa Lebih Dari 1 Akun) -->
+                    <div class="form-group">
+                        <label class="form-label">Akun Aset (Multi-Pilih)</label>
+                        <div class="multiselect-container" id="containerAkunAset">
+                            <div class="selected-tags-box" id="tagsAkunAset"></div>
+                            <select id="selectAkunAsetHelper" class="multiselect-select">
+                                <option value="">-- Tambah Akun Aset --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 7. Akun Akumulasi (Bisa Lebih Dari 1 Akun) -->
+                    <div class="form-group">
+                        <label class="form-label">Akun Akumulasi (Multi-Pilih)</label>
+                        <div class="multiselect-container" id="containerAkunAkumulasi">
+                            <div class="selected-tags-box" id="tagsAkunAkumulasi"></div>
+                            <select id="selectAkunAkumulasiHelper" class="multiselect-select">
+                                <option value="">-- Tambah Akun Akumulasi --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 8. Akun Biaya / Penyusutan (Bisa Lebih Dari 1 Akun) -->
+                    <div class="form-group">
+                        <label class="form-label">Akun Biaya (Multi-Pilih)</label>
+                        <div class="multiselect-container" id="containerAkunBiaya">
+                            <div class="selected-tags-box" id="tagsAkunBiaya"></div>
+                            <select id="selectAkunBiayaHelper" class="multiselect-select">
+                                <option value="">-- Tambah Akun Biaya --</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="form-section-header" style="margin-top: 14px;">
@@ -659,6 +742,18 @@
         const akunLabaDitahanSelect = document.getElementById('akunLabaDitahan');
         const mappingBankContainer = document.getElementById('mappingBankContainer');
 
+        // Multi-select Akun Aset, Akumulasi, & Biaya Elements
+        const tagsAkunAset = document.getElementById('tagsAkunAset');
+        const selectAkunAsetHelper = document.getElementById('selectAkunAsetHelper');
+        const tagsAkunAkumulasi = document.getElementById('tagsAkunAkumulasi');
+        const selectAkunAkumulasiHelper = document.getElementById('selectAkunAkumulasiHelper');
+        const tagsAkunBiaya = document.getElementById('tagsAkunBiaya');
+        const selectAkunBiayaHelper = document.getElementById('selectAkunBiayaHelper');
+
+        let selectedAkunAsetList = [];
+        let selectedAkunAkumulasiList = [];
+        let selectedAkunBiayaList = [];
+
         // Modal Unit Elements
         const unitListBox = document.getElementById('unitListBox');
         const modalUnit = document.getElementById('modalUnit');
@@ -694,7 +789,7 @@
         btnTabUnit.addEventListener('click', () => switchTab(btnTabUnit, tabUnit));
         btnTabMapping.addEventListener('click', () => switchTab(btnTabMapping, tabMapping));
 
-        // Load COA dari Firestore (Hanya mengambil akun Level 4 / Tepat 3 buah titik) dan sort A-Z
+        // Load COA dari Firestore dan sort A-Z
         async function loadChartOfAccounts() {
             try {
                 const accSnap = await getDocs(collection(db, 'accounts'));
@@ -713,13 +808,11 @@
                     rawAccounts.push({ code, name, group });
                 });
 
-                // Filter MUTLAK HANYA Level 4 (yaitu yang memiliki tepat 3 titik, contoh: 1.01.01.001)
                 allAccountsCOA = rawAccounts.filter(acc => {
                     const dotCount = (acc.code.match(/\./g) || []).length;
                     return dotCount >= 3; 
                 });
 
-                // Jika hasil filter kosong, fallback ke semua akun
                 if (allAccountsCOA.length === 0) {
                     allAccountsCOA = [...rawAccounts];
                 }
@@ -749,6 +842,7 @@
 
                 populateAccountDropdowns();
                 renderBankMappingUI();
+                renderMultiSelectOptions();
             } catch (err) {
                 console.error("Gagal memuat COA:", err);
             }
@@ -770,16 +864,149 @@
             });
         }
 
+        function renderMultiSelectOptions() {
+            // Populate Akun Aset Helper Dropdown
+            if (selectAkunAsetHelper) {
+                selectAkunAsetHelper.innerHTML = '<option value="">-- Tambah Akun Aset --</option>';
+                allAccountsCOA.forEach(acc => {
+                    const valStr = `${acc.code} - ${acc.name}`;
+                    if (!selectedAkunAsetList.includes(valStr)) {
+                        const opt = document.createElement('option');
+                        opt.value = valStr;
+                        opt.textContent = valStr;
+                        selectAkunAsetHelper.appendChild(opt);
+                    }
+                });
+            }
+            renderTagsAset();
+
+            // Populate Akun Akumulasi Helper Dropdown
+            if (selectAkunAkumulasiHelper) {
+                selectAkunAkumulasiHelper.innerHTML = '<option value="">-- Tambah Akun Akumulasi --</option>';
+                allAccountsCOA.forEach(acc => {
+                    const valStr = `${acc.code} - ${acc.name}`;
+                    if (!selectedAkunAkumulasiList.includes(valStr)) {
+                        const opt = document.createElement('option');
+                        opt.value = valStr;
+                        opt.textContent = valStr;
+                        selectAkunAkumulasiHelper.appendChild(opt);
+                    }
+                });
+            }
+            renderTagsAkumulasi();
+
+            // Populate Akun Biaya Helper Dropdown
+            if (selectAkunBiayaHelper) {
+                selectAkunBiayaHelper.innerHTML = '<option value="">-- Tambah Akun Biaya --</option>';
+                allAccountsCOA.forEach(acc => {
+                    const valStr = `${acc.code} - ${acc.name}`;
+                    if (!selectedAkunBiayaList.includes(valStr)) {
+                        const opt = document.createElement('option');
+                        opt.value = valStr;
+                        opt.textContent = valStr;
+                        selectAkunBiayaHelper.appendChild(opt);
+                    }
+                });
+            }
+            renderTagsBiaya();
+        }
+
+        function renderTagsAset() {
+            if (!tagsAkunAset) return;
+            tagsAkunAset.innerHTML = '';
+            selectedAkunAsetList.forEach((item, index) => {
+                const tag = document.createElement('div');
+                tag.className = 'account-tag';
+                tag.innerHTML = `<span>${item}</span><span class="remove-tag" data-index="${index}">&times;</span>`;
+                tagsAkunAset.appendChild(tag);
+            });
+
+            tagsAkunAset.querySelectorAll('.remove-tag').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = e.currentTarget.dataset.index;
+                    selectedAkunAsetList.splice(idx, 1);
+                    renderMultiSelectOptions();
+                });
+            });
+        }
+
+        function renderTagsAkumulasi() {
+            if (!tagsAkunAkumulasi) return;
+            tagsAkunAkumulasi.innerHTML = '';
+            selectedAkunAkumulasiList.forEach((item, index) => {
+                const tag = document.createElement('div');
+                tag.className = 'account-tag';
+                tag.innerHTML = `<span>${item}</span><span class="remove-tag" data-index="${index}">&times;</span>`;
+                tagsAkunAkumulasi.appendChild(tag);
+            });
+
+            tagsAkunAkumulasi.querySelectorAll('.remove-tag').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = e.currentTarget.dataset.index;
+                    selectedAkunAkumulasiList.splice(idx, 1);
+                    renderMultiSelectOptions();
+                });
+            });
+        }
+
+        function renderTagsBiaya() {
+            if (!tagsAkunBiaya) return;
+            tagsAkunBiaya.innerHTML = '';
+            selectedAkunBiayaList.forEach((item, index) => {
+                const tag = document.createElement('div');
+                tag.className = 'account-tag';
+                tag.innerHTML = `<span>${item}</span><span class="remove-tag" data-index="${index}">&times;</span>`;
+                tagsAkunBiaya.appendChild(tag);
+            });
+
+            tagsAkunBiaya.querySelectorAll('.remove-tag').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = e.currentTarget.dataset.index;
+                    selectedAkunBiayaList.splice(idx, 1);
+                    renderMultiSelectOptions();
+                });
+            });
+        }
+
+        if (selectAkunAsetHelper) {
+            selectAkunAsetHelper.addEventListener('change', (e) => {
+                const val = e.target.value;
+                if (val && !selectedAkunAsetList.includes(val)) {
+                    selectedAkunAsetList.push(val);
+                    renderMultiSelectOptions();
+                }
+                e.target.value = '';
+            });
+        }
+
+        if (selectAkunAkumulasiHelper) {
+            selectAkunAkumulasiHelper.addEventListener('change', (e) => {
+                const val = e.target.value;
+                if (val && !selectedAkunAkumulasiList.includes(val)) {
+                    selectedAkunAkumulasiList.push(val);
+                    renderMultiSelectOptions();
+                }
+                e.target.value = '';
+            });
+        }
+
+        if (selectAkunBiayaHelper) {
+            selectAkunBiayaHelper.addEventListener('change', (e) => {
+                const val = e.target.value;
+                if (val && !selectedAkunBiayaList.includes(val)) {
+                    selectedAkunBiayaList.push(val);
+                    renderMultiSelectOptions();
+                }
+                e.target.value = '';
+            });
+        }
+
         // Render Mapping Bank dengan Kas Pendukung
         function renderBankMappingUI() {
             if (!mappingBankContainer) return;
             mappingBankContainer.innerHTML = '';
 
             if (bankAccountsList.length === 0) {
-                mappingBankContainer.innerHTML = `
-                    <div style="text-align: center; padding: 12px; color: #94a3b8; font-size: 11px;">
-                        Tidak ada akun Bank spesifik. Menampilkan seluruh akun kas/bank tersedia.
-                    </div>`;
                 bankAccountsList = [...cashAccountsList];
             }
 
@@ -817,8 +1044,13 @@
                     originalSettingData = docSnap.data();
                     unitList = originalSettingData.unitList || [];
                     savedBankMapping = originalSettingData.bankCashMapping || {};
+                    selectedAkunAsetList = originalSettingData.akunAsetList || [];
+                    selectedAkunAkumulasiList = originalSettingData.akunAkumulasiList || [];
+                    selectedAkunBiayaList = originalSettingData.akunBiayaList || [];
+                    
                     populateForm(originalSettingData);
                     renderBankMappingUI();
+                    renderMultiSelectOptions();
                 } else {
                     const defaultData = {
                         namaProfil: 'BUMKal Sinar Mitra Desa',
@@ -833,6 +1065,9 @@
                         akunPiutangKredit: '',
                         akunPendapatan: '',
                         akunLabaDitahan: '',
+                        akunAsetList: [],
+                        akunAkumulasiList: [],
+                        akunBiayaList: [],
                         bankCashMapping: {},
                         unitList: [
                             { kodeUnit: '00', namaUnit: 'Kantor Pusat', alamatUnit: '', isDefault: true }
@@ -841,7 +1076,11 @@
                     originalSettingData = { ...defaultData };
                     unitList = [...defaultData.unitList];
                     savedBankMapping = {};
+                    selectedAkunAsetList = [];
+                    selectedAkunAkumulasiList = [];
+                    selectedAkunBiayaList = [];
                     populateForm(defaultData);
+                    renderMultiSelectOptions();
                 }
             } catch (error) {
                 console.error("Gagal memuat pengaturan:", error);
@@ -985,8 +1224,12 @@
         btnResetSetting.addEventListener('click', () => {
             unitList = originalSettingData.unitList ? JSON.parse(JSON.stringify(originalSettingData.unitList)) : [];
             savedBankMapping = originalSettingData.bankCashMapping ? JSON.parse(JSON.stringify(originalSettingData.bankCashMapping)) : {};
+            selectedAkunAsetList = originalSettingData.akunAsetList ? [...originalSettingData.akunAsetList] : [];
+            selectedAkunAkumulasiList = originalSettingData.akunAkumulasiList ? [...originalSettingData.akunAkumulasiList] : [];
+            selectedAkunBiayaList = originalSettingData.akunBiayaList ? [...originalSettingData.akunBiayaList] : [];
             populateForm(originalSettingData);
             renderBankMappingUI();
+            renderMultiSelectOptions();
         });
 
         // Save All Settings ke Firestore
@@ -1033,6 +1276,9 @@
                 akunPiutangKredit: akunPiutangKreditSelect.value,
                 akunPendapatan: akunPendapatanSelect.value,
                 akunLabaDitahan: akunLabaDitahanSelect.value,
+                akunAsetList: selectedAkunAsetList,
+                akunAkumulasiList: selectedAkunAkumulasiList,
+                akunBiayaList: selectedAkunBiayaList,
                 bankCashMapping: currentBankMapping,
                 unitList: unitList,
                 updatedAt: serverTimestamp()

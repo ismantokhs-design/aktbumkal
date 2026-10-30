@@ -10,8 +10,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
-        body { background-color: #f8fafc; display: flex; justify-content: center; min-height: 100vh; color: #1e293b; }
-        .page-container { width: 100%; max-width: 480px; background-color: #ffffff; display: flex; flex-direction: column; min-height: 100vh; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; padding-bottom: 70px; }
+        body { background-color: #f8fafc; display: flex; justify-content: center; min-height: 100vh; color: #1e293b; user-select: none; }
+        .page-container { width: 100%; max-width: 480px; background-color: #ffffff; display: flex; flex-direction: column; min-height: 100vh; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; padding-bottom: 70px; overflow: hidden; }
         
         .page-header { background-color: #5114B9; color: #ffffff; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
         .header-left { display: flex; align-items: center; gap: 14px; }
@@ -22,30 +22,57 @@
         .period-inputs { display: flex; align-items: center; gap: 6px; font-weight: 600; color: #334155; }
         .period-inputs input { border: none; background: transparent; font-size: 12px; font-weight: 600; color: #5114B9; outline: none; cursor: pointer; border-bottom: 1px dashed #5114B9; padding-bottom: 1px; }
 
-        .content-list { padding: 12px; display: flex; flex-direction: column; gap: 10px; flex-grow: 1; }
+        .content-list { padding: 12px; display: flex; flex-direction: column; gap: 10px; flex-grow: 1; overflow-y: auto; }
         .trx-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .trx-card-top { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748b; font-weight: 600; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; }
         .trx-card-body { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
         .trx-info { display: flex; flex-direction: column; gap: 2px; }
         .trx-title { font-size: 13px; font-weight: 700; color: #0f172a; line-height: 1.3; }
         .trx-subtitle { font-size: 11px; color: #475569; }
+        .trx-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
         .trx-amount { font-size: 14px; font-weight: 800; color: #5114B9; white-space: nowrap; }
+        
+        .trx-actions { display: flex; gap: 6px; }
+        .btn-card-action { width: 28px; height: 28px; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
+        .btn-card-action.btn-edit { background-color: #f3e8ff; color: #7c3aed; }
+        .btn-card-action.btn-edit:hover { background-color: #7c3aed; color: #ffffff; }
+        .btn-card-action.btn-delete { background-color: #fee2e2; color: #dc2626; }
+        .btn-card-action.btn-delete:hover { background-color: #dc2626; color: #ffffff; }
 
-        .fab-btn { position: fixed; bottom: 65px; right: calc(50% - 220px); width: 52px; height: 52px; background-color: #5114B9; color: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(81,20,185,0.4); cursor: pointer; border: none; z-index: 95; }
-        .fab-btn:active { transform: scale(0.95); }
-        @media (max-width: 500px) { .fab-btn { right: 20px; } }
+        /* Tombol + Bisa Digeser */
+        .fab-btn { 
+            position: fixed; 
+            bottom: 75px; 
+            right: 20px; 
+            width: 52px; 
+            height: 52px; 
+            background-color: #5114B9; 
+            color: #ffffff; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            box-shadow: 0 4px 12px rgba(81,20,185,0.4); 
+            cursor: grab; 
+            border: none; 
+            z-index: 95; 
+            touch-action: none;
+        }
+        .fab-btn:active { cursor: grabbing; }
 
         .bottom-total-bar { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; background-color: #0f172a; color: #ffffff; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; z-index: 90; }
         .bottom-total-value { color: #a78bfa; font-size: 15px; }
 
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; padding: 12px; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
-        .modal-box { background-color: #ffffff; width: 100%; max-width: 440px; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 92vh; }
+        .modal-box { background-color: #ffffff; width: 100%; max-width: 440px; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 92vh; position: relative; }
         
-        .modal-header { background-color: #5114B9; color: #ffffff; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 14px; }
+        .modal-header { background-color: #5114B9; color: #ffffff; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 14px; cursor: move; }
         .modal-header .close-modal { cursor: pointer; font-size: 20px; }
         
-        .modal-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; max-height: calc(92vh - 120px); }
+        .modal-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; max-height: calc(92vh - 120px); scrollbar-width: none; }
+        .modal-body::-webkit-scrollbar { display: none; }
+
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .form-group { display: flex; flex-direction: column; gap: 4px; }
         .form-group label { font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; }
@@ -89,7 +116,8 @@
             <div class="empty-state">Memuat data aset tetap...</div>
         </div>
 
-        <button class="fab-btn" id="openModalBtn">
+        <!-- Tombol Tambah (+) yang Bisa Digeser -->
+        <button class="fab-btn" id="openModalBtn" title="Tambah Aset">
             <span class="material-icons" style="font-size: 28px;">add</span>
         </button>
 
@@ -99,14 +127,29 @@
         </div>
     </div>
 
-    <!-- Modal Form Tambah Pembelian Aset -->
+    <!-- Modal Form Tambah / Edit Pembelian Aset -->
     <div class="modal-overlay" id="trxModal">
-        <div class="modal-box">
-            <div class="modal-header">
-                <span>PEMBELIAN ASET TETAP</span>
+        <div class="modal-box" id="modalBox">
+            <div class="modal-header" id="modalHeader">
+                <span id="modalTitleText">PEMBELIAN ASET TETAP</span>
                 <span class="material-icons close-modal" id="closeModalBtn">close</span>
             </div>
             <div class="modal-body">
+                <input type="hidden" id="editDocId" value="">
+                <!-- Baris 1: No Transaksi & Unit Usaha / Cabang -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>No. Transaksi *</label>
+                        <input type="text" id="trxRefNumber" class="form-control" style="background-color: #f1f5f9; font-weight: 700; color: #5114B9;" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Unit Usaha / Cabang *</label>
+                        <select id="selectUnitAsset" class="form-control">
+                            <option value="">-- Pilih Unit --</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="form-row">
                     <div class="form-group">
                         <label>Tgl. Beli</label>
@@ -121,7 +164,7 @@
                 <div class="form-group">
                     <label>Sumber Dana / Akun Pembayaran *</label>
                     <select id="selectPaymentAccount" class="form-control">
-                        <option value="">-- Pilih Akun Pembayaran / Kas / Hutang --</option>
+                        <option value="">-- Pilih Akun Pembayaran --</option>
                     </select>
                 </div>
 
@@ -146,7 +189,7 @@
 
     <script type="module">
         import { db } from '../assets/js/firebase-config.js';
-        import { collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         window.addEventListener('pageshow', () => {
             document.body.classList.remove('no-scroll');
@@ -158,6 +201,10 @@
         const totalAmountDisplay = document.getElementById('totalAmountDisplay');
 
         const trxModal = document.getElementById('trxModal');
+        const modalBox = document.getElementById('modalBox');
+        const modalHeader = document.getElementById('modalHeader');
+        const modalTitleText = document.getElementById('modalTitleText');
+        const editDocId = document.getElementById('editDocId');
         const openModalBtn = document.getElementById('openModalBtn');
         const closeModalBtn = document.getElementById('closeModalBtn');
         const btnBatal = document.getElementById('btnBatal');
@@ -165,59 +212,290 @@
         const btnAddAssetRow = document.getElementById('btnAddAssetRow');
         const assetRowsContainer = document.getElementById('assetRowsContainer');
 
+        const trxRefNumber = document.getElementById('trxRefNumber');
+        const selectUnitAsset = document.getElementById('selectUnitAsset');
         const trxDate = document.getElementById('trxDate');
         const trxSupplier = document.getElementById('trxSupplier');
         const selectPaymentAccount = document.getElementById('selectPaymentAccount');
         const trxMemo = document.getElementById('trxMemo');
 
         let rawAssetJournals = [];
-        let accountsMap = {};
         let assetAccountOptionsHtml = '<option value="">-- Pilih Akun Aset --</option>';
         let accumAccountOptionsHtml = '<option value="">-- Akun Akumulasi --</option>';
+        let expenseAccountOptionsHtml = '<option value="">-- Pilih Akun Biaya --</option>';
         let paymentAccountOptionsHtml = '<option value="">-- Pilih Akun Pembayaran --</option>';
+        let defaultUnitCode = "";
+        let activeMonthDefaultDate = "";
+        let currentActiveMonthCode = "";
 
-        function initDefaultDates() {
-            const now = new Date();
-            const year = now.getFullYear();
-            filterStart.value = `${year}-01-01`;
-            filterEnd.value = `${year}-12-31`;
-            trxDate.value = now.toISOString().split('T')[0];
+        // Fitur Draggable untuk Tombol + (FAB) dan Modal
+        let isFabDragging = false;
+        let fabStartX, fabStartY;
+        let fabHasMoved = false;
+        let fabInitialX = 0, fabInitialY = 0;
+
+        openModalBtn.addEventListener('pointerdown', (e) => {
+            isFabDragging = true;
+            fabHasMoved = false;
+            fabStartX = e.clientX - fabInitialX;
+            fabStartY = e.clientY - fabInitialY;
+            openModalBtn.setPointerCapture(e.pointerId);
+        });
+
+        openModalBtn.addEventListener('pointermove', (e) => {
+            if (!isFabDragging) return;
+            let currentX = e.clientX - fabStartX;
+            let currentY = e.clientY - fabStartY;
+            if (Math.abs(currentX - fabInitialX) > 5 || Math.abs(currentY - fabInitialY) > 5) {
+                fabHasMoved = true;
+            }
+            fabInitialX = currentX;
+            fabInitialY = currentY;
+            openModalBtn.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+        });
+
+        openModalBtn.addEventListener('pointerup', (e) => {
+            isFabDragging = false;
+            openModalBtn.releasePointerCapture(e.pointerId);
+        });
+
+        let isModalDragging = false;
+        let modalStartX, modalStartY, modalInitialX = 0, modalInitialY = 0;
+
+        modalHeader.addEventListener('mousedown', (e) => {
+            isModalDragging = true;
+            modalStartX = e.clientX - modalInitialX;
+            modalStartY = e.clientY - modalInitialY;
+            modalHeader.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isModalDragging) return;
+            e.preventDefault();
+            let currentX = e.clientX - modalStartX;
+            let currentY = e.clientY - modalStartY;
+            modalInitialX = currentX;
+            modalInitialY = currentY;
+            modalBox.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+        });
+
+        document.addEventListener('mouseup', () => {
+            isModalDragging = false;
+            modalHeader.style.cursor = 'move';
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && trxModal.classList.contains('active')) {
+                trxModal.classList.remove('active');
+            }
+        });
+
+        async function loadActiveMonthAndInit() {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                let targetYear = new Date().getFullYear();
+                let targetMonth = new Date().getMonth() + 1;
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.activeMonthCode) {
+                        const parts = data.activeMonthCode.split('-');
+                        if (parts.length >= 2) {
+                            targetYear = parseInt(parts[0], 10);
+                            targetMonth = parseInt(parts[1], 10);
+                        }
+                    }
+                }
+
+                const yearStr = targetYear;
+                const monthStr = String(targetMonth).padStart(2, '0');
+                
+                const firstDay = `${yearStr}-${monthStr}-01`;
+                const lastDayDate = new Date(targetYear, targetMonth, 0);
+                const lastDay = `${yearStr}-${monthStr}-${String(lastDayDate.getDate()).padStart(2, '0')}`;
+
+                filterStart.value = firstDay;
+                filterEnd.value = lastDay;
+
+                activeMonthDefaultDate = firstDay;
+                trxDate.value = firstDay;
+
+                currentActiveMonthCode = `${monthStr}${String(yearStr).slice(-2)}`;
+
+            } catch (err) {
+                console.error("Gagal memuat activeMonthCode:", err);
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const firstDay = `${year}-${month}-01`;
+                const lastDay = `${year}-${month}-${String(new Date(year, now.getMonth() + 1, 0).getDate()).padStart(2, '0')}`;
+                
+                filterStart.value = firstDay;
+                filterEnd.value = lastDay;
+                activeMonthDefaultDate = firstDay;
+                trxDate.value = firstDay;
+                currentActiveMonthCode = `${month}${String(year).slice(-2)}`;
+            }
+        }
+
+        async function generateRefNumber() {
+            try {
+                const querySnapshot = await getDocs(collection(db, 'journals'));
+                let maxSeq = 0;
+                const prefix = `INV-${currentActiveMonthCode}-`;
+
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const ref = data.ref || '';
+                    if (ref.startsWith(prefix)) {
+                        const seqStr = ref.replace(prefix, '');
+                        const seqNum = parseInt(seqStr, 10);
+                        if (!isNaN(seqNum) && seqNum > maxSeq) {
+                            maxSeq = seqNum;
+                        }
+                    }
+                });
+
+                const nextSeq = String(maxSeq + 1).padStart(4, '0');
+                trxRefNumber.value = `${prefix}${nextSeq}`;
+            } catch (err) {
+                console.error("Gagal generate nomor transaksi:", err);
+                trxRefNumber.value = `INV-${currentActiveMonthCode}-0001`;
+            }
+        }
+
+        async function getNextInventoryCode() {
+            try {
+                const querySnapshot = await getDocs(collection(db, 'journals'));
+                let maxSeq = 0;
+                const prefix = `INV-${currentActiveMonthCode}-`;
+
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if (data.assetItems && Array.isArray(data.assetItems)) {
+                        data.assetItems.forEach(item => {
+                            const invCode = item.invCode || '';
+                            if (invCode.startsWith(prefix)) {
+                                const seqStr = invCode.replace(prefix, '');
+                                const seqNum = parseInt(seqStr, 10);
+                                if (!isNaN(seqNum) && seqNum > maxSeq) {
+                                    maxSeq = seqNum;
+                                }
+                            }
+                        });
+                    }
+                });
+
+                const existingCards = assetRowsContainer.querySelectorAll('.asset-inv-code');
+                existingCards.forEach(input => {
+                    const invCode = input.value.trim();
+                    if (invCode.startsWith(prefix)) {
+                        const seqStr = invCode.replace(prefix, '');
+                        const seqNum = parseInt(seqStr, 10);
+                        if (!isNaN(seqNum) && seqNum > maxSeq) {
+                            maxSeq = seqNum;
+                        }
+                    }
+                });
+
+                const nextSeq = String(maxSeq + 1).padStart(2, '0');
+                return `${prefix}${nextSeq}`;
+            } catch (err) {
+                console.error("Gagal generate kode inventaris:", err);
+                return `INV-${currentActiveMonthCode}-01`;
+            }
         }
 
         async function loadOptions() {
             try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                selectUnitAsset.innerHTML = '<option value="">-- Pilih Unit --</option>';
+                defaultUnitCode = "";
+
+                let akunAsetArr = [];
+                let akunAkumulasiArr = [];
+                let akunBiayaArr = [];
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const unitList = data.unitList || [];
+
+                    unitList.forEach(unit => {
+                        const val = unit.kodeUnit || unit.namaUnit;
+                        const label = `${unit.kodeUnit ? '[' + unit.kodeUnit + '] ' : ''}${unit.namaUnit || 'Unit'}`;
+                        const opt = document.createElement('option');
+                        opt.value = val;
+                        opt.textContent = label;
+                        selectUnitAsset.appendChild(opt);
+
+                        if (unit.isDefault === true || unit.isDefault === 'true') {
+                            defaultUnitCode = val;
+                        }
+                    });
+
+                    if (Array.isArray(data.akunAsetList)) {
+                        akunAsetArr = data.akunAsetList;
+                    }
+                    if (Array.isArray(data.akunAkumulasiList)) {
+                        akunAkumulasiArr = data.akunAkumulasiList;
+                    }
+                    if (Array.isArray(data.akunBiayaList)) {
+                        akunBiayaArr = data.akunBiayaList;
+                    }
+                }
+
+                assetAccountOptionsHtml = '<option value="">-- Pilih Akun Aset --</option>';
+                akunAsetArr.forEach(item => {
+                    assetAccountOptionsHtml += `<option value="${item}">${item}</option>`;
+                });
+
+                accumAccountOptionsHtml = '<option value="">-- Akun Akumulasi --</option>';
+                akunAkumulasiArr.forEach(item => {
+                    accumAccountOptionsHtml += `<option value="${item}">${item}</option>`;
+                });
+
+                expenseAccountOptionsHtml = '<option value="">-- Pilih Akun Biaya --</option>';
+                akunBiayaArr.forEach(item => {
+                    expenseAccountOptionsHtml += `<option value="${item}">${item}</option>`;
+                });
+
                 const accSnap = await getDocs(collection(db, 'accounts'));
-                accountsMap = {};
+                let paymentAccountsList = [];
 
                 accSnap.forEach(d => {
                     const acc = d.data();
-                    accountsMap[acc.accCode] = acc.accName;
-
                     if (acc.isPostable === true || acc.isPostable === 'true' || parseInt(acc.level, 10) === 4) {
                         const optText = `${acc.accCode} - ${acc.accName}`;
-                        const code = String(acc.accCode || '');
-                        const name = String(acc.accName || '').toLowerCase();
-                        const cat = String(acc.category || '').toLowerCase();
+                        const cashGroup = String(acc.cashFlowGroup || '').trim();
 
-                        if (code.startsWith('1.03') || cat.includes('aset tetap') || name.includes('inventaris') || name.includes('peralatan') || name.includes('mesin')) {
-                            assetAccountOptionsHtml += `<option value="${acc.accCode}">${optText}</option>`;
+                        if (cashGroup === 'Kas dan Bank') {
+                            paymentAccountsList.push({ code: acc.accCode, name: optText });
                         }
-
-                        if (code.startsWith('1.04') || name.includes('akumulasi')) {
-                            accumAccountOptionsHtml += `<option value="${acc.accCode}">${optText}</option>`;
-                        }
-
-                        paymentAccountOptionsHtml += `<option value="${acc.accCode}">${optText}</option>`;
                     }
+                });
+
+                paymentAccountsList.sort((a, b) => String(a.code).localeCompare(String(b.code)));
+
+                paymentAccountOptionsHtml = '<option value="">-- Pilih Akun Pembayaran --</option>';
+                paymentAccountsList.forEach(acc => {
+                    paymentAccountOptionsHtml += `<option value="${acc.code}">${acc.name}</option>`;
                 });
 
                 selectPaymentAccount.innerHTML = paymentAccountOptionsHtml;
             } catch (err) {
-                console.error("Gagal memuat akun:", err);
+                console.error("Gagal memuat opsi:", err);
             }
         }
 
-        function addAssetCard(name = '', assetAcc = '', accumAcc = '', amount = '', life = '5') {
+        async function addAssetCard(name = '', invCode = '', assetAcc = '', accumAcc = '', expenseAcc = '', amount = '', life = '5') {
+            if (!invCode) {
+                invCode = await getNextInventoryCode();
+            }
+
             const card = document.createElement('div');
             card.className = 'asset-item-card';
             card.innerHTML = `
@@ -225,9 +503,15 @@
                     <span>ITEM ASET</span>
                     <button type="button" class="btn-remove-asset"><span class="material-icons" style="font-size:14px;">delete</span> Hapus</button>
                 </div>
-                <div class="form-group">
-                    <label>Nama Aset</label>
-                    <input type="text" class="form-control asset-name" placeholder="Nama barang..." value="${name}">
+                <div class="form-row">
+                    <div class="form-group" style="flex: 2;">
+                        <label>Nama Aset</label>
+                        <input type="text" class="form-control asset-name" placeholder="Nama barang..." value="${name}">
+                    </div>
+                    <div class="form-group" style="flex: 1.3;">
+                        <label>Kode Inventaris</label>
+                        <input type="text" class="form-control asset-inv-code" value="${invCode}">
+                    </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
@@ -238,6 +522,10 @@
                         <label>Akun Akumulasi</label>
                         <select class="form-control accum-account">${accumAccountOptionsHtml}</select>
                     </div>
+                </div>
+                <div class="form-group">
+                    <label>Akun Biaya (Penyusutan)</label>
+                    <select class="form-control expense-account">${expenseAccountOptionsHtml}</select>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
@@ -253,6 +541,7 @@
 
             if (assetAcc) card.querySelector('.asset-account').value = assetAcc;
             if (accumAcc) card.querySelector('.accum-account').value = accumAcc;
+            if (expenseAcc) card.querySelector('.expense-account').value = expenseAcc;
             if (amount) card.querySelector('.asset-price').value = parseInt(amount, 10).toLocaleString('id-ID');
 
             const priceInput = card.querySelector('.asset-price');
@@ -272,15 +561,46 @@
             assetRowsContainer.appendChild(card);
         }
 
-        openModalBtn.addEventListener('click', () => {
+        openModalBtn.addEventListener('click', async () => {
+            if (fabHasMoved) return;
+            modalInitialX = 0; modalInitialY = 0;
+            modalBox.style.transform = 'translate3d(0, 0, 0)';
+            
+            editDocId.value = '';
+            modalTitleText.textContent = 'PEMBELIAN ASET TETAP';
+            btnSimpan.textContent = 'Simpan Seluruh Aset';
+
+            selectUnitAsset.value = defaultUnitCode;
+            trxMemo.value = '';
+            trxSupplier.value = '';
+            selectPaymentAccount.value = '';
+            trxDate.value = activeMonthDefaultDate;
+            
+            await generateRefNumber();
+
             assetRowsContainer.innerHTML = '';
-            addAssetCard();
+            await addAssetCard();
             trxModal.classList.add('active');
         });
 
-        btnAddAssetRow.addEventListener('click', () => addAssetCard());
+        btnAddAssetRow.addEventListener('click', async () => await addAssetCard());
         closeModalBtn.addEventListener('click', () => trxModal.classList.remove('active'));
-        btnBatal.addEventListener('click', () => trxModal.classList.remove('active'));
+        
+        btnBatal.addEventListener('click', async () => {
+            if (!editDocId.value) {
+                selectUnitAsset.value = defaultUnitCode;
+                trxMemo.value = '';
+                trxSupplier.value = '';
+                selectPaymentAccount.value = '';
+                trxDate.value = activeMonthDefaultDate;
+                await generateRefNumber();
+                assetRowsContainer.innerHTML = '';
+                await addAssetCard();
+            } else {
+                trxModal.classList.remove('active');
+            }
+        });
+
         trxModal.addEventListener('click', (e) => { if (e.target === trxModal) trxModal.classList.remove('active'); });
 
         async function loadAssetData() {
@@ -296,7 +616,7 @@
                     const data = docSnap.data();
                     if (data.type === 'PEMBELIAN_ASET') {
                         if ((!start || data.date >= start) && (!end || data.date <= end)) {
-                            rawAssetJournals.push(data);
+                            rawAssetJournals.push({ id: docSnap.id, ...data });
                             if (data.items && data.items.length > 0) {
                                 const payItem = data.items.find(it => it.kredit > 0);
                                 if (payItem) grandTotal += parseFloat(payItem.kredit) || 0;
@@ -328,24 +648,113 @@
                     trx.items.forEach(it => { if (it.kredit > 0) totalTrx += parseFloat(it.kredit) || 0; });
                 }
 
-                const supplierText = trx.supplier ? ` • Toko: ${trx.supplier}` : '';
+                let paymentAccCode = '';
+                if (trx.items) {
+                    const payItem = trx.items.find(it => it.kredit > 0);
+                    if (payItem) paymentAccCode = payItem.accCode;
+                }
+
+                const supplierText = trx.supplier && trx.supplier !== '-' ? ` • Toko: ${trx.supplier}` : '';
+                const unitBadge = trx.unitId ? ` [Unit: ${trx.unitId}]` : '';
+
+                // Membentuk teks detail barang dan kode inventarisnya
+                let assetDetailsText = '-';
+                if (trx.assetItems && trx.assetItems.length > 0) {
+                    assetDetailsText = trx.assetItems.map(item => `${item.name} (${item.invCode || '-'})`).join(', ');
+                } else if (trx.assetNames) {
+                    assetDetailsText = trx.assetNames.join(', ');
+                }
 
                 const card = document.createElement('div');
                 card.className = 'trx-card';
                 card.innerHTML = `
                     <div class="trx-card-top">
-                        <span>${formattedDate}</span>
+                        <span>${formattedDate}${unitBadge}</span>
                         <span>Ref: ${trx.ref || '-'}</span>
                     </div>
                     <div class="trx-card-body">
                         <div class="trx-info">
                             <span class="trx-title">${trx.description || 'Pembelian Aset'}${supplierText}</span>
-                            <span class="trx-subtitle">Barang: ${trx.assetNames ? trx.assetNames.join(', ') : '-'}</span>
+                            <span class="trx-subtitle">Barang: ${assetDetailsText}</span>
                         </div>
-                        <span class="trx-amount">Rp ${totalTrx.toLocaleString('id-ID')}</span>
+                        <div class="trx-right">
+                            <span class="trx-amount">Rp ${totalTrx.toLocaleString('id-ID')}</span>
+                            <div class="trx-actions">
+                                <button type="button" class="btn-card-action btn-edit" data-id="${trx.id}" title="Edit"><span class="material-icons" style="font-size:16px;">edit</span></button>
+                                <button type="button" class="btn-card-action btn-delete" data-id="${trx.id}" title="Hapus"><span class="material-icons" style="font-size:16px;">delete</span></button>
+                            </div>
+                        </div>
                     </div>
                 `;
                 trxListContainer.appendChild(card);
+            });
+
+            // Event listener untuk Tombol Edit di Card
+            trxListContainer.querySelectorAll('.btn-edit').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.currentTarget.dataset.id;
+                    const trx = rawAssetJournals.find(item => item.id === id);
+                    if (!trx) return;
+
+                    modalInitialX = 0; modalInitialY = 0;
+                    modalBox.style.transform = 'translate3d(0, 0, 0)';
+
+                    editDocId.value = trx.id;
+                    modalTitleText.textContent = 'EDIT PEMBELIAN ASET TETAP';
+                    btnSimpan.textContent = 'Perbarui Aset';
+
+                    trxRefNumber.value = trx.ref || '';
+                    selectUnitAsset.value = trx.unitId || '';
+                    trxDate.value = trx.date || '';
+                    trxSupplier.value = trx.supplier && trx.supplier !== '-' ? trx.supplier : '';
+                    trxMemo.value = trx.description || '';
+
+                    let paymentAcc = '';
+                    if (trx.items) {
+                        const payItem = trx.items.find(it => it.kredit > 0);
+                        if (payItem) paymentAcc = payItem.accCode;
+                    }
+                    selectPaymentAccount.value = paymentAcc;
+
+                    assetRowsContainer.innerHTML = '';
+                    if (trx.assetItems && trx.assetItems.length > 0) {
+                        for (let item of trx.assetItems) {
+                            await addAssetCard(item.name, item.invCode, item.assetAccount, item.accumAccount, item.expenseAccount, item.price, item.usefulLife);
+                        }
+                    } else {
+                        await addAssetCard();
+                    }
+
+                    trxModal.classList.add('active');
+                });
+            });
+
+            // Event listener untuk Tombol Hapus di Card
+            trxListContainer.querySelectorAll('.btn-delete').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.currentTarget.dataset.id;
+                    const confirmRes = await Swal.fire({
+                        title: 'Hapus Transaksi?',
+                        text: 'Data pembelian aset ini akan dihapus permanen.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc2626',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: 'Ya, Hapus',
+                        cancelButtonText: 'Batal'
+                    });
+
+                    if (confirmRes.isConfirmed) {
+                        try {
+                            await deleteDoc(doc(db, 'journals', id));
+                            Swal.fire({ icon: 'success', title: 'Terhapus', text: 'Data aset berhasil dihapus.', timer: 1200, showConfirmButton: false });
+                            loadAssetData();
+                        } catch (err) {
+                            console.error("Gagal menghapus:", err);
+                            Swal.fire('Error', err.message, 'error');
+                        }
+                    }
+                });
             });
         }
 
@@ -357,9 +766,10 @@
             return `${String(d.getDate()).padStart(2, '0')}-${months[d.getMonth()]}-${d.getFullYear()}`;
         }
 
+        // Tombol SIMPAN / PERBARUI
         btnSimpan.addEventListener('click', async () => {
-            if (!trxDate.value || !selectPaymentAccount.value || !trxMemo.value) {
-                Swal.fire('Peringatan', 'Tanggal, Akun Pembayaran, dan Keterangan wajib diisi.', 'warning');
+            if (!selectUnitAsset.value || !trxDate.value || !selectPaymentAccount.value || !trxMemo.value) {
+                Swal.fire('Peringatan', 'Unit Usaha, Tanggal, Akun Pembayaran, dan Keterangan wajib diisi.', 'warning');
                 return;
             }
 
@@ -367,50 +777,81 @@
             let totalAmount = 0;
             let items = [];
             let assetNames = [];
+            let assetItemsList = [];
 
             for (let card of assetCards) {
                 const name = card.querySelector('.asset-name').value.trim();
+                const invCode = card.querySelector('.asset-inv-code').value.trim();
                 const assetAcc = card.querySelector('.asset-account').value;
+                const accumAcc = card.querySelector('.accum-account').value;
+                const expenseAcc = card.querySelector('.expense-account').value;
                 const rawPrice = card.querySelector('.asset-price').value.replace(/\D/g, '');
                 const price = parseFloat(rawPrice) || 0;
+                const life = parseInt(card.querySelector('.asset-life').value, 10) || 5;
 
-                if (!name || !assetAcc || price <= 0) {
-                    Swal.fire('Peringatan', 'Pastikan nama aset, akun aset, dan harga valid pada setiap item.', 'warning');
+                if (!name || !invCode || !assetAcc || price <= 0) {
+                    Swal.fire('Peringatan', 'Pastikan nama aset, kode inventaris, akun aset, dan harga valid pada setiap item.', 'warning');
                     return;
                 }
 
+                const assetAccCode = assetAcc.split(' - ')[0].trim();
+
                 totalAmount += price;
                 assetNames.push(name);
-                items.push({ accCode: assetAcc, debit: price, kredit: 0 });
+                items.push({ accCode: assetAccCode, debit: price, kredit: 0 });
+
+                assetItemsList.push({
+                    name: name,
+                    invCode: invCode,
+                    assetAccount: assetAcc,
+                    accumAccount: accumAcc,
+                    expenseAccount: expenseAcc,
+                    price: price,
+                    usefulLife: life
+                });
             }
 
             items.push({ accCode: selectPaymentAccount.value, debit: 0, kredit: totalAmount });
 
             try {
-                const newTrx = {
+                const docId = editDocId.value;
+
+                if (!docId) {
+                    await generateRefNumber();
+                }
+
+                const payload = {
                     date: trxDate.value,
-                    ref: '-',
+                    ref: trxRefNumber.value,
+                    unitId: selectUnitAsset.value,
                     supplier: trxSupplier.value.trim() || '-',
                     description: trxMemo.value,
                     type: 'PEMBELIAN_ASET',
                     assetNames: assetNames,
+                    assetItems: assetItemsList,
                     items: items,
-                    createdAt: serverTimestamp()
+                    updatedAt: serverTimestamp()
                 };
 
-                await addDoc(collection(db, 'journals'), newTrx);
+                if (docId) {
+                    await updateDoc(doc(db, 'journals', docId), payload);
+                    Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Perubahan aset berhasil disimpan.', timer: 1500, showConfirmButton: false });
+                    trxModal.classList.remove('active');
+                } else {
+                    payload.createdAt = serverTimestamp();
+                    await addDoc(collection(db, 'journals'), payload);
+                    Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Pembelian aset berhasil disimpan.', timer: 1500, showConfirmButton: false });
+                    
+                    selectUnitAsset.value = defaultUnitCode;
+                    trxMemo.value = '';
+                    trxSupplier.value = '';
+                    selectPaymentAccount.value = '';
+                    trxDate.value = activeMonthDefaultDate;
+                    await generateRefNumber();
+                    assetRowsContainer.innerHTML = '';
+                    await addAssetCard();
+                }
 
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil',
-                    text: 'Pembelian aset berhasil disimpan.',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-
-                trxModal.classList.remove('active');
-                trxMemo.value = '';
-                trxSupplier.value = '';
                 loadAssetData();
 
             } catch (err) {
@@ -422,8 +863,13 @@
         filterStart.addEventListener('change', loadAssetData);
         filterEnd.addEventListener('change', loadAssetData);
 
-        initDefaultDates();
-        loadOptions().then(() => loadAssetData());
+        async function initApp() {
+            await loadActiveMonthAndInit();
+            await loadOptions();
+            await loadAssetData();
+        }
+
+        initApp();
     </script>
 </body>
 </html>

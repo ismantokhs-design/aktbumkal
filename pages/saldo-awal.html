@@ -131,6 +131,12 @@
             background-color: #ffffff;
         }
 
+        .form-control[readonly] {
+            background-color: #f1f5f9;
+            color: #475569;
+            cursor: not-allowed;
+        }
+
         .year-display {
             text-align: center;
             font-weight: 700;
@@ -361,7 +367,7 @@
                 </div>
                 <div class="field-box" style="flex: 2;">
                     <label>Tanggal Saldo Awal</label>
-                    <input type="date" class="form-control" id="tglSaldoAwal">
+                    <input type="date" class="form-control" id="tglSaldoAwal" readonly>
                 </div>
             </div>
         </div>
@@ -430,9 +436,10 @@
 
         let neracaAccounts = [];
         let originalAccountsData = [];
+        let globalAppStartDate = "2020-01-01";
 
-        // Load Unit Usaha dari database settings/profile -> unitList
-        async function loadUnitOptions() {
+        // Load Profil, tglMulaiAplikasi, dan Unit Usaha
+        async function loadProfileAndUnits() {
             try {
                 selectCabang.innerHTML = '<option value="">-- Pilih Unit Usaha --</option>';
 
@@ -441,41 +448,35 @@
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    const unitList = data.unitList || [];
-
-                    if (unitList.length === 0) {
-                        selectCabang.innerHTML = '<option value="">-- Belum Ada Unit Usaha --</option>';
-                        return;
+                    
+                    if (data.tglMulaiAplikasi) {
+                        globalAppStartDate = data.tglMulaiAplikasi;
                     }
 
-                    unitList.forEach((unit) => {
-                        const opt = document.createElement('option');
-                        opt.value = unit.kodeUnit || unit.namaUnit;
-                        opt.textContent = `${unit.kodeUnit ? '[' + unit.kodeUnit + '] ' : ''}${unit.namaUnit || 'Unit'}`;
-                        selectCabang.appendChild(opt);
-                    });
+                    const unitList = data.unitList || [];
+                    if (unitList.length > 0) {
+                        unitList.forEach((unit) => {
+                            const opt = document.createElement('option');
+                            const unitVal = unit.kodeUnit || unit.namaUnit;
+                            opt.value = unitVal;
+                            opt.textContent = `${unit.kodeUnit ? '[' + unit.kodeUnit + '] ' : ''}${unit.namaUnit || 'Unit'}`;
+                            selectCabang.appendChild(opt);
+                        });
+                    } else {
+                        selectCabang.innerHTML = '<option value="">-- Belum Ada Unit Usaha --</option>';
+                    }
                 }
+
+                tglSaldoAwal.value = globalAppStartDate;
+                const parsedYear = new Date(globalAppStartDate).getFullYear();
+                tahunPeriode.value = !isNaN(parsedYear) ? parsedYear : 2020;
+
             } catch (error) {
-                console.error("Gagal memuat unitList:", error);
+                console.error("Gagal memuat profil dan unit:", error);
+                tglSaldoAwal.value = "2020-01-01";
+                tahunPeriode.value = 2020;
             }
         }
-
-        // Tanggal & Auto Sync Tahun
-        function initDates() {
-            const now = new Date();
-            const y = now.getFullYear();
-            tglSaldoAwal.value = `${y}-01-01`;
-            tahunPeriode.value = y;
-        }
-
-        tglSaldoAwal.addEventListener('change', (e) => {
-            if (e.target.value) {
-                const selectedYear = new Date(e.target.value).getFullYear();
-                if (!isNaN(selectedYear)) {
-                    tahunPeriode.value = selectedYear;
-                }
-            }
-        });
 
         function formatRupiah(num) {
             return 'Rp ' + (num || 0).toLocaleString('id-ID');
@@ -492,9 +493,10 @@
             return cleanNumber ? parseInt(cleanNumber, 10) : 0;
         }
 
-        // Ambil Data Akun dari Database Firestore
+        // Ambil Data Akun dari Database Firestore berdasarkan Unit Terpilih
         async function loadNeracaAccounts() {
-            if (!selectCabang.value) {
+            const selectedUnit = selectCabang.value;
+            if (!selectedUnit) {
                 accountCardsContainer.innerHTML = `
                     <div class="empty-state">
                         Silakan pilih Unit Usaha / Cabang terlebih dahulu...
@@ -505,7 +507,7 @@
 
             accountCardsContainer.innerHTML = `
                 <div class="empty-state">
-                    Memuat daftar akun...
+                    Memuat daftar akun untuk unit ${selectedUnit}...
                 </div>`;
 
             try {
@@ -521,13 +523,18 @@
                     const isNeraca = data.reportGroup === 'Neraca';
 
                     if (isPostable && isNeraca) {
+                        let unitBalMap = data.unitBalances && data.unitBalances[selectedUnit] ? data.unitBalances[selectedUnit] : null;
+                        
+                        let debitVal = unitBalMap ? (parseFloat(unitBalMap.initialDebit) || 0) : (parseFloat(data.initialDebit) || 0);
+                        let kreditVal = unitBalMap ? (parseFloat(unitBalMap.initialKredit) || 0) : (parseFloat(data.initialKredit) || 0);
+
                         const itemObj = {
                             id: docSnap.id,
                             accCode: data.accCode || '',
                             accName: data.accName || '',
                             normalBalance: data.normalBalance || 'Debit',
-                            initialDebit: parseFloat(data.initialDebit) || 0,
-                            initialKredit: parseFloat(data.initialKredit) || 0
+                            initialDebit: debitVal,
+                            initialKredit: kreditVal
                         };
 
                         neracaAccounts.push({ ...itemObj });
@@ -650,9 +657,10 @@
             }
         });
 
-        // Simpan Data
+        // Simpan Data Saldo Awal (Wajib Balance / Tidak bisa disimpan jika selisih)
         btnSave.addEventListener('click', async () => {
-            if (!selectCabang.value) {
+            const selectedUnit = selectCabang.value;
+            if (!selectedUnit) {
                 Swal.fire('Peringatan', 'Silakan pilih Unit Usaha / Cabang terlebih dahulu.', 'warning');
                 return;
             }
@@ -665,19 +673,16 @@
             });
 
             const diff = totalDebet - totalKredit;
+            
+            // Blokir penyimpanan jika belum balance
             if (diff !== 0) {
-                const confirmUnbalance = await Swal.fire({
+                await Swal.fire({
+                    icon: 'error',
                     title: 'Saldo Belum Balance!',
-                    text: `Terdapat selisih ${formatRupiah(Math.abs(diff))}. Yakin ingin tetap menyimpan?`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#5114B9',
-                    cancelButtonColor: '#64748b',
-                    confirmButtonText: 'Tetap Simpan',
-                    cancelButtonText: 'Batal'
+                    text: `Terdapat selisih sebesar ${formatRupiah(Math.abs(diff))}. Total Debet dan Kredit harus sama (Balance) agar data dapat disimpan.`,
+                    confirmButtonColor: '#5114B9'
                 });
-
-                if (!confirmUnbalance.isConfirmed) return;
+                return;
             }
 
             try {
@@ -685,9 +690,12 @@
 
                 neracaAccounts.forEach(acc => {
                     const accRef = doc(db, 'accounts', acc.id);
+                    
                     batch.update(accRef, {
-                        initialDebit: acc.initialDebit || 0,
-                        initialKredit: acc.initialKredit || 0,
+                        [`unitBalances.${selectedUnit}`]: {
+                            initialDebit: acc.initialDebit || 0,
+                            initialKredit: acc.initialKredit || 0
+                        },
                         updatedAt: serverTimestamp()
                     });
                 });
@@ -699,7 +707,7 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'Berhasil!',
-                    text: 'Saldo awal akun neraca berhasil diperbarui.',
+                    text: `Saldo awal akun untuk unit ${selectedUnit} berhasil diperbarui.`,
                     timer: 1500,
                     showConfirmButton: false
                 });
@@ -710,8 +718,7 @@
             }
         });
 
-        initDates();
-        loadUnitOptions();
+        loadProfileAndUnits();
     </script>
 </body>
 </html>

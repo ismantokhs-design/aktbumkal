@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penghapusan / Penarikan Aset</title>
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background-color: #f8fafc; display: flex; justify-content: center; min-height: 100vh; color: #1e293b; user-select: none; }
+        .page-container { width: 100%; max-width: 480px; background-color: #ffffff; display: flex; flex-direction: column; min-height: 100vh; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; padding-bottom: 70px; overflow: hidden; }
+        
+        .page-header { background-color: #5114B9; color: #ffffff; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .header-left { display: flex; align-items: center; gap: 14px; }
+        .btn-back { color: #ffffff; text-decoration: none; display: flex; align-items: center; }
+        .page-header h1 { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .period-filter-bar { background-color: #f1f5f9; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #cbd5e1; font-size: 12px; }
+        .period-inputs { display: flex; align-items: center; gap: 6px; font-weight: 600; color: #334155; }
+        .period-inputs input { border: none; background: transparent; font-size: 12px; font-weight: 600; color: #5114B9; outline: none; cursor: pointer; border-bottom: 1px dashed #5114B9; padding-bottom: 1px; }
+
+        .content-list { padding: 12px; display: flex; flex-direction: column; gap: 10px; flex-grow: 1; overflow-y: auto; }
+        .trx-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .trx-card-top { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748b; font-weight: 600; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; }
+        .trx-card-body { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+        .trx-info { display: flex; flex-direction: column; gap: 2px; }
+        .trx-title { font-size: 13px; font-weight: 700; color: #0f172a; line-height: 1.3; }
+        .trx-subtitle { font-size: 11px; color: #475569; }
+        .trx-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+        .trx-amount { font-size: 14px; font-weight: 800; color: #dc2626; white-space: nowrap; }
+        
+        .trx-actions { display: flex; gap: 6px; }
+        .btn-card-action { width: 28px; height: 28px; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
+        .btn-card-action.btn-edit { background-color: #f3e8ff; color: #7c3aed; }
+        .btn-card-action.btn-edit:hover { background-color: #7c3aed; color: #ffffff; }
+        .btn-card-action.btn-delete { background-color: #fee2e2; color: #dc2626; }
+        .btn-card-action.btn-delete:hover { background-color: #dc2626; color: #ffffff; }
+
+        .fab-btn { 
+            position: fixed; 
+            bottom: 75px; 
+            right: 20px; 
+            width: 52px; 
+            height: 52px; 
+            background-color: #5114B9; 
+            color: #ffffff; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            box-shadow: 0 4px 12px rgba(81,20,185,0.4); 
+            cursor: grab; 
+            border: none; 
+            z-index: 95; 
+            touch-action: none;
+        }
+        .fab-btn:active { cursor: grabbing; }
+
+        .bottom-total-bar { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; background-color: #0f172a; color: #ffffff; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; z-index: 90; }
+        .bottom-total-value { color: #f87171; font-size: 15px; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; padding: 12px; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-box { background-color: #ffffff; width: 100%; max-width: 440px; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 92vh; position: relative; }
+        
+        .modal-header { background-color: #5114B9; color: #ffffff; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 14px; cursor: move; }
+        .modal-header .close-modal { cursor: pointer; font-size: 20px; }
+        
+        .modal-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; max-height: calc(92vh - 120px); scrollbar-width: none; }
+        .modal-body::-webkit-scrollbar { display: none; }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .form-group label { font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; }
+        .form-control { width: 100%; height: 38px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; outline: none; background-color: #f8fafc; color: #0f172a; }
+        .form-control:focus { border-color: #5114B9; background-color: #ffffff; }
+        textarea.form-control { height: 50px; padding: 8px 10px; resize: none; }
+
+        .asset-item-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px; position: relative; }
+        .asset-item-header { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 700; color: #5114B9; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+        .btn-remove-asset { background: none; border: none; color: #dc2626; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 2px; }
+        
+        .btn-add-asset { background-color: #e0e7ff; color: #3730a3; border: 1px dashed #6366f1; border-radius: 6px; padding: 10px; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center; }
+        .btn-add-asset:hover { background-color: #c7d2fe; }
+
+        .modal-footer { padding: 12px 16px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; gap: 10px; }
+        .btn-modal { flex: 1; height: 38px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; border: none; }
+        .btn-simpan { background-color: #5114B9; color: #ffffff; }
+        .btn-batal { background-color: #ffffff; color: #dc2626; border: 1px solid #dc2626; }
+        .empty-state { text-align: center; padding: 40px; color: #94a3b8; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <header class="page-header">
+            <div class="header-left">
+                <a href="../index.html" class="btn-back"><span class="material-icons">arrow_back</span></a>
+                <h1>Penghapusan / Penarikan Aset</h1>
+            </div>
+        </header>
+
+        <div class="period-filter-bar">
+            <div class="period-inputs">
+                <span>Periode</span>
+                <input type="date" id="filterStart">
+                <span>s.d</span>
+                <input type="date" id="filterEnd">
+            </div>
+        </div>
+
+        <div class="content-list" id="trxListContainer">
+            <div class="empty-state">Memuat data penghapusan aset...</div>
+        </div>
+
+        <button class="fab-btn" id="openModalBtn" title="Tambah Penghapusan Aset">
+            <span class="material-icons" style="font-size: 28px;">add</span>
+        </button>
+
+        <div class="bottom-total-bar">
+            <span>TOTAL PENGHAPUSAN</span>
+            <span class="bottom-total-value" id="totalAmountDisplay">Rp 0</span>
+        </div>
+    </div>
+
+    <!-- Modal Form Tambah / Edit Penghapusan Aset -->
+    <div class="modal-overlay" id="trxModal">
+        <div class="modal-box" id="modalBox">
+            <div class="modal-header" id="modalHeader">
+                <span id="modalTitleText">ENTRI PENGHAPUSAN ASET</span>
+                <span class="material-icons close-modal" id="closeModalBtn">close</span>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editDocId" value="">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>No. Penghapusan *</label>
+                        <input type="text" id="trxRefNumber" class="form-control" style="background-color: #f1f5f9; font-weight: 700; color: #5114B9;" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Unit Usaha / Cabang *</label>
+                        <select id="selectUnitAsset" class="form-control">
+                            <option value="">-- Pilih Unit --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tgl. Penghapusan</label>
+                        <input type="date" id="trxDate" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Kondisi *</label>
+                        <select id="selectCondition" class="form-control" style="background-color: #ffffff;">
+                            <option value="">-- Pilih Jenis --</option>
+                            <option value="Rusak">Rusak</option>
+                            <option value="Hilang">Hilang</option>
+                            <option value="Tidak Bermanfaat">Tidak Bermanfaat / Habis Masa Manfaat</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Keterangan / Alasan Penghapusan *</label>
+                    <textarea id="trxMemo" class="form-control" placeholder="Contoh: Penghapusan aset inventaris karena rusak berat"></textarea>
+                </div>
+
+                <hr style="border:0; border-top:1px solid #e2e8f0; margin: 4px 0;">
+                <label style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase;">Rincian Item Aset Dihapus</label>
+
+                <div id="assetRowsContainer" style="display: flex; flex-direction: column; gap: 10px;"></div>
+
+                <button type="button" class="btn-add-asset" id="btnAddAssetRow">+ Tambah Item Aset Lain</button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-batal" id="btnBatal">BATAL</button>
+                <button class="btn-modal btn-simpan" id="btnSimpan">Simpan Penghapusan</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        window.addEventListener('pageshow', () => {
+            document.body.classList.remove('no-scroll');
+        });
+
+        const filterStart = document.getElementById('filterStart');
+        const filterEnd = document.getElementById('filterEnd');
+        const trxListContainer = document.getElementById('trxListContainer');
+        const totalAmountDisplay = document.getElementById('totalAmountDisplay');
+
+        const trxModal = document.getElementById('trxModal');
+        const modalBox = document.getElementById('modalBox');
+        const modalHeader = document.getElementById('modalHeader');
+        const modalTitleText = document.getElementById('modalTitleText');
+        const editDocId = document.getElementById('editDocId');
+        const openModalBtn = document.getElementById('openModalBtn');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const btnBatal = document.getElementById('btnBatal');
+        const btnSimpan = document.getElementById('btnSimpan');
+        const btnAddAssetRow = document.getElementById('btnAddAssetRow');
+        const assetRowsContainer = document.getElementById('assetRowsContainer');
+
+        const trxRefNumber = document.getElementById('trxRefNumber');
+        const selectUnitAsset = document.getElementById('selectUnitAsset');
+        const trxDate = document.getElementById('trxDate');
+        const selectCondition = document.getElementById('selectCondition');
+        const trxMemo = document.getElementById('trxMemo');
+
+        let rawDeprJournals = [];
+        let allInventoryList = []; 
+        let accumAccountOptionsHtml = '<option value="">-- Akun Akumulasi --</option>';
+        let expenseAccountOptionsHtml = '<option value="">-- Pilih Akun Biaya / Kerugian --</option>';
+        let defaultUnitCode = "";
+        let activeMonthDefaultDate = "";
+        let currentActiveMonthCode = "";
+
+        let isFabDragging = false;
+        let fabStartX, fabStartY, fabHasMoved = false, fabInitialX = 0, fabInitialY = 0;
+
+        openModalBtn.addEventListener('pointerdown', (e) => {
+            isFabDragging = true;
+            fabHasMoved = false;
+            fabStartX = e.clientX - fabInitialX;
+            fabStartY = e.clientY - fabInitialY;
+            openModalBtn.setPointerCapture(e.pointerId);
+        });
+
+        openModalBtn.addEventListener('pointermove', (e) => {
+            if (!isFabDragging) return;
+            let currentX = e.clientX - fabStartX;
+            let currentY = e.clientY - fabStartY;
+            if (Math.abs(currentX - fabInitialX) > 5 || Math.abs(currentY - fabInitialY) > 5) fabHasMoved = true;
+            fabInitialX = currentX;
+            fabInitialY = currentY;
+            openModalBtn.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+        });
+
+        openModalBtn.addEventListener('pointerup', (e) => {
+            isFabDragging = false;
+            openModalBtn.releasePointerCapture(e.pointerId);
+        });
+
+        let isModalDragging = false;
+        let modalStartX, modalStartY, modalInitialX = 0, modalInitialY = 0;
+
+        modalHeader.addEventListener('mousedown', (e) => {
+            isModalDragging = true;
+            modalStartX = e.clientX - modalInitialX;
+            modalStartY = e.clientY - modalInitialY;
+            modalHeader.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isModalDragging) return;
+            e.preventDefault();
+            let currentX = e.clientX - modalStartX;
+            let currentY = e.clientY - modalStartY;
+            modalInitialX = currentX;
+            modalInitialY = currentY;
+            modalBox.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+        });
+
+        document.addEventListener('mouseup', () => {
+            isModalDragging = false;
+            modalHeader.style.cursor = 'move';
+        });
+
+        async function loadActiveMonthAndInit() {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                let targetYear = new Date().getFullYear();
+                let targetMonth = new Date().getMonth() + 1;
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.activeMonthCode) {
+                        const parts = data.activeMonthCode.split('-');
+                        if (parts.length >= 2) {
+                            targetYear = parseInt(parts[0], 10);
+                            targetMonth = parseInt(parts[1], 10);
+                        }
+                    }
+                }
+
+                const yearStr = targetYear;
+                const monthStr = String(targetMonth).padStart(2, '0');
+                
+                const firstDay = `${yearStr}-${monthStr}-01`;
+                const lastDayDate = new Date(targetYear, targetMonth, 0);
+                const lastDay = `${yearStr}-${monthStr}-${String(lastDayDate.getDate()).padStart(2, '0')}`;
+
+                filterStart.value = firstDay;
+                filterEnd.value = lastDay;
+                activeMonthDefaultDate = firstDay;
+                trxDate.value = firstDay;
+                currentActiveMonthCode = `${monthStr}${String(yearStr).slice(-2)}`;
+
+            } catch (err) {
+                console.error("Gagal memuat activeMonthCode:", err);
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const firstDay = `${year}-${month}-01`;
+                const lastDay = `${year}-${month}-${String(new Date(year, now.getMonth() + 1, 0).getDate()).padStart(2, '0')}`;
+                
+                filterStart.value = firstDay;
+                filterEnd.value = lastDay;
+                activeMonthDefaultDate = firstDay;
+                trxDate.value = firstDay;
+                currentActiveMonthCode = `${month}${String(year).slice(-2)}`;
+            }
+        }
+
+        async function generateRefNumber() {
+            try {
+                const querySnapshot = await getDocs(collection(db, 'journals'));
+                let maxSeq = 0;
+                const prefix = `SST-${currentActiveMonthCode}-`;
+
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const ref = data.ref || '';
+                    if (ref.startsWith(prefix)) {
+                        const seqStr = ref.replace(prefix, '');
+                        const seqNum = parseInt(seqStr, 10);
+                        if (!isNaN(seqNum) && seqNum > maxSeq) {
+                            maxSeq = seqNum;
+                        }
+                    }
+                });
+
+                const nextSeq = String(maxSeq + 1).padStart(4, '0');
+                trxRefNumber.value = `${prefix}${nextSeq}`;
+            } catch (err) {
+                console.error("Gagal generate nomor penghapusan:", err);
+                trxRefNumber.value = `SST-${currentActiveMonthCode}-0001`;
+            }
+        }
+
+        async function loadOptions() {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                selectUnitAsset.innerHTML = '<option value="">-- Pilih Unit --</option>';
+                defaultUnitCode = "";
+
+                let akunAkumulasiArr = [];
+                let akunBiayaArr = [];
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const unitList = data.unitList || [];
+
+                    unitList.forEach(unit => {
+                        const val = unit.kodeUnit || unit.namaUnit;
+                        const label = `${unit.kodeUnit ? '[' + unit.kodeUnit + '] ' : ''}${unit.namaUnit || 'Unit'}`;
+                        const opt = document.createElement('option');
+                        opt.value = val;
+                        opt.textContent = label;
+                        selectUnitAsset.appendChild(opt);
+
+                        if (unit.isDefault === true || unit.isDefault === 'true') {
+                            defaultUnitCode = val;
+                        }
+                    });
+
+                    if (Array.isArray(data.akunAkumulasiList)) akunAkumulasiArr = data.akunAkumulasiList;
+                    if (Array.isArray(data.akunBiayaList)) akunBiayaArr = data.akunBiayaList;
+                }
+
+                accumAccountOptionsHtml = '<option value="">-- Akun Akumulasi --</option>';
+                akunAkumulasiArr.forEach(item => { accumAccountOptionsHtml += `<option value="${item}">${item}</option>`; });
+
+                expenseAccountOptionsHtml = '<option value="">-- Pilih Akun Biaya / Kerugian --</option>';
+                akunBiayaArr.forEach(item => { expenseAccountOptionsHtml += `<option value="${item}">${item}</option>`; });
+
+                const journalSnap = await getDocs(collection(db, 'journals'));
+                allInventoryList = [];
+                journalSnap.forEach(d => {
+                    const jData = d.data();
+                    if (jData.type === 'PEMBELIAN_ASET' && jData.assetItems && Array.isArray(jData.assetItems)) {
+                        jData.assetItems.forEach(ai => {
+                            allInventoryList.push({
+                                unitId: jData.unitId || '',
+                                name: ai.name || '',
+                                invCode: ai.invCode || '',
+                                accumAccount: ai.accumAccount || '',
+                                expenseAccount: ai.expenseAccount || '',
+                                price: ai.price || 0
+                            });
+                        });
+                    }
+                });
+
+            } catch (err) {
+                console.error("Gagal memuat opsi:", err);
+            }
+        }
+
+        async function addAssetCard(selectedName = '', accumAcc = '', expenseAcc = '', amount = '') {
+            const card = document.createElement('div');
+            card.className = 'asset-item-card';
+            
+            const currentSelectedUnit = selectUnitAsset.value;
+            const filteredInventories = allInventoryList.filter(inv => !currentSelectedUnit || inv.unitId === currentSelectedUnit);
+
+            let inventoryOptionsHtml = '<option value="">-- Pilih / Cari Inventaris --</option>';
+            filteredInventories.forEach(inv => {
+                const label = `${inv.name} (${inv.invCode}) - Rp ${parseInt(inv.price || 0, 10).toLocaleString('id-ID')}`;
+                const isSelected = (inv.name === selectedName || inv.invCode === selectedName) ? 'selected' : '';
+                inventoryOptionsHtml += `<option value="${inv.name}" ${isSelected} data-code="${inv.invCode}" data-accum="${inv.accumAccount}" data-expense="${inv.expenseAccount}" data-price="${inv.price}">${label}</option>`;
+            });
+
+            card.innerHTML = `
+                <div class="asset-item-header">
+                    <span>ITEM ASET</span>
+                    <button type="button" class="btn-remove-asset"><span class="material-icons" style="font-size:14px;">delete</span> Hapus</button>
+                </div>
+                <div class="form-group">
+                    <label>Nama / Kode Aset (Pencarian Inventaris)</label>
+                    <select class="form-control asset-select-search" style="background-color: #ffffff;">
+                        ${inventoryOptionsHtml}
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Akun Akumulasi</label>
+                        <select class="form-control accum-account">${accumAccountOptionsHtml}</select>
+                    </div>
+                    <div class="form-group">
+                        <label>Akun Biaya / Kerugian</label>
+                        <select class="form-control expense-account">${expenseAccountOptionsHtml}</select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Nilai Penghapusan (Rp)</label>
+                    <input type="text" class="form-control asset-price" placeholder="0" inputmode="numeric" value="${amount}">
+                </div>
+            `;
+
+            if (selectedName) {
+                const selectSearch = card.querySelector('.asset-select-search');
+                selectSearch.value = selectedName;
+            }
+            if (accumAcc) card.querySelector('.accum-account').value = accumAcc;
+            if (expenseAcc) card.querySelector('.expense-account').value = expenseAcc;
+            if (amount) card.querySelector('.asset-price').value = parseInt(amount, 10).toLocaleString('id-ID');
+
+            const selectSearch = card.querySelector('.asset-select-search');
+            selectSearch.addEventListener('change', (e) => {
+                const selectedOption = e.target.selectedOptions[0];
+                if (selectedOption) {
+                    if (selectedOption.dataset.accum) {
+                        card.querySelector('.accum-account').value = selectedOption.dataset.accum;
+                    }
+                    if (selectedOption.dataset.expense) {
+                        card.querySelector('.expense-account').value = selectedOption.dataset.expense;
+                    }
+                    if (selectedOption.dataset.price) {
+                        const p = parseFloat(selectedOption.dataset.price) || 0;
+                        card.querySelector('.asset-price').value = p > 0 ? p.toLocaleString('id-ID') : '';
+                    }
+                }
+            });
+
+            const priceInput = card.querySelector('.asset-price');
+            priceInput.addEventListener('input', (e) => {
+                let clean = e.target.value.replace(/\D/g, '');
+                e.target.value = clean ? parseInt(clean, 10).toLocaleString('id-ID') : '';
+            });
+
+            card.querySelector('.btn-remove-asset').addEventListener('click', () => {
+                if (assetRowsContainer.children.length > 1) {
+                    card.remove();
+                } else {
+                    Swal.fire('Info', 'Minimal harus ada 1 item aset.', 'info');
+                }
+            });
+
+            assetRowsContainer.appendChild(card);
+        }
+
+        selectUnitAsset.addEventListener('change', () => {
+            const currentSelectedUnit = selectUnitAsset.value;
+            const assetCards = assetRowsContainer.querySelectorAll('.asset-item-card');
+            
+            assetCards.forEach(card => {
+                const selectSearch = card.querySelector('.asset-select-search');
+                const currentValue = selectSearch.value;
+
+                const filteredInventories = allInventoryList.filter(inv => !currentSelectedUnit || inv.unitId === currentSelectedUnit);
+                let inventoryOptionsHtml = '<option value="">-- Pilih / Cari Inventaris --</option>';
+                filteredInventories.forEach(inv => {
+                    const label = `${inv.name} (${inv.invCode}) - Rp ${parseInt(inv.price || 0, 10).toLocaleString('id-ID')}`;
+                    const isSelected = (inv.name === currentValue || inv.invCode === currentValue) ? 'selected' : '';
+                    inventoryOptionsHtml += `<option value="${inv.name}" ${isSelected} data-code="${inv.invCode}" data-accum="${inv.accumAccount}" data-expense="${inv.expenseAccount}" data-price="${inv.price}">${label}</option>`;
+                });
+
+                selectSearch.innerHTML = inventoryOptionsHtml;
+            });
+        });
+
+        openModalBtn.addEventListener('click', async () => {
+            if (fabHasMoved) return;
+            modalInitialX = 0; modalInitialY = 0;
+            modalBox.style.transform = 'translate3d(0, 0, 0)';
+            
+            editDocId.value = '';
+            modalTitleText.textContent = 'ENTRI PENGHAPUSAN ASET';
+            btnSimpan.textContent = 'Simpan Penghapusan';
+
+            selectUnitAsset.value = defaultUnitCode;
+            selectCondition.value = '';
+            trxMemo.value = '';
+            trxDate.value = activeMonthDefaultDate;
+            
+            await generateRefNumber();
+
+            assetRowsContainer.innerHTML = '';
+            await addAssetCard();
+            trxModal.classList.add('active');
+        });
+
+        btnAddAssetRow.addEventListener('click', async () => await addAssetCard());
+        closeModalBtn.addEventListener('click', () => trxModal.classList.remove('active'));
+        
+        btnBatal.addEventListener('click', async () => {
+            if (!editDocId.value) {
+                selectUnitAsset.value = defaultUnitCode;
+                selectCondition.value = '';
+                trxMemo.value = '';
+                trxDate.value = activeMonthDefaultDate;
+                await generateRefNumber();
+                assetRowsContainer.innerHTML = '';
+                await addAssetCard();
+            } else {
+                trxModal.classList.remove('active');
+            }
+        });
+
+        trxModal.addEventListener('click', (e) => { if (e.target === trxModal) trxModal.classList.remove('active'); });
+
+        async function loadDeprData() {
+            try {
+                const start = filterStart.value;
+                const end = filterEnd.value;
+
+                const querySnapshot = await getDocs(collection(db, 'journals'));
+                rawDeprJournals = [];
+                let grandTotal = 0;
+
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if (data.type === 'PENYUSUTAN_ASET') {
+                        if ((!start || data.date >= start) && (!end || data.date <= end)) {
+                            rawDeprJournals.push({ id: docSnap.id, ...data });
+                            if (data.items && data.items.length > 0) {
+                                let totalItem = 0;
+                                data.items.forEach(it => { if (it.debit > 0) totalItem += parseFloat(it.debit) || 0; });
+                                grandTotal += totalItem;
+                            }
+                        }
+                    }
+                });
+
+                rawDeprJournals.sort((a, b) => b.date.localeCompare(a.date));
+                renderList(rawDeprJournals);
+                totalAmountDisplay.textContent = `Rp ${grandTotal.toLocaleString('id-ID')}`;
+
+            } catch (err) {
+                console.error("Gagal memuat data penghapusan:", err);
+            }
+        }
+
+        function renderList(dataArray) {
+            trxListContainer.innerHTML = '';
+            if (dataArray.length === 0) {
+                trxListContainer.innerHTML = `<div class="empty-state">Tidak ada data penghapusan aset pada periode ini.</div>`;
+                return;
+            }
+
+            dataArray.forEach(trx => {
+                const formattedDate = formatDateIndo(trx.date);
+                let totalTrx = 0;
+                if (trx.items) {
+                    trx.items.forEach(it => { if (it.debit > 0) totalTrx += parseFloat(it.debit) || 0; });
+                }
+
+                const unitBadge = trx.unitId ? ` [Unit: ${trx.unitId}]` : '';
+                const condBadge = trx.condition ? ` (${trx.condition})` : '';
+
+                // Membentuk teks detail barang beserta kode inventarisnya
+                let assetDetailsText = '-';
+                if (trx.assetItems && trx.assetItems.length > 0) {
+                    assetDetailsText = trx.assetItems.map(item => {
+                        // Mencari kode inventaris dari allInventoryList jika tersimpan berdasarkan nama
+                        const matchedInv = allInventoryList.find(inv => inv.name === item.name);
+                        const invCode = matchedInv ? matchedInv.invCode : '';
+                        return invCode ? `${item.name} (${invCode})` : item.name;
+                    }).join(', ');
+                } else if (trx.assetNames) {
+                    assetDetailsText = trx.assetNames.join(', ');
+                }
+
+                const card = document.createElement('div');
+                card.className = 'trx-card';
+                card.innerHTML = `
+                    <div class="trx-card-top">
+                        <span>${formattedDate}${unitBadge}</span>
+                        <span>Ref: ${trx.ref || '-'}</span>
+                    </div>
+                    <div class="trx-card-body">
+                        <div class="trx-info">
+                            <span class="trx-title">${trx.description || 'Penghapusan Aset'}${condBadge}</span>
+                            <span class="trx-subtitle">Item: ${assetDetailsText}</span>
+                        </div>
+                        <div class="trx-right">
+                            <span class="trx-amount">Rp ${totalTrx.toLocaleString('id-ID')}</span>
+                            <div class="trx-actions">
+                                <button type="button" class="btn-card-action btn-edit" data-id="${trx.id}" title="Edit"><span class="material-icons" style="font-size:16px;">edit</span></button>
+                                <button type="button" class="btn-card-action btn-delete" data-id="${trx.id}" title="Hapus"><span class="material-icons" style="font-size:16px;">delete</span></button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                trxListContainer.appendChild(card);
+            });
+
+            trxListContainer.querySelectorAll('.btn-edit').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.currentTarget.dataset.id;
+                    const trx = rawDeprJournals.find(item => item.id === id);
+                    if (!trx) return;
+
+                    modalInitialX = 0; modalInitialY = 0;
+                    modalBox.style.transform = 'translate3d(0, 0, 0)';
+
+                    editDocId.value = trx.id;
+                    modalTitleText.textContent = 'EDIT PENGHAPUSAN ASET';
+                    btnSimpan.textContent = 'Perbarui Penghapusan';
+
+                    trxRefNumber.value = trx.ref || '';
+                    selectUnitAsset.value = trx.unitId || '';
+                    trxDate.value = trx.date || '';
+                    selectCondition.value = trx.condition || '';
+                    trxMemo.value = trx.description || '';
+
+                    assetRowsContainer.innerHTML = '';
+                    if (trx.assetItems && trx.assetItems.length > 0) {
+                        for (let item of trx.assetItems) {
+                            await addAssetCard(item.name, item.accumAccount, item.expenseAccount, item.price);
+                        }
+                    } else {
+                        await addAssetCard();
+                    }
+
+                    trxModal.classList.add('active');
+                });
+            });
+
+            trxListContainer.querySelectorAll('.btn-delete').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.currentTarget.dataset.id;
+                    const confirmRes = await Swal.fire({
+                        title: 'Hapus Transaksi?',
+                        text: 'Data penghapusan aset ini akan dihapus permanen.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc2626',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: 'Ya, Hapus',
+                        cancelButtonText: 'Batal'
+                    });
+
+                    if (confirmRes.isConfirmed) {
+                        try {
+                            await deleteDoc(doc(db, 'journals', id));
+                            Swal.fire({ icon: 'success', title: 'Terhapus', text: 'Data penghapusan berhasil dihapus.', timer: 1200, showConfirmButton: false });
+                            loadDeprData();
+                        } catch (err) {
+                            console.error("Gagal menghapus:", err);
+                            Swal.fire('Error', err.message, 'error');
+                        }
+                    }
+                });
+            });
+        }
+
+        function formatDateIndo(dateStr) {
+            if (!dateStr) return '';
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr;
+            return `${String(d.getDate()).padStart(2, '0')}-${months[d.getMonth()]}-${d.getFullYear()}`;
+        }
+
+        btnSimpan.addEventListener('click', async () => {
+            if (!selectUnitAsset.value || !trxDate.value || !selectCondition.value || !trxMemo.value) {
+                Swal.fire('Peringatan', 'Unit Usaha, Tanggal, Kondisi, dan Keterangan wajib diisi.', 'warning');
+                return;
+            }
+
+            const assetCards = assetRowsContainer.querySelectorAll('.asset-item-card');
+            let items = [];
+            let assetNames = [];
+            let assetItemsList = [];
+
+            for (let card of assetCards) {
+                const name = card.querySelector('.asset-select-search').value.trim();
+                const accumAcc = card.querySelector('.accum-account').value;
+                const expenseAcc = card.querySelector('.expense-account').value;
+                const rawPrice = card.querySelector('.asset-price').value.replace(/\D/g, '');
+                const price = parseFloat(rawPrice) || 0;
+
+                if (!name || !accumAcc || !expenseAcc || price <= 0) {
+                    Swal.fire('Peringatan', 'Pastikan nama/kode aset, akun akumulasi, akun biaya/kerugian, dan nilai valid.', 'warning');
+                    return;
+                }
+
+                const accumAccCode = accumAcc.split(' - ')[0].trim();
+                const expenseAccCode = expenseAcc.split(' - ')[0].trim();
+
+                assetNames.push(name);
+                items.push({ accCode: expenseAccCode, debit: price, kredit: 0 });
+                items.push({ accCode: accumAccCode, debit: 0, kredit: price });
+
+                assetItemsList.push({
+                    name: name,
+                    accumAccount: accumAcc,
+                    expenseAccount: expenseAcc,
+                    price: price
+                });
+            }
+
+            try {
+                const docId = editDocId.value;
+
+                if (!docId) {
+                    await generateRefNumber();
+                }
+
+                const payload = {
+                    date: trxDate.value,
+                    ref: trxRefNumber.value,
+                    unitId: selectUnitAsset.value,
+                    condition: selectCondition.value,
+                    description: trxMemo.value,
+                    type: 'PENYUSUTAN_ASET',
+                    assetNames: assetNames,
+                    assetItems: assetItemsList,
+                    items: items,
+                    updatedAt: serverTimestamp()
+                };
+
+                if (docId) {
+                    await updateDoc(doc(db, 'journals', docId), payload);
+                    Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Perubahan penghapusan berhasil disimpan.', timer: 1500, showConfirmButton: false });
+                    trxModal.classList.remove('active');
+                } else {
+                    payload.createdAt = serverTimestamp();
+                    await addDoc(collection(db, 'journals'), payload);
+                    Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Penghapusan aset berhasil disimpan.', timer: 1500, showConfirmButton: false });
+                    
+                    selectUnitAsset.value = defaultUnitCode;
+                    selectCondition.value = '';
+                    trxMemo.value = '';
+                    trxDate.value = activeMonthDefaultDate;
+                    await generateRefNumber();
+                    assetRowsContainer.innerHTML = '';
+                    await addAssetCard();
+                }
+
+                loadDeprData();
+
+            } catch (err) {
+                console.error("Gagal menyimpan penghapusan:", err);
+                Swal.fire('Error', err.message, 'error');
+            }
+        });
+
+        filterStart.addEventListener('change', loadDeprData);
+        filterEnd.addEventListener('change', loadDeprData);
+
+        async function initApp() {
+            await loadActiveMonthAndInit();
+            await loadOptions();
+            await loadDeprData();
+        }
+
+        initApp();
+    </script>
+</body>
+</html>

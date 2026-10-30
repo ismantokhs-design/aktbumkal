@@ -59,9 +59,9 @@
         /* Modal Overlay */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; padding: 16px; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
-        .modal-box { background-color: #ffffff; width: 100%; max-width: 440px; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 90vh; }
+        .modal-box { background-color: #ffffff; width: 100%; max-width: 440px; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 90vh; position: relative; }
         
-        .modal-header { background-color: #5114B9; color: #ffffff; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 14px; }
+        .modal-header { background-color: #5114B9; color: #ffffff; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 14px; cursor: move; user-select: none; }
         .modal-header .close-modal { cursor: pointer; font-size: 20px; }
         
         /* Modal Body tanpa Scrollbar */
@@ -131,8 +131,8 @@
 
     <!-- Modal Form Tambah / Edit Penerimaan Kas -->
     <div class="modal-overlay" id="trxModal">
-        <div class="modal-box">
-            <div class="modal-header">
+        <div class="modal-box" id="modalBox">
+            <div class="modal-header" id="modalHeader">
                 <span id="modalTitleText">TAMBAH PENERIMAAN KAS</span>
                 <span class="material-icons close-modal" id="closeModalBtn">close</span>
             </div>
@@ -147,6 +147,14 @@
                         <label>No Ref</label>
                         <input type="text" id="trxRef" class="form-control" placeholder="Otomatis..." readonly style="background-color: #e2e8f0; font-weight: bold;">
                     </div>
+                </div>
+
+                <!-- Pilihan Unit Usaha / Cabang (Default isDefault = true) -->
+                <div class="form-group">
+                    <label>Unit Usaha / Cabang *</label>
+                    <select id="selectUnitKas" class="form-control">
+                        <option value="">-- Pilih Unit Usaha --</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
@@ -197,6 +205,8 @@
         const totalAmountDisplay = document.getElementById('totalAmountDisplay');
 
         const trxModal = document.getElementById('trxModal');
+        const modalBox = document.getElementById('modalBox');
+        const modalHeader = document.getElementById('modalHeader');
         const modalTitleText = document.getElementById('modalTitleText');
         const openModalBtn = document.getElementById('openModalBtn');
         const closeModalBtn = document.getElementById('closeModalBtn');
@@ -210,6 +220,7 @@
 
         const trxDate = document.getElementById('trxDate');
         const trxRef = document.getElementById('trxRef');
+        const selectUnitKas = document.getElementById('selectUnitKas');
         const trxMemo = document.getElementById('trxMemo');
         const trxReceiver = document.getElementById('trxReceiver');
         const selectKasAccount = document.getElementById('selectKasAccount');
@@ -219,6 +230,33 @@
         let accountNamesMap = {};
         let accountOptionsHtml = '<option value="">--Pilih Akun--</option>';
         let isAscending = true;
+        let defaultUnitCode = "";
+
+        // Fitur Draggable (Geser Modal)
+        let isDragging = false;
+        let startX, startY, initialX = 0, initialY = 0;
+
+        modalHeader.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX - initialX;
+            startY = e.clientY - initialY;
+            modalHeader.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            let currentX = e.clientX - startX;
+            let currentY = e.clientY - startY;
+            initialX = currentX;
+            initialY = currentY;
+            modalBox.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            modalHeader.style.cursor = 'move';
+        });
 
         async function initActiveMonthFromDB() {
             let year, month;
@@ -240,8 +278,29 @@
                     year = now.getFullYear();
                     month = now.getMonth() + 1;
                 }
+
+                // Muat opsi Unit Usaha ke dropdown modal & otomatis tentukan default
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    selectUnitKas.innerHTML = '<option value="">-- Pilih Unit Usaha --</option>';
+                    const unitList = data.unitList || [];
+                    
+                    unitList.forEach(unit => {
+                        const val = unit.kodeUnit || unit.namaUnit;
+                        const label = `${unit.kodeUnit ? '[' + unit.kodeUnit + '] ' : ''}${unit.namaUnit || 'Unit'}`;
+                        const opt = document.createElement('option');
+                        opt.value = val;
+                        opt.textContent = label;
+                        selectUnitKas.appendChild(opt);
+
+                        if (unit.isDefault === true || unit.isDefault === 'true') {
+                            defaultUnitCode = val;
+                        }
+                    });
+                }
+
             } catch (err) {
-                console.error("Gagal memuat activeMonthCode dari database:", err);
+                console.error("Gagal memuat profil dari database:", err);
                 const now = new Date();
                 year = now.getFullYear();
                 month = now.getMonth() + 1;
@@ -417,10 +476,11 @@
             calculateModalTotal();
         }
 
-        function resetForm() {
+        async function resetForm() {
             editDocId.value = "";
             modalTitleText.textContent = "TAMBAH PENERIMAAN KAS";
             btnHapusTrx.style.display = "none";
+            selectUnitKas.value = defaultUnitCode; 
             selectKasAccount.value = ""; 
             trxRef.value = "-";
             trxMemo.value = "";
@@ -428,10 +488,13 @@
             rowsContainer.innerHTML = '';
             addRowItem();
             calculateModalTotal();
+            await generateRefNumber();
         }
 
         openModalBtn.addEventListener('click', async () => {
-            resetForm();
+            initialX = 0; initialY = 0;
+            modalBox.style.transform = 'translate3d(0, 0, 0)';
+            await resetForm();
             trxModal.classList.add('active');
         });
 
@@ -480,7 +543,7 @@
         function renderList(dataArray) {
             trxListContainer.innerHTML = '';
             if (dataArray.length === 0) {
-                trxListContainer.innerHTML = `<div class="empty-state">Tidak ada data penerimaan kas pada periode ini.</div>`;
+                trxListContainer.innerHTML = `<div class="empty-state" style="text-align:center; padding:30px; color:#94a3b8; font-size:12px;">Tidak ada data penerimaan kas pada periode ini.</div>`;
                 return;
             }
 
@@ -495,12 +558,13 @@
                 }
 
                 const receiverText = trx.receiver ? ` • Dari: ${trx.receiver}` : '';
+                const unitBadge = trx.unitId ? ` [Unit: ${trx.unitId}]` : '';
 
                 const card = document.createElement('div');
                 card.className = 'trx-card';
                 card.innerHTML = `
                     <div class="trx-card-top">
-                        <span>${formattedDate}</span>
+                        <span>${formattedDate}${unitBadge}</span>
                         <span>Ref: ${trx.ref || '-'}</span>
                     </div>
                     <div class="trx-card-body">
@@ -522,13 +586,13 @@
                     </div>
                 `;
 
-                // Event listener untuk tombol Edit
                 card.querySelector('.btn-edit').addEventListener('click', (e) => {
                     e.stopPropagation();
+                    initialX = 0; initialY = 0;
+                    modalBox.style.transform = 'translate3d(0, 0, 0)';
                     openEditModal(trx);
                 });
 
-                // Event listener untuk tombol Hapus langsung dari kartu
                 card.querySelector('.btn-delete').addEventListener('click', async (e) => {
                     e.stopPropagation();
                     const confirm = await Swal.fire({
@@ -571,6 +635,7 @@
 
             trxDate.value = trx.date || '';
             trxRef.value = trx.ref || '-';
+            selectUnitKas.value = trx.unitId || defaultUnitCode;
             trxMemo.value = trx.description || '';
             trxReceiver.value = trx.receiver !== '-' ? trx.receiver : '';
 
@@ -599,13 +664,14 @@
             return `${String(d.getDate()).padStart(2, '0')}-${months[d.getMonth()]}-${d.getFullYear()}`;
         }
 
-        btnBatal.addEventListener('click', () => {
-            resetForm();
+        // Tombol BATAL mereset form TANPA menutup modal
+        btnBatal.addEventListener('click', async () => {
+            await resetForm();
         });
 
         btnSimpan.addEventListener('click', async () => {
-            if (!trxDate.value || !selectKasAccount.value || !trxMemo.value) {
-                Swal.fire('Peringatan', 'Tanggal, Akun Simpan Kas, dan Keterangan wajib diisi.', 'warning');
+            if (!trxDate.value || !selectUnitKas.value || !selectKasAccount.value || !trxMemo.value) {
+                Swal.fire('Peringatan', 'Tanggal, Unit Usaha, Akun Simpan Kas, dan Keterangan wajib diisi.', 'warning');
                 return;
             }
 
@@ -641,7 +707,7 @@
                 const trxData = {
                     date: trxDate.value,
                     ref: trxRef.value || '-',
-                    unitId: '',
+                    unitId: selectUnitKas.value,
                     description: trxMemo.value,
                     receiver: trxReceiver.value.trim() || '-',
                     type: 'PENERIMAAN_KAS',
@@ -652,20 +718,29 @@
                 if (isEdit) {
                     const docRef = doc(db, 'journals', editDocId.value);
                     await updateDoc(docRef, trxData);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Penerimaan kas berhasil diperbarui.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    // Jika mode edit, setelah simpan sukses baru modal ditutup
+                    trxModal.classList.remove('active');
                 } else {
                     trxData.createdAt = serverTimestamp();
                     await addDoc(collection(db, 'journals'), trxData);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Penerimaan kas berhasil disimpan.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    // Jika mode tambah baru, form direset (nomor ref naik otomatis) TANPA menutup modal
+                    await resetForm();
                 }
 
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil',
-                    text: isEdit ? 'Penerimaan kas berhasil diperbarui.' : 'Penerimaan kas berhasil disimpan.',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-
-                resetForm();
                 loadPenerimaanKas();
 
             } catch (err) {

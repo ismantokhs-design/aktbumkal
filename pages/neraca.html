@@ -91,6 +91,13 @@
             border-bottom: 2px solid #cbd5e1;
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
             gap: 8px;
         }
 
@@ -110,7 +117,19 @@
             background: transparent;
             padding: 2px 0;
             text-align: center;
-            width: 120px;
+            width: 110px;
+        }
+
+        .select-unit-neraca {
+            height: 28px;
+            padding: 0 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #0f172a;
+            background-color: #f8fafc;
+            outline: none;
         }
 
         /* Banner Peringatan Belum Tutup Buku */
@@ -215,10 +234,17 @@
             </div>
         </header>
 
-        <!-- Baris Filter Tanggal Per Tanggal -->
+        <!-- Baris Filter Tanggal & Unit Usaha -->
         <div class="filter-section">
-            <span class="filter-label">Per Tanggal</span>
-            <input type="date" id="targetDate" class="input-date-inline">
+            <div class="filter-group">
+                <span class="filter-label">Per Tanggal</span>
+                <input type="date" id="targetDate" class="input-date-inline">
+            </div>
+            <div class="filter-group">
+                <select class="select-unit-neraca" id="filterUnitNeraca">
+                    <option value="">Konsolidasi (Gabungan)</option>
+                </select>
+            </div>
         </div>
 
         <!-- Banner Peringatan Status Tutup Buku Tahun Lalu -->
@@ -281,6 +307,7 @@
         import { doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const targetDateInput = document.getElementById('targetDate');
+        const filterUnitNeraca = document.getElementById('filterUnitNeraca');
         const warningBanner = document.getElementById('warningBanner');
         const warningBannerText = document.getElementById('warningBannerText');
 
@@ -305,6 +332,20 @@
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
+
+                    // Muat daftar unit usaha ke dropdown filter
+                    if (filterUnitNeraca) {
+                        filterUnitNeraca.innerHTML = '<option value="">Konsolidasi (Gabungan)</option>';
+                        const unitList = data.unitList || [];
+                        unitList.forEach(unit => {
+                            const val = unit.kodeUnit || unit.namaUnit;
+                            const label = `Unit: ${unit.kodeUnit || ''} - ${unit.namaUnit}`;
+                            const opt = document.createElement('option');
+                            opt.value = val;
+                            opt.textContent = label;
+                            filterUnitNeraca.appendChild(opt);
+                        });
+                    }
 
                     if (data.activeMonthCode && data.activeMonthCode.includes('-')) {
                         const [y, m] = data.activeMonthCode.split('-');
@@ -336,6 +377,7 @@
 
         async function generateNeracaReport() {
             const eDate = targetDateInput.value;
+            const selectedUnit = filterUnitNeraca ? filterUnitNeraca.value : '';
             const yearStr = eDate.split('-')[0];
             const currentYearNum = parseInt(yearStr, 10);
             const prevYearNum = currentYearNum - 1;
@@ -355,7 +397,6 @@
                         const nextPrevY = prevYearNum + 1;
                         const yy = String(nextPrevY).substring(2);
 
-                        // Cek apakah ada jurnal penutup untuk tahun sebelumnya
                         const isPrevClosing = jNum.includes('JKT-') && (jNum.includes(`-${yy}-`) || jDate.startsWith(String(prevYearNum)) || jDate.startsWith(String(nextPrevY))) || jKet.includes('tutup buku') || jKet.includes('penutup');
 
                         if (isPrevClosing) {
@@ -364,15 +405,14 @@
                     });
                 }
 
-                // Tampilkan atau sembunyikan banner peringatan
-                if (currentYearNum > 2000 && !prevYearHasClosed && currentYearNum > 2020) { // Menyesuaikan batas tahun awal sistem jika perlu
+                if (currentYearNum > 2000 && !prevYearHasClosed && currentYearNum > 2020) {
                     warningBanner.style.display = 'flex';
                     warningBannerText.innerHTML = `<b>Peringatan:</b> Tahun <b>${prevYearNum}</b> belum melakukan Tutup Buku Akhir Tahun. Laporan Neraca per tanggal ini berpotensi tidak balance karena saldo laba tahun lalu belum dipindahkan ke Laba Ditahan.`;
                 } else {
                     warningBanner.style.display = 'none';
                 }
 
-                // 2. Fetch seluruh master akun dari koleksi 'accounts'
+                // 2. Fetch master akun dan hitung Saldo Awal per akun berdasarkan unitBalances
                 const accSnap = await getDocs(collection(db, 'accounts'));
                 const accountsMap = {};
 
@@ -388,6 +428,25 @@
                     const normalBalance = String(data.normalBalance || '').trim();
                     const isLevel4 = parseInt(data.level, 10) === 4 || data.isPostable === true || data.isPostable === 'true';
 
+                    // Ekstrak Saldo Awal dari unitBalances
+                    let initDebit = 0;
+                    let initKredit = 0;
+
+                    if (data.unitBalances) {
+                        if (selectedUnit && data.unitBalances[selectedUnit]) {
+                            initDebit = parseFloat(data.unitBalances[selectedUnit].initialDebit) || 0;
+                            initKredit = parseFloat(data.unitBalances[selectedUnit].initialKredit) || 0;
+                        } else if (!selectedUnit) {
+                            Object.values(data.unitBalances).forEach(ub => {
+                                initDebit += parseFloat(ub.initialDebit) || 0;
+                                initKredit += parseFloat(ub.initialKredit) || 0;
+                            });
+                        }
+                    } else {
+                        initDebit = parseFloat(data.initialDebit) || 0;
+                        initKredit = parseFloat(data.initialKredit) || 0;
+                    }
+
                     accountsMap[code] = { 
                         name, 
                         reportGroup, 
@@ -397,11 +456,14 @@
 
                     if (isLevel4 && reportGroup === "Neraca") {
                         if (code.startsWith('1') || name.toLowerCase().includes('kas') || name.toLowerCase().includes('bank') || name.toLowerCase().includes('piutang') || name.toLowerCase().includes('persediaan') || name.toLowerCase().includes('aset')) {
-                            asetAccounts[code] = 0;
+                            // Saldo normal Aset (Debit) -> Saldo Awal = initDebit - initKredit
+                            asetAccounts[code] = (initDebit - initKredit);
                         } else if (code.startsWith('2') || name.toLowerCase().includes('hutang') || name.toLowerCase().includes('kewajiban')) {
-                            kewajibanAccounts[code] = 0;
+                            // Saldo normal Kewajiban (Kredit) -> Saldo Awal = initKredit - initDebit
+                            kewajibanAccounts[code] = (initKredit - initDebit);
                         } else if (code.startsWith('3') || name.toLowerCase().includes('modal') || name.toLowerCase().includes('ekuitas') || name.toLowerCase().includes('laba')) {
-                            modalAccounts[code] = 0;
+                            // Saldo normal Modal (Kredit) -> Saldo Awal = initKredit - initDebit
+                            modalAccounts[code] = (initKredit - initDebit);
                         }
                     }
                 });
@@ -409,6 +471,11 @@
                 // 3. Kalkulasi Mutasi Saldo Jurnal hingga eDate
                 jSnapAll.forEach(d => {
                     const journal = d.data();
+
+                    if (selectedUnit && journal.unitId && journal.unitId !== selectedUnit) {
+                        return;
+                    }
+
                     const jDate = journal.date;
                     if (!jDate || jDate > eDate) return;
 
@@ -434,13 +501,18 @@
                     }
                 });
 
-                // 4. Hitung Laba Rugi Tahun Berjalan
+                // 4. Hitung Laba Rugi Tahun Berjalan (dari awal tahun s.d eDate)
                 const sDateYear = `${yearStr}-01-01`;
                 let sumPendapatan = 0;
                 let sumBeban = 0;
 
                 jSnapAll.forEach(d => {
                     const journal = d.data();
+
+                    if (selectedUnit && journal.unitId && journal.unitId !== selectedUnit) {
+                        return;
+                    }
+
                     const jDate = journal.date;
                     if (!jDate || jDate < sDateYear || jDate > eDate) return;
 
@@ -515,6 +587,7 @@
         }
 
         targetDateInput.addEventListener('change', generateNeracaReport);
+        filterUnitNeraca?.addEventListener('change', generateNeracaReport);
 
         initTargetDate();
     </script>

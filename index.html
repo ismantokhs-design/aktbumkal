@@ -142,6 +142,10 @@
                         <span class="material-icons">devices_other</span>
                         <span>Aset</span>
                     </a>
+                    <a href="./pages/penyusutan.html" class="menu-item">
+                        <span class="material-icons">trending_down</span>
+                        <span>Penyusutan</span>
+                    </a>
                     <a href="./pages/produksi.html" class="menu-item">
                         <span class="material-icons">factory</span>
                         <span>Proses Produksi</span>
@@ -149,6 +153,10 @@
                     <a href="./pages/penjualan.html" class="menu-item">
                         <span class="material-icons">point_of_sale</span>
                         <span>Penjualan Produk</span>
+                    </a>
+                    <a href="./pages/koreksi-penjualan.html" class="menu-item">
+                        <span class="material-icons">rule</span>
+                        <span>Koreksi Penjualan</span>
                     </a>
                 </div>
             </div>
@@ -655,29 +663,71 @@
                 const accSnap = await getDocs(collection(db, 'accounts'));
                 const accountsMap = {};
 
+                let totalKasBank = 0;
+                let totalPendapatan = 0;
+                let totalBiaya = 0;
+                let totalHutang = 0;
+                let totalPiutang = 0;
+
                 accSnap.forEach(d => {
                     const data = d.data();
                     const code = String(data.accCode || '').trim();
+                    const reportGroup = String(data.reportGroup || '').trim();
+                    const cashFlowGroup = String(data.cashFlowGroup || '').trim();
+                    const normalBalance = String(data.normalBalance || '').trim();
+
+                    let initDebit = 0;
+                    let initKredit = 0;
+
+                    if (data.unitBalances) {
+                        if (selectedUnit && data.unitBalances[selectedUnit]) {
+                            initDebit = parseFloat(data.unitBalances[selectedUnit].initialDebit) || 0;
+                            initKredit = parseFloat(data.unitBalances[selectedUnit].initialKredit) || 0;
+                        } else if (!selectedUnit) {
+                            Object.values(data.unitBalances).forEach(ub => {
+                                initDebit += parseFloat(ub.initialDebit) || 0;
+                                initKredit += parseFloat(ub.initialKredit) || 0;
+                            });
+                        }
+                    } else {
+                        initDebit = parseFloat(data.initialDebit) || 0;
+                        initKredit = parseFloat(data.initialKredit) || 0;
+                    }
+
                     accountsMap[code] = {
                         name: data.accName || '',
-                        reportGroup: String(data.reportGroup || '').trim(),
-                        cashFlowGroup: String(data.cashFlowGroup || '').trim(),
-                        normalBalance: String(data.normalBalance || '').trim(),
+                        reportGroup: reportGroup,
+                        cashFlowGroup: cashFlowGroup,
+                        normalBalance: normalBalance,
                         accCode: code
                     };
+
+                    const isKasBank = (cashFlowGroup === "Kas dan Bank");
+                    if (isKasBank) {
+                        totalKasBank += (initDebit - initKredit);
+                    }
+
+                    if (reportGroup === "Laba Rugi") {
+                        if (normalBalance === "Kredit") {
+                            totalPendapatan += (initKredit - initDebit);
+                        } else if (normalBalance === "Debit") {
+                            totalBiaya += (initDebit - initKredit);
+                        }
+                    }
+
+                    if (code.startsWith('2') || (data.accName || '').toLowerCase().includes('hutang')) {
+                        totalHutang += (initKredit - initDebit);
+                    }
+
+                    if (code.startsWith('1.02') || (data.accName || '').toLowerCase().includes('piutang')) {
+                        totalPiutang += (initDebit - initKredit);
+                    }
                 });
 
                 const jSnap = await getDocs(collection(db, 'journals'));
 
                 let totalPenerimaanKas = 0;
                 let totalPengeluaranKas = 0;
-
-                let totalKasBank = 0;
-                let totalPendapatan = 0;
-                let totalBiaya = 0;
-
-                let totalHutang = 0;
-                let totalPiutang = 0;
 
                 const monthlyProfit = Array(12).fill(0);
                 const activeYear = globalActiveMonthCode ? parseInt(globalActiveMonthCode.split('-')[0], 10) : new Date(currentStartDate).getFullYear();
