@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Pembelian</title>
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background-color: #f8fafc; display: flex; justify-content: center; min-height: 100vh; color: #1e293b; }
+        .page-container { width: 100%; max-width: 480px; background-color: #ffffff; display: flex; flex-direction: column; min-height: 100vh; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; padding-bottom: 70px; }
+        
+        .page-header { background-color: #5114B9; color: #ffffff; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .header-left { display: flex; align-items: center; gap: 14px; }
+        .btn-back { color: #ffffff; text-decoration: none; display: flex; align-items: center; }
+        .page-header h1 { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .content-container { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+        .filter-box { background: #f1f5f9; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 10px; }
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .form-group label { font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; }
+        .form-control { width: 100%; height: 36px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; outline: none; background-color: #ffffff; color: #0f172a; }
+        .form-control:focus { border-color: #5114B9; }
+
+        .row-2-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+        .btn-filter { background-color: #5114B9; color: #ffffff; border: none; border-radius: 6px; height: 36px; font-weight: 700; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 4px; }
+        .btn-filter:active { transform: scale(0.98); }
+
+        .report-summary { display: flex; justify-content: space-between; align-items: center; background: #ede9fe; padding: 10px 14px; border-radius: 8px; border: 1px solid #c4b5fd; font-size: 12px; font-weight: bold; color: #5114B9; }
+
+        .table-responsive { width: 100%; overflow-x: auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; }
+        .report-table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: left; }
+        .report-table th { background: #f8fafc; color: #475569; padding: 8px 10px; border-bottom: 1px solid #e2e8f0; font-weight: 700; text-transform: uppercase; }
+        .report-table td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; color: #1e293b; vertical-align: top; }
+        .report-table tr:hover { background-color: #f8fafc; }
+
+        /* Tombol Aksi Smooth */
+        .action-btns { display: flex; gap: 6px; margin-top: 6px; }
+        .btn-action { border: none; border-radius: 4px; padding: 4px 8px; font-size: 10px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 2px; text-decoration: none; transition: opacity 0.2s; }
+        .btn-action:hover { opacity: 0.85; }
+        .btn-edit { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        .btn-delete { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+
+        .empty-state { text-align: center; padding: 24px; color: #64748b; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <header class="page-header">
+            <div class="header-left">
+                <a href="../index.html" class="btn-back"><span class="material-icons">arrow_back</span></a>
+                <h1>Laporan Pembelian</h1>
+            </div>
+        </header>
+
+        <div class="content-container">
+            <!-- Filter Box -->
+            <div class="filter-box">
+                <div class="form-group">
+                    <label>Unit Usaha</label>
+                    <select id="filterUnit" class="form-control">
+                        <option value="">Semua Unit (Konsolidasi)</option>
+                    </select>
+                </div>
+                <div class="row-2-cols">
+                    <div class="form-group">
+                        <label>Dari Tanggal</label>
+                        <input type="date" id="filterStartDate" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Sampai Tanggal</label>
+                        <input type="date" id="filterEndDate" class="form-control">
+                    </div>
+                </div>
+                <button type="button" class="btn-filter" id="btnTampilkan">
+                    <span class="material-icons" style="font-size: 16px;">filter_list</span> Tampilkan Laporan
+                </button>
+            </div>
+
+            <!-- Ringkasan Total -->
+            <div class="report-summary">
+                <span>Total Pembelian:</span>
+                <span id="labelTotalSemua" style="font-size: 14px;">Rp 0</span>
+            </div>
+
+            <!-- Tabel Data -->
+            <div class="table-responsive">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Tanggal / No</th>
+                            <th>Unit / Supplier & Pembayaran</th>
+                            <th style="text-align: right;">Total (Rp)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBodyPembelian">
+                        <tr>
+                            <td colspan="3" class="empty-state">Silakan klik "Tampilkan Laporan"</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import { collection, getDocs, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        window.addEventListener('pageshow', () => {
+            document.body.classList.remove('no-scroll');
+        });
+
+        const filterUnit = document.getElementById('filterUnit');
+        const filterStartDate = document.getElementById('filterStartDate');
+        const filterEndDate = document.getElementById('filterEndDate');
+        const btnTampilkan = document.getElementById('btnTampilkan');
+        const labelTotalSemua = document.getElementById('labelTotalSemua');
+        const tableBodyPembelian = document.getElementById('tableBodyPembelian');
+
+        function formatDateIndo(dateStr) {
+            if (!dateStr) return '-';
+            const parts = dateStr.split('-');
+            if (parts.length < 3) return dateStr;
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            return `${parts[2]} ${months[parseInt(parts[1], 10) - 1]} ${parts[0]}`;
+        }
+
+        async function initFilter() {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                let startYear = new Date().getFullYear();
+                let startMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.activeMonthCode) {
+                        const [y, m] = data.activeMonthCode.split('-');
+                        if (y && m) {
+                            startYear = y;
+                            startMonth = m;
+                        }
+                    }
+
+                    const unitList = data.unitList || [];
+                    unitList.forEach(u => {
+                        const code = u.kodeUnit || '';
+                        const name = u.namaUnit || '';
+                        const opt = document.createElement('option');
+                        opt.value = name || code;
+                        opt.textContent = `Unit: ${code ? code + ' - ' : ''}${name}`;
+                        filterUnit.appendChild(opt);
+                    });
+                }
+
+                const firstDay = `${startYear}-${startMonth}-01`;
+                const lastDayObj = new Date(startYear, startMonth, 0);
+                const lastDay = `${startYear}-${startMonth}-${String(lastDayObj.getDate()).padStart(2, '0')}`;
+
+                filterStartDate.value = firstDay;
+                filterEndDate.value = lastDay;
+
+                loadReport();
+
+            } catch (err) {
+                console.error("Gagal inisialisasi filter:", err);
+            }
+        }
+
+        async function loadReport() {
+            const selectedUnit = filterUnit.value;
+            const startDate = filterStartDate.value;
+            const endDate = filterEndDate.value;
+
+            if (!startDate || !endDate) {
+                Swal.fire('Peringatan', 'Rentang tanggal wajib diisi.', 'warning');
+                return;
+            }
+
+            try {
+                tableBodyPembelian.innerHTML = `<tr><td colspan="3" class="empty-state">Memuat data...</td></tr>`;
+
+                const querySnapshot = await getDocs(collection(db, 'journals'));
+                
+                let grandTotal = 0;
+                let dataList = [];
+
+                querySnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if (data.type === 'PEMBELIAN') {
+                        const tgl = data.date || '';
+                        const unit = data.unitId || '';
+
+                        if (tgl >= startDate && tgl <= endDate) {
+                            if (!selectedUnit || unit === selectedUnit) {
+                                dataList.push({ id: docSnap.id, ...data });
+                            }
+                        }
+                    }
+                });
+
+                dataList.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
+                if (dataList.length === 0) {
+                    tableBodyPembelian.innerHTML = `<tr><td colspan="3" class="empty-state">Tidak ada data pembelian pada periode ini.</td></tr>`;
+                    labelTotalSemua.textContent = `Rp 0`;
+                    return;
+                }
+
+                tableBodyPembelian.innerHTML = '';
+
+                dataList.forEach(item => {
+                    const tglFormatted = formatDateIndo(item.date);
+                    const noTrans = item.journalNumber || '-';
+                    const unitName = item.unitId || '-';
+                    const payMethod = item.paymentMethod || 'Tunai';
+                    const payAccount = item.paymentAccount || '-';
+                    const desc = item.description || '-';
+                    const total = parseFloat(item.totalAmount) || 0;
+
+                    grandTotal += total;
+
+                    let detailListHTML = '';
+                    if (item.items && Array.isArray(item.items)) {
+                        item.items.forEach(det => {
+                            if (det.debit > 0) {
+                                detailListHTML += `<div style="font-size: 10px; color: #475569;">• [${det.accCode}] ${det.accName}: <b>Rp ${det.debit.toLocaleString('id-ID')}</b></div>`;
+                            }
+                        });
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>
+                            <b>${tglFormatted}</b><br>
+                            <span style="color: #64748b; font-size: 10px;">${noTrans}</span>
+                        </td>
+                        <td>
+                            <div style="font-weight: bold; color: #5114B9;">Unit: ${unitName}</div>
+                            <div style="color: #1e293b; margin-top: 2px;">${desc}</div>
+                            <div style="font-size: 10px; color: #0284c7; margin-top: 2px;">Metode: ${payMethod} (${payAccount})</div>
+                            <div style="margin-top: 4px; border-top: 1px dashed #e2e8f0; padding-top: 2px;">${detailListHTML}</div>
+                            <div class="action-btns">
+                                <button type="button" class="btn-action btn-edit" data-id="${item.id}">
+                                    <span class="material-icons" style="font-size: 13px;">edit</span> Edit
+                                </button>
+                                <button type="button" class="btn-action btn-delete" data-id="${item.id}">
+                                    <span class="material-icons" style="font-size: 13px;">delete</span> Hapus
+                                </button>
+                            </div>
+                        </td>
+                        <td style="text-align: right; font-weight: bold; color: #1e293b;">
+                            Rp ${total.toLocaleString('id-ID')}
+                        </td>
+                    `;
+
+                    // Event listener Edit
+                    tr.querySelector('.btn-edit').addEventListener('click', () => {
+                        // Arahkan ke halaman edit atau form pembelian dengan membawa ID
+                        window.location.href = `pembelian.html?id=${item.id}`;
+                    });
+
+                    // Event listener Hapus
+                    tr.querySelector('.btn-delete').addEventListener('click', async () => {
+                        const confirmResult = await Swal.fire({
+                            title: 'Hapus Transaksi?',
+                            text: "Data pembelian ini akan dihapus permanen dari jurnal.",
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#dc2626',
+                            cancelButtonColor: '#64748b',
+                            confirmButtonText: 'Ya, Hapus!',
+                            cancelButtonText: 'Batal'
+                        });
+
+                        if (confirmResult.isConfirmed) {
+                            try {
+                                await deleteDoc(doc(db, 'journals', item.id));
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Terhapus!',
+                                    text: 'Data pembelian berhasil dihapus.',
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                });
+                                loadReport(); // Muat ulang laporan
+                            } catch (err) {
+                                console.error("Gagal menghapus:", err);
+                                Swal.fire('Error', 'Gagal menghapus data: ' + err.message, 'error');
+                            }
+                        }
+                    });
+
+                    tableBodyPembelian.appendChild(tr);
+                });
+
+                labelTotalSemua.textContent = `Rp ${grandTotal.toLocaleString('id-ID')}`;
+
+            } catch (err) {
+                console.error("Gagal memuat laporan pembelian:", err);
+                tableBodyPembelian.innerHTML = `<tr><td colspan="3" class="empty-state" style="color: #dc2626;">Gagal memuat data.</td></tr>`;
+            }
+        }
+
+        btnTampilkan.addEventListener('click', loadReport);
+
+        initFilter();
+    </script>
+</body>
+</html>

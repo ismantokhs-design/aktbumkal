@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Retur Penjualan</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Link External CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-title-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-back {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .content-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex-grow: 1;
+        }
+
+        .filter-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #1e293b;
+            background-color: #ffffff;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: #5114B9;
+        }
+
+        .btn-filter {
+            background-color: #5114B9;
+            color: #ffffff;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .summary-box {
+            background: linear-gradient(135deg, #5114B9, #7c3aed);
+            color: #ffffff;
+            border-radius: 8px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            text-align: center;
+        }
+
+        .summary-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
+        }
+
+        .summary-value {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .report-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .report-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            position: relative;
+        }
+
+        .report-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .report-number {
+            font-weight: 700;
+            color: #5114B9;
+        }
+
+        .report-date {
+            color: #64748b;
+            font-size: 11px;
+        }
+
+        .report-desc {
+            font-size: 11px;
+            color: #334155;
+            border-top: 1px dashed #cbd5e1;
+            padding-top: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-action {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 2px;
+            display: flex;
+            align-items: center;
+            border-radius: 4px;
+        }
+
+        .btn-edit {
+            color: #2563eb;
+        }
+
+        .btn-delete {
+            color: #dc2626;
+        }
+
+        .btn-action:hover {
+            background-color: rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <header class="page-header">
+            <div class="header-title-box">
+                <a href="../index.html" class="btn-back">
+                    <span class="material-icons">arrow_back</span>
+                </a>
+                <h1>Laporan Retur Penjualan</h1>
+            </div>
+            <span class="material-icons" style="cursor: pointer;" id="btnPrintReport" title="Cetak / Export">print</span>
+        </header>
+
+        <div class="content-body">
+            <!-- Filter Section -->
+            <div class="filter-card">
+                <div class="form-group">
+                    <label class="form-label">Pilih Unit Usaha</label>
+                    <select id="filterUnit" class="form-control">
+                        <option value="">Semua Unit (Konsolidasi)</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <div class="form-group">
+                        <label class="form-label">Dari Tanggal</label>
+                        <input type="date" id="filterStartDate" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Sampai Tanggal</label>
+                        <input type="date" id="filterEndDate" class="form-control">
+                    </div>
+                </div>
+                <button type="button" class="btn-filter" id="btnTampilkan">Tampilkan Laporan</button>
+            </div>
+
+            <!-- Summary Total -->
+            <div class="summary-box">
+                <span class="summary-title">Total Nilai Retur Penjualan</span>
+                <span class="summary-value" id="totalReturDisplay">Rp 0</span>
+            </div>
+
+            <!-- List Data Retur -->
+            <div class="form-label" style="margin-top: 4px;">Daftar Transaksi Retur</div>
+            <div class="report-list" id="reportListContainer">
+                <div style="text-align: center; color: #94a3b8; font-size: 11px; padding: 20px;">
+                    Memuat data retur...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Integrasi Firestore Laporan Retur -->
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const filterUnit = document.getElementById('filterUnit');
+        const filterStartDate = document.getElementById('filterStartDate');
+        const filterEndDate = document.getElementById('filterEndDate');
+        const btnTampilkan = document.getElementById('btnTampilkan');
+        const totalReturDisplay = document.getElementById('totalReturDisplay');
+        const reportListContainer = document.getElementById('reportListContainer');
+        const btnPrintReport = document.getElementById('btnPrintReport');
+
+        let allJournals = [];
+        let unitMap = {};
+
+        async function initPage() {
+            try {
+                const currentYear = new Date().getFullYear();
+                filterStartDate.value = `2020-01-01`; // Menyesuaikan agar data awal tahun 2020 langsung tampil
+                filterEndDate.value = `${currentYear}-12-31`;
+
+                try {
+                    const docRef = doc(db, 'settings', 'profile');
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        const unitList = data.unitList || [];
+                        unitList.forEach(u => {
+                            const code = u.kodeUnit || '';
+                            const name = u.namaUnit || '';
+                            if (code) unitMap[code] = name;
+                            if (name) unitMap[name] = code;
+
+                            const opt = document.createElement('option');
+                            opt.value = code || name;
+                            opt.textContent = `Unit: ${code ? code + ' - ' : ''}${name}`;
+                            filterUnit.appendChild(opt);
+                        });
+                    }
+                } catch (e) {
+                    console.warn("Gagal load profile units:", e);
+                }
+
+                await loadJournalsData();
+
+            } catch (err) {
+                console.error("Error initPage:", err);
+                reportListContainer.innerHTML = `<div style="text-align: center; color: red; padding: 10px; font-size:11px;">Gagal memuat data: ${err.message}</div>`;
+            }
+        }
+
+        async function loadJournalsData() {
+            try {
+                const querySnapshot = await getDocs(collection(db, 'journals'));
+                allJournals = [];
+
+                querySnapshot.forEach((docItem) => {
+                    const data = docItem.data();
+                    if (data.type && String(data.type).toUpperCase().includes('RETUR')) {
+                        allJournals.push({ id: docItem.id, ...data });
+                    }
+                });
+
+                allJournals.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+                renderReport();
+            } catch (err) {
+                console.error("Gagal load journals:", err);
+            }
+        }
+
+        function renderReport() {
+            const selectedUnit = filterUnit.value;
+            const startDate = filterStartDate.value;
+            const endDate = filterEndDate.value;
+
+            let filtered = allJournals.filter(item => {
+                if (selectedUnit) {
+                    const itemUnit = String(item.unitId || '').trim();
+                    const mappedName = unitMap[selectedUnit] || '';
+                    const mappedCode = unitMap[selectedUnit] || '';
+                    
+                    const isMatch = (itemUnit === selectedUnit) || 
+                                    (mappedName && itemUnit === mappedName) || 
+                                    (mappedCode && itemUnit === mappedCode);
+                    if (!isMatch) return false;
+                }
+
+                if (startDate && item.date < startDate) return false;
+                if (endDate && item.date > endDate) return false;
+                
+                return true;
+            });
+
+            reportListContainer.innerHTML = '';
+            let grandTotalRetur = 0;
+
+            if (filtered.length === 0) {
+                reportListContainer.innerHTML = `
+                    <div style="text-align: center; color: #94a3b8; font-size: 11px; padding: 20px;">
+                        Tidak ada data retur penjualan pada periode/unit ini.<br>
+                        <span style="font-size: 10px; color: #cbd5e1;">(Total data retur ditemukan di DB: ${allJournals.length})</span>
+                    </div>`;
+                totalReturDisplay.textContent = 'Rp 0';
+                return;
+            }
+
+            filtered.forEach(item => {
+                let returAmount = 0;
+                if (item.items && Array.isArray(item.items)) {
+                    item.items.forEach(it => {
+                        const debitVal = parseFloat(it.debit) || 0;
+                        if (debitVal > 0) {
+                            returAmount += debitVal;
+                        }
+                    });
+                }
+                grandTotalRetur += returAmount;
+
+                const card = document.createElement('div');
+                card.className = 'report-card';
+                card.innerHTML = `
+                    <div class="report-row">
+                        <span class="report-number">${item.journalNumber || '-'}</span>
+                        <span class="report-date">${item.date || '-'}</span>
+                    </div>
+                    <div class="report-row">
+                        <span style="font-size: 11px; color: #475569;">Unit: <strong>${item.unitId || 'Pusat'}</strong></span>
+                        <span style="font-weight: 700; color: #dc2626;">Rp ${returAmount.toLocaleString('id-ID')}</span>
+                    </div>
+                    <div class="report-desc">
+                        <span>${item.description || 'Retur Penjualan'}</span>
+                        <div class="action-btns">
+                            <button class="btn-action btn-edit" title="Edit Transaksi" data-id="${item.id}" data-date="${item.date || ''}" data-desc="${item.description || ''}">
+                                <span class="material-icons" style="font-size: 16px;">edit</span>
+                            </button>
+                            <button class="btn-action btn-delete" title="Hapus Transaksi" data-id="${item.id}" data-number="${item.journalNumber || ''}">
+                                <span class="material-icons" style="font-size: 16px;">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                reportListContainer.appendChild(card);
+            });
+
+            totalReturDisplay.textContent = `Rp ${grandTotalRetur.toLocaleString('id-ID')}`;
+
+            // Event listener untuk tombol Edit
+            document.querySelectorAll('.btn-edit').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = btn.getAttribute('data-id');
+                    const oldDate = btn.getAttribute('data-date');
+                    const oldDesc = btn.getAttribute('data-desc');
+
+                    const { value: formValues } = await Swal.fire({
+                        title: 'Edit Jurnal Retur',
+                        html: `
+                            <div style="text-align: left; display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
+                                <label><strong>Tanggal Retur:</strong></label>
+                                <input type="date" id="swalEditDate" class="swal2-input" value="${oldDate}" style="margin: 0; width: 100%; height: 36px; font-size: 12px;">
+                                <label><strong>Keterangan:</strong></label>
+                                <input type="text" id="swalEditDesc" class="swal2-input" value="${oldDesc}" style="margin: 0; width: 100%; height: 36px; font-size: 12px;">
+                            </div>
+                        `,
+                        focusConfirm: false,
+                        showCancelButton: true,
+                        confirmButtonText: 'Simpan Perubahan',
+                        cancelButtonText: 'Batal',
+                        confirmButtonColor: '#5114B9',
+                        preConfirm: () => {
+                            return {
+                                date: document.getElementById('swalEditDate').value,
+                                description: document.getElementById('swalEditDesc').value
+                            }
+                        }
+                    });
+
+                    if (formValues) {
+                        try {
+                            Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                            await updateDoc(doc(db, 'journals', id), {
+                                date: formValues.date,
+                                description: formValues.description
+                            });
+                            Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Data retur berhasil diperbarui.', timer: 1500, showConfirmButton: false });
+                            await loadJournalsData();
+                        } catch (err) {
+                            Swal.fire('Error', 'Gagal memperbarui data: ' + err.message, 'error');
+                        }
+                    }
+                });
+            });
+
+            // Event listener untuk tombol Hapus
+            document.querySelectorAll('.btn-delete').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const id = btn.getAttribute('data-id');
+                    const jNum = btn.getAttribute('data-number');
+
+                    const confirmRes = await Swal.fire({
+                        title: 'Hapus Retur?',
+                        text: `Apakah Anda yakin ingin menghapus catatan retur ${jNum}?`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc2626',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: 'Ya, Hapus',
+                        cancelButtonText: 'Batal'
+                    });
+
+                    if (confirmRes.isConfirmed) {
+                        try {
+                            Swal.fire({ title: 'Menghapus...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                            await deleteDoc(doc(db, 'journals', id));
+                            Swal.fire({ icon: 'success', title: 'Terhapus!', text: 'Catatan retur berhasil dihapus.', timer: 1500, showConfirmButton: false });
+                            await loadJournalsData();
+                        } catch (err) {
+                            Swal.fire('Error', 'Gagal menghapus data: ' + err.message, 'error');
+                        }
+                    }
+                });
+            });
+        }
+
+        btnTampilkan.addEventListener('click', renderReport);
+        btnPrintReport.addEventListener('click', () => window.print());
+
+        initPage();
+    </script>
+</body>
+</html>

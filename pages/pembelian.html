@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaksi Pembelian</title>
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background-color: #f8fafc; display: flex; justify-content: center; min-height: 100vh; color: #1e293b; }
+        .page-container { width: 100%; max-width: 480px; background-color: #ffffff; display: flex; flex-direction: column; min-height: 100vh; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; padding-bottom: 70px; }
+        
+        .page-header { background-color: #5114B9; color: #ffffff; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .header-left { display: flex; align-items: center; gap: 14px; }
+        .btn-back { color: #ffffff; text-decoration: none; display: flex; align-items: center; }
+        .page-header h1 { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .form-container { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; }
+        .form-control { width: 100%; height: 38px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; outline: none; background-color: #f8fafc; color: #0f172a; }
+        .form-control:focus { border-color: #5114B9; background-color: #ffffff; }
+        .form-control[readonly] { background-color: #e2e8f0; color: #475569; cursor: not-allowed; font-weight: bold; }
+
+        .row-2-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+        .section-box { background: #f1f5f9; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 10px; }
+        .section-title { font-size: 12px; font-weight: 700; color: #334155; display: flex; justify-content: space-between; align-items: center; }
+
+        .item-row { background: #ffffff; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; display: flex; flex-direction: column; gap: 8px; position: relative; }
+        .btn-remove-item { background: #dc2626; color: #ffffff; border: none; border-radius: 4px; padding: 4px 8px; font-size: 10px; cursor: pointer; align-self: flex-end; display: flex; align-items: center; gap: 2px; font-weight: bold; }
+        .btn-add-item { background-color: #2563eb; color: #ffffff; border: none; border-radius: 6px; height: 32px; font-weight: 700; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; }
+
+        .total-box { display: flex; justify-content: space-between; align-items: center; background: #e2e8f0; padding: 8px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; color: #1e293b; margin-top: 4px; }
+
+        .btn-submit { background-color: #5114B9; color: #ffffff; border: none; border-radius: 6px; height: 42px; font-weight: 700; font-size: 13px; cursor: pointer; margin-top: 10px; width: 100%; }
+        .btn-submit:active { transform: scale(0.98); }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <header class="page-header">
+            <div class="header-left">
+                <a href="../index.html" class="btn-back"><span class="material-icons">arrow_back</span></a>
+                <h1>Transaksi Pembelian</h1>
+            </div>
+        </header>
+
+        <div class="form-container">
+            <!-- Unit Usaha & Tanggal Transaksi Sejajar 2 Kolom -->
+            <div class="row-2-cols">
+                <div class="form-group">
+                    <label>Unit Usaha *</label>
+                    <select id="buyUnit" class="form-control">
+                        <option value="">-- Pilih Unit --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tanggal Transaksi *</label>
+                    <input type="date" id="buyDate" class="form-control">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Nomor Transaksi / Bukti *</label>
+                <input type="text" id="buyDesc" class="form-control" readonly placeholder="Otomatis...">
+            </div>
+
+            <div class="form-group">
+                <label>Keterangan / Supplier *</label>
+                <input type="text" id="buyNotes" class="form-control" placeholder="Contoh: Pembelian dari Supplier Utama">
+            </div>
+
+            <!-- Cara Pembayaran & Akun Pembayaran (Level 4) Sejajar 2 Kolom -->
+            <div class="row-2-cols">
+                <div class="form-group">
+                    <label>Cara Pembayaran *</label>
+                    <select id="buyPaymentMethod" class="form-control">
+                        <option value="Tunai">Tunai</option>
+                        <option value="Transfer">Transfer</option>
+                        <option value="Kredit">Kredit</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Akun Pembayaran (Lvl 4) *</label>
+                    <select id="buyPaymentAccount" class="form-control">
+                        <option value="">-- Pilih Akun --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section-box">
+                <div class="section-title">
+                    <span>DETAIL AKUN PEMBELIAN (MULTI AKUN - LEVEL 4)</span>
+                </div>
+                <div id="itemListContainer" style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Baris item dinamis -->
+                </div>
+                <button type="button" class="btn-add-item" id="btnAddItemRow">
+                    <span class="material-icons" style="font-size: 16px;">add</span> Tambah Baris Akun
+                </button>
+                
+                <!-- Total Pembelian Keseluruhan -->
+                <div class="total-box">
+                    <span>Total Pembelian:</span>
+                    <span id="labelTotalPembelian" style="color: #5114B9; font-size: 14px;">Rp 0</span>
+                </div>
+            </div>
+
+            <button class="btn-submit" id="btnSimpanPembelian">SIMPAN TRANSAKSI PEMBELIAN</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import { collection, getDocs, addDoc, doc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        window.addEventListener('pageshow', () => {
+            document.body.classList.remove('no-scroll');
+        });
+
+        const buyUnit = document.getElementById('buyUnit');
+        const buyDate = document.getElementById('buyDate');
+        const buyDesc = document.getElementById('buyDesc');
+        const buyNotes = document.getElementById('buyNotes');
+        const buyPaymentMethod = document.getElementById('buyPaymentMethod');
+        const buyPaymentAccount = document.getElementById('buyPaymentAccount');
+        const itemListContainer = document.getElementById('itemListContainer');
+        const btnAddItemRow = document.getElementById('btnAddItemRow');
+        const labelTotalPembelian = document.getElementById('labelTotalPembelian');
+        const btnSimpanPembelian = document.getElementById('btnSimpanPembelian');
+
+        let level4AccountOptionsHTML = '<option value="">-- Pilih Akun --</option>';
+
+        function formatNumberInput(inputElem) {
+            inputElem.addEventListener('input', (e) => {
+                let clean = e.target.value.replace(/\D/g, '');
+                e.target.value = clean ? parseInt(clean, 10).toLocaleString('id-ID') : '';
+            });
+        }
+
+        function calculateOverallTotal() {
+            const rows = itemListContainer.querySelectorAll('.item-row');
+            let grandTotal = 0;
+
+            rows.forEach(row => {
+                const amountStr = row.querySelector('.item-amount').value.replace(/\D/g, '');
+                grandTotal += parseInt(amountStr, 10) || 0;
+            });
+
+            labelTotalPembelian.textContent = `Rp ${grandTotal.toLocaleString('id-ID')}`;
+        }
+
+        function addItemRow(selectedAcc = '', amountVal = '', descVal = '') {
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.innerHTML = `
+                <button type="button" class="btn-remove-item" title="Hapus Baris">
+                    <span class="material-icons" style="font-size: 14px;">delete</span> Hapus
+                </button>
+                <div class="form-group">
+                    <label>Pilih Akun Perkiraan (Level 4) *</label>
+                    <select class="form-control item-account-select">
+                        ${level4AccountOptionsHTML}
+                    </select>
+                </div>
+                <div class="row-2-cols">
+                    <div class="form-group">
+                        <label>Jumlah / Nominal (Rp) *</label>
+                        <input type="text" class="form-control item-amount" placeholder="0" inputmode="numeric" value="${amountVal}">
+                    </div>
+                    <div class="form-group">
+                        <label>Keterangan Baris</label>
+                        <input type="text" class="form-control item-desc" placeholder="Opsional" value="${descVal}">
+                    </div>
+                </div>
+            `;
+
+            const selectElem = row.querySelector('.item-account-select');
+            if (selectedAcc) selectElem.value = selectedAcc;
+
+            const amountInput = row.querySelector('.item-amount');
+            formatNumberInput(amountInput);
+
+            amountInput.addEventListener('input', () => calculateOverallTotal());
+
+            row.querySelector('.btn-remove-item').addEventListener('click', () => {
+                if (itemListContainer.children.length > 1) {
+                    row.remove();
+                    calculateOverallTotal();
+                } else {
+                    Swal.fire('Peringatan', 'Minimal harus ada 1 baris akun pembelian.', 'warning');
+                }
+            });
+
+            itemListContainer.appendChild(row);
+        }
+
+        btnAddItemRow.addEventListener('click', () => addItemRow());
+
+        async function generateTransactionNumber(dateStr) {
+            try {
+                const parts = dateStr.split('-');
+                if (parts.length < 3) return "BUY-0000-0001";
+                
+                const yyyy = parts[0];
+                const mm = parts[1];
+                const yy = yyyy.slice(-2);
+                
+                const prefix = `BUY-${mm}${yy}`;
+
+                const snap = await getDocs(collection(db, 'journals'));
+                let maxSeq = 0;
+
+                snap.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const jNum = data.journalNumber || data.description || '';
+                    if (jNum.startsWith(prefix)) {
+                        const seqParts = jNum.split('-');
+                        if (seqParts.length >= 3) {
+                            const seq = parseInt(seqParts[2], 10);
+                            if (!isNaN(seq) && seq > maxSeq) {
+                                maxSeq = seq;
+                            }
+                        }
+                    }
+                });
+
+                const nextSeq = maxSeq + 1;
+                return `${prefix}-${String(nextSeq).padStart(4, '0')}`;
+            } catch (err) {
+                console.error("Gagal generate nomor transaksi:", err);
+                return "BUY-0000-0001";
+            }
+        }
+
+        async function updateTransactionNumber() {
+            if (buyDate.value) {
+                buyDesc.value = await generateTransactionNumber(buyDate.value);
+            }
+        }
+
+        async function initPage() {
+            try {
+                // 1. Load Settings (Profil, Unit List, Tanggal Aktif)
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                let defaultDate = new Date().toISOString().split('T')[0];
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+
+                    if (data.activeMonthCode) {
+                        const [y, m] = data.activeMonthCode.split('-');
+                        if (y && m) {
+                            const now = new Date();
+                            const currentDay = String(now.getDate()).padStart(2, '0');
+                            defaultDate = `${y}-${m}-${currentDay}`;
+                        }
+                    } else if (data.tglMulai) {
+                        defaultDate = data.tglMulai;
+                    }
+
+                    const unitList = data.unitList || [];
+                    buyUnit.innerHTML = '<option value="">-- Pilih Unit --</option>';
+                    unitList.forEach(u => {
+                        const code = u.kodeUnit || '';
+                        const name = u.namaUnit || '';
+                        const opt = document.createElement('option');
+                        opt.value = name || code;
+                        opt.textContent = `Unit: ${code ? code + ' - ' : ''}${name}`;
+                        
+                        if (u.isDefault === true || u.isDefault === "true") {
+                            opt.selected = true;
+                        }
+                        buyUnit.appendChild(opt);
+                    });
+
+                    if (!buyUnit.value && unitList.length > 0) {
+                        buyUnit.selectedIndex = 1;
+                    }
+                }
+
+                buyDate.value = defaultDate;
+                await updateTransactionNumber();
+
+                // 2. Load Akun Perkiraan Level 4 (Sort A-Z berdasarkan accCode) dari koleksi accounts
+                const accountsSnap = await getDocs(collection(db, 'accounts'));
+                let level4Accounts = [];
+                
+                accountsSnap.forEach(accDoc => {
+                    const acc = accDoc.data();
+                    if (acc.level === 4 || acc.level === "4") {
+                        level4Accounts.push(acc);
+                    }
+                });
+
+                // Urutkan berdasarkan accCode secara A-Z
+                level4Accounts.sort((a, b) => (a.accCode || '').localeCompare(b.accCode || ''));
+
+                let accOptsHTML = '<option value="">-- Pilih Akun --</option>';
+                level4Accounts.forEach(acc => {
+                    const code = acc.accCode || '';
+                    const name = acc.accName || '';
+                    accOptsHTML += `<option value="${code} - ${name}">${code} - ${name}</option>`;
+                });
+
+                level4AccountOptionsHTML = accOptsHTML;
+                buyPaymentAccount.innerHTML = level4Accounts.length > 0 ? accOptsHTML : '<option value="">Tidak ada akun level 4</option>';
+
+                itemListContainer.innerHTML = '';
+                addItemRow(); // Tambah 1 baris default
+
+            } catch (err) {
+                console.error("Gagal inisialisasi halaman pembelian:", err);
+            }
+        }
+
+        buyDate.addEventListener('change', async () => {
+            await updateTransactionNumber();
+        });
+
+        btnSimpanPembelian.addEventListener('click', async () => {
+            if (!buyUnit.value || !buyDate.value || !buyDesc.value || !buyNotes.value || !buyPaymentMethod.value || !buyPaymentAccount.value) {
+                Swal.fire('Peringatan', 'Lengkapi semua field (Unit, Tanggal, No Transaksi, Keterangan, Cara Pembayaran, dan Akun Pembayaran).', 'warning');
+                return;
+            }
+
+            const itemRows = itemListContainer.querySelectorAll('.item-row');
+            let purchaseItems = [];
+            let isValid = true;
+            let totalAmount = 0;
+
+            itemRows.forEach(row => {
+                const accVal = row.querySelector('.item-account-select').value;
+                const amountStr = row.querySelector('.item-amount').value;
+                const rowDesc = row.querySelector('.item-desc').value;
+
+                const amount = parseInt(amountStr.replace(/\D/g, ''), 10) || 0;
+
+                if (!accVal || amount <= 0) {
+                    isValid = false;
+                } else {
+                    const [accCode, accName] = accVal.split(' - ');
+                    purchaseItems.push({
+                        accCode: accCode.trim(),
+                        accName: accName ? accName.trim() : '',
+                        amount: amount,
+                        description: rowDesc || buyNotes.value
+                    });
+                    totalAmount += amount;
+                }
+            });
+
+            if (!isValid || purchaseItems.length === 0) {
+                Swal.fire('Peringatan', 'Pastikan semua baris akun detail dipilih dan nominal > 0.', 'warning');
+                return;
+            }
+
+            try {
+                const finalJournalNumber = buyDesc.value.trim();
+                const [payAccCode, payAccName] = buyPaymentAccount.value.split(' - ');
+
+                // Membuat Jurnal Berpasangan (Double-Entry Accounting)
+                // Debet: Akun-akun pembelian (dari multi-row)
+                // Kredit: Akun Pembayaran (Kas/Bank/Hutang)
+                let journalItems = [];
+
+                purchaseItems.forEach(pItem => {
+                    journalItems.push({
+                        accCode: pItem.accCode,
+                        accName: pItem.accName,
+                        debit: pItem.amount,
+                        kredit: 0,
+                        description: pItem.description
+                    });
+                });
+
+                journalItems.push({
+                    accCode: payAccCode.trim(),
+                    accName: payAccName ? payAccName.trim() : '',
+                    debit: 0,
+                    kredit: totalAmount,
+                    description: `Pembayaran ${buyPaymentMethod.value}: ${buyNotes.value}`
+                });
+
+                const journalData = {
+                    journalNumber: finalJournalNumber,
+                    unitId: buyUnit.value,
+                    date: buyDate.value,
+                    description: `Pembelian (${buyPaymentMethod.value}): ${buyNotes.value} [${finalJournalNumber}]`,
+                    type: 'PEMBELIAN',
+                    paymentMethod: buyPaymentMethod.value,
+                    paymentAccount: buyPaymentAccount.value,
+                    items: journalItems,
+                    totalAmount: totalAmount,
+                    createdAt: serverTimestamp()
+                };
+
+                await addDoc(collection(db, 'journals'), journalData);
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil',
+                    text: 'Transaksi pembelian berhasil disimpan ke jurnal.',
+                    timer: 1800,
+                    showConfirmButton: false
+                });
+
+                // Reset form
+                buyNotes.value = '';
+                buyPaymentMethod.value = 'Tunai';
+                if (buyPaymentAccount.options.length > 0) buyPaymentAccount.selectedIndex = 0;
+                itemListContainer.innerHTML = '';
+                addItemRow();
+                await updateTransactionNumber();
+
+            } catch (err) {
+                console.error("Gagal menyimpan pembelian:", err);
+                Swal.fire('Error', err.message, 'error');
+            }
+        });
+
+        initPage();
+    </script>
+</body>
+</html>

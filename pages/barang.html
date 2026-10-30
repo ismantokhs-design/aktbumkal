@@ -37,7 +37,7 @@
         .item-info { display: flex; flex-direction: column; gap: 2px; flex-grow: 1; }
         .item-title { font-size: 13px; font-weight: 700; color: #0f172a; line-height: 1.3; }
         .item-subtitle { font-size: 11px; color: #475569; }
-        .item-price { font-size: 13px; font-weight: 800; color: #5114B9; white-space: nowrap; text-align: right; }
+        .item-price { font-size: 12px; font-weight: 800; color: #5114B9; white-space: nowrap; text-align: right; }
 
         /* Tombol Aksi Card (Edit & Hapus) */
         .item-card-actions { display: flex; justify-content: flex-end; gap: 6px; border-top: 1px solid #f1f5f9; padding-top: 6px; }
@@ -156,6 +156,14 @@
                     </div>
                 </div>
 
+                <!-- Kolom Akun Perkiraan / Klasifikasi Akun (Level 4, Sort A-Z) -->
+                <div class="form-group">
+                    <label>Akun Perkiraan / Klasifikasi *</label>
+                    <select id="itemAccount" class="form-control">
+                        <option value="">-- Pilih Akun Persediaan / COA --</option>
+                    </select>
+                </div>
+
                 <div class="form-group">
                     <label>Unit / Cabang *</label>
                     <select id="itemUnitLocation" class="form-control">
@@ -179,9 +187,15 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Harga Beli / HPP (Rp)</label>
-                    <input type="text" id="itemBuyPrice" class="form-control" placeholder="0" inputmode="numeric">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Harga Beli / HPP (Rp)</label>
+                        <input type="text" id="itemBuyPrice" class="form-control" placeholder="0" inputmode="numeric">
+                    </div>
+                    <div class="form-group">
+                        <label>Stok Awal / QTY</label>
+                        <input type="text" id="itemStock" class="form-control" placeholder="0" inputmode="numeric">
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -222,11 +236,13 @@
 
         const itemSku = document.getElementById('itemSku');
         const itemCategory = document.getElementById('itemCategory');
+        const itemAccount = document.getElementById('itemAccount');
         const itemUnitLocation = document.getElementById('itemUnitLocation');
         const itemName = document.getElementById('itemName');
         const itemUnit = document.getElementById('itemUnit');
         const itemSellPrice = document.getElementById('itemSellPrice');
         const itemBuyPrice = document.getElementById('itemBuyPrice');
+        const itemStock = document.getElementById('itemStock');
         const itemPhoto = document.getElementById('itemPhoto');
         const previewImg = document.getElementById('previewImg');
 
@@ -234,23 +250,22 @@
         let compressedPhotoBase64 = '';
         let editingProductId = null;
 
-        // Load unitList dari settings/profile untuk Form Modal & Filter Unit
-        async function loadUnitListOptions() {
+        // Load unitList dari settings/profile & Akun Level 4 (Sort A-Z) dari koleksi accounts
+        async function loadOptionsData() {
             try {
+                // 1. Load Unit List
                 const settingsDocRef = doc(db, 'settings', 'profile');
                 const settingsSnap = await getDoc(settingsDocRef);
                 
                 if (settingsSnap.exists() && settingsSnap.data().unitList) {
                     const unitList = settingsSnap.data().unitList;
                     
-                    // Reset isi dropdown modal & filter
                     itemUnitLocation.innerHTML = '';
                     filterUnitSelect.innerHTML = `<option value="">Semua Unit</option>`;
 
                     unitList.forEach(u => {
                         const unitName = u.namaUnit || u.kodeUnit;
 
-                        // Opsi untuk Modal Form
                         const optionModal = document.createElement('option');
                         optionModal.value = unitName;
                         optionModal.textContent = `${u.namaUnit} (${u.kodeUnit})`;
@@ -259,7 +274,6 @@
                         }
                         itemUnitLocation.appendChild(optionModal);
 
-                        // Opsi untuk Filter Dropdown di Atas
                         const optionFilter = document.createElement('option');
                         optionFilter.value = unitName;
                         optionFilter.textContent = `${u.namaUnit} (${u.kodeUnit})`;
@@ -269,12 +283,36 @@
                     itemUnitLocation.innerHTML = `<option value="Kantor Pusat">Kantor Pusat</option>`;
                     filterUnitSelect.innerHTML = `<option value="">Semua Unit</option><option value="Kantor Pusat">Kantor Pusat</option>`;
                 }
+
+                // 2. Load Akun Perkiraan (Filter Level 4 & Sort A-Z di JavaScript)
+                const accountsSnap = await getDocs(collection(db, 'accounts'));
+                let accountsList = [];
+                
+                accountsSnap.forEach(accDoc => {
+                    const acc = accDoc.data();
+                    if (acc.level === 4 || acc.level === "4") {
+                        accountsList.push(acc);
+                    }
+                });
+
+                // Urutkan berdasarkan accCode secara A-Z
+                accountsList.sort((a, b) => (a.accCode || '').localeCompare(b.accCode || ''));
+
+                itemAccount.innerHTML = `<option value="">-- Pilih Akun Persediaan / COA --</option>`;
+                accountsList.forEach(acc => {
+                    const code = acc.accCode || '';
+                    const name = acc.accName || '';
+                    const option = document.createElement('option');
+                    option.value = `${code} - ${name}`;
+                    option.textContent = `${code} - ${name}`;
+                    itemAccount.appendChild(option);
+                });
+
             } catch (err) {
-                console.error("Gagal memuat unitList:", err);
-                itemUnitLocation.innerHTML = `<option value="Kantor Pusat">Kantor Pusat</option>`;
+                console.error("Gagal memuat opsi data:", err);
             }
         }
-        loadUnitListOptions();
+        loadOptionsData();
 
         // ==========================================
         // FITUR DRAGGABLE TOMBOL FAB (+) & MODAL
@@ -316,10 +354,13 @@
             editingProductId = null;
             modalTitleText.textContent = "TAMBAH PRODUK BARU";
             itemSku.value = '';
+            itemCategory.value = 'Barang Jadi';
+            itemAccount.value = '';
             itemName.value = '';
             itemUnit.value = '';
             itemSellPrice.value = '';
             itemBuyPrice.value = '';
+            itemStock.value = '';
             itemPhoto.value = '';
             compressedPhotoBase64 = '';
             previewImg.style.display = 'none';
@@ -399,6 +440,7 @@
 
         formatNumberInput(itemSellPrice);
         formatNumberInput(itemBuyPrice);
+        formatNumberInput(itemStock);
 
         closeModalBtn.addEventListener('click', () => barangModal.classList.remove('active'));
         btnBatal.addEventListener('click', () => barangModal.classList.remove('active'));
@@ -430,8 +472,11 @@
             dataArray.forEach(item => {
                 const sellPrice = parseFloat(item.sellPrice || 0).toLocaleString('id-ID');
                 const buyPrice = parseFloat(item.buyPrice || 0).toLocaleString('id-ID');
+                const stockQty = parseFloat(item.stock !== undefined ? item.stock : (item.qty !== undefined ? item.qty : 0));
+                
                 const photoUrl = item.photo || 'https://via.placeholder.com/44?text=No+Img';
                 const unitLoc = item.unitLocation || item.unit || '-';
+                const accountInfo = item.account ? ` | Akun: ${item.account}` : '';
 
                 const card = document.createElement('div');
                 card.className = 'item-card';
@@ -444,7 +489,8 @@
                         <img src="${photoUrl}" class="item-thumb" alt="Foto">
                         <div class="item-info">
                             <span class="item-title">${item.name || 'Tanpa Nama'}</span>
-                            <span class="item-subtitle">Satuan: ${item.unit || '-'} | HPP: Rp ${buyPrice}</span>
+                            <span class="item-subtitle">Stok QTY: <strong style="color: ${stockQty > 0 ? '#16a34a' : '#dc2626'};">${stockQty} ${item.unit || ''}</strong></span>
+                            <span class="item-subtitle">HPP: Rp ${buyPrice}${accountInfo}</span>
                         </div>
                         <div class="item-price">
                             Jual<br>Rp ${sellPrice}
@@ -479,12 +525,16 @@
 
                     itemSku.value = prod.sku || '';
                     itemCategory.value = prod.category || 'Barang Jadi';
+                    itemAccount.value = prod.account || '';
                     itemUnitLocation.value = prod.unitLocation || '';
                     itemName.value = prod.name || '';
                     itemUnit.value = prod.unit || '';
                     itemSellPrice.value = prod.sellPrice ? prod.sellPrice.toLocaleString('id-ID') : '';
                     itemBuyPrice.value = prod.buyPrice ? prod.buyPrice.toLocaleString('id-ID') : '';
                     
+                    const currentStock = prod.stock !== undefined ? prod.stock : (prod.qty !== undefined ? prod.qty : 0);
+                    itemStock.value = currentStock ? currentStock.toLocaleString('id-ID') : '';
+
                     compressedPhotoBase64 = prod.photo || '';
                     if (compressedPhotoBase64) {
                         previewImg.src = compressedPhotoBase64;
@@ -555,23 +605,27 @@
         }
 
         btnSimpan.addEventListener('click', async () => {
-            if (!itemSku.value || !itemName.value || !itemUnit.value) {
-                Swal.fire('Peringatan', 'Kode SKU, Nama Produk, dan Satuan wajib diisi.', 'warning');
+            if (!itemSku.value || !itemName.value || !itemUnit.value || !itemAccount.value) {
+                Swal.fire('Peringatan', 'Kode SKU, Nama Produk, Satuan, dan Akun Perkiraan wajib diisi.', 'warning');
                 return;
             }
 
             const sell = parseInt(itemSellPrice.value.replace(/\D/g, ''), 10) || 0;
             const buy = parseInt(itemBuyPrice.value.replace(/\D/g, ''), 10) || 0;
+            const qtyStock = parseInt(itemStock.value.replace(/\D/g, ''), 10) || 0;
 
             try {
                 const productPayload = {
                     sku: itemSku.value.trim(),
                     name: itemName.value.trim(),
                     category: itemCategory.value,
+                    account: itemAccount.value,
                     unitLocation: itemUnitLocation.value,
                     unit: itemUnit.value.trim(),
                     sellPrice: sell,
                     buyPrice: buy,
+                    stock: qtyStock,
+                    qty: qtyStock,
                     photo: compressedPhotoBase64
                 };
 

@@ -313,7 +313,6 @@
             <div class="section-box-pay" id="qrisContainerBox" style="display: none; align-items: center; text-align: center;">
                 <div class="section-box-pay-title" style="width: 100%;">Scan QRIS</div>
                 <div id="qrisImageWrapper" style="padding: 10px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 5px;">
-                    <!-- QR Code akan digenerate otomatis menggunakan API publik berdasarkan Norek/Akun QRIS -->
                     <img id="qrisImagePreview" src="" alt="QR Code QRIS" style="width: 180px; height: 180px; object-fit: contain; display: block; margin: 0 auto;">
                 </div>
                 <div id="qrisAccountText" style="font-size: 11px; color: #64748b; margin-top: 6px;">Norek / Akun: -</div>
@@ -404,7 +403,6 @@
         let additionalFeeAmount = 0;
         let discountAmount = 0;
 
-        // Inisialisasi Tanggal & Load Unit List dari settings/profile
         async function initPageData() {
             try {
                 const settingsDocRef = doc(db, 'settings', 'profile');
@@ -432,7 +430,6 @@
                             if (u.isDefault === true || u.isDefault === "true") {
                                 option.selected = true;
                             }
-                            
                             salesUnit.appendChild(option);
                         });
                     } else {
@@ -450,23 +447,17 @@
         }
         initPageData();
 
-        // Helper fungsi format ribuan
         function formatNumber(num) {
             if (isNaN(num) || num === '') return '';
             return Number(num).toLocaleString('id-ID');
         }
 
-        // Event listener saat pilihan metode pembayaran diubah
         paymentMethodSelect.addEventListener('change', (e) => {
             const selectedMethod = e.target.value;
             if (selectedMethod === 'QRIS') {
                 qrisContainerBox.style.display = 'flex';
-                
-                // Ambil nomor rekening/data qris dari mapping pengaturan
                 const qrisAccount = systemSettingsData.akunQris || systemSettingsData.akunTransferBank || 'QRIS-MERCHANT-DEFAULT';
                 qrisAccountText.textContent = `Norek / Akun: ${qrisAccount}`;
-                
-                // Generate QR Code otomatis menggunakan API QR Code generator publik berdasarkan teks norek/akun
                 const qrText = encodeURIComponent(qrisAccount);
                 qrisImagePreview.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${qrText}`;
             } else {
@@ -474,7 +465,6 @@
             }
         });
 
-        // Fitur Pilih Biaya Tambahan dengan input teks dan format ribuan otomatis
         btnPilihBiayaTambahan.addEventListener('click', async () => {
             const { value: inputValue } = await Swal.fire({
                 title: 'Masukkan Biaya Tambahan',
@@ -515,7 +505,6 @@
             }
         });
 
-        // Fitur Pilih Potongan dengan input teks dan format ribuan otomatis
         btnPilihPotongan.addEventListener('click', async () => {
             const { value: inputValue } = await Swal.fire({
                 title: 'Masukkan Nominal Potongan',
@@ -687,7 +676,6 @@
             paymentPage.style.display = 'flex';
             renderPaymentPageSummary();
             
-            // Cek kondisi awal saat halaman pembayaran dibuka
             if (paymentMethodSelect.value === 'QRIS') {
                 qrisContainerBox.style.display = 'flex';
                 const qrisAccount = systemSettingsData.akunQris || systemSettingsData.akunTransferBank || 'QRIS-MERCHANT-DEFAULT';
@@ -756,6 +744,7 @@
             dataArray.forEach(prod => {
                 const thumb = prod.photo || 'https://via.placeholder.com/50?text=Prod';
                 const price = prod.sellPrice ? prod.sellPrice.toLocaleString('id-ID') : '0';
+                const stockVal = Number(prod.stock || 0);
                 const inCart = cartItems[prod.id];
                 const qty = inCart ? inCart.qty : 0;
 
@@ -785,7 +774,7 @@
                     <div class="product-info">
                         <div class="product-title">${prod.code || 'PROD'} - ${prod.name || 'Tanpa Nama'}</div>
                         <div class="product-price">Rp${price}</div>
-                        <div class="product-saldo">Saldo: ${prod.stock || 1}</div>
+                        <div class="product-saldo">Saldo: ${stockVal}</div>
                     </div>
                     ${rightActionHTML}
                 `;
@@ -807,6 +796,7 @@
 
                 const thumb = item.photo || 'https://via.placeholder.com/50?text=Prod';
                 const price = item.sellPrice ? item.sellPrice.toLocaleString('id-ID') : '0';
+                const stockVal = Number(item.stock || 0);
 
                 const card = document.createElement('div');
                 card.className = 'product-card';
@@ -815,7 +805,7 @@
                     <div class="product-info">
                         <div class="product-title">${item.code || 'PROD'} - ${item.name || 'Tanpa Nama'}</div>
                         <div class="product-price">Rp${price}</div>
-                        <div class="product-saldo">Saldo: ${item.stock || 1}</div>
+                        <div class="product-saldo">Saldo: ${stockVal}</div>
                     </div>
                     <div class="qty-control-wrapper">
                         <button class="btn-trash cart-action" data-action="remove-all" data-id="${item.id}" title="Hapus">
@@ -891,12 +881,29 @@
         }
 
         function modifyCart(action, prodId) {
+            const prod = allProductsData.find(p => p.id === prodId);
+            if (!prod) return;
+
+            const stockAvailable = Number(prod.stock || 0);
+
             if (action === 'add' || action === 'increase') {
+                const currentQty = cartItems[prodId] ? cartItems[prodId].qty : 0;
+                const nextQty = currentQty + 1;
+
+                if (nextQty > stockAvailable) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Stok Tidak Cukup',
+                        text: `Jumlah jual (${nextQty}) melebihi saldo/stok yang tersedia (${stockAvailable}).`,
+                        confirmButtonColor: '#5114B9'
+                    });
+                    return;
+                }
+
                 if (!cartItems[prodId]) {
-                    const prod = allProductsData.find(p => p.id === prodId);
-                    if (prod) cartItems[prodId] = { ...prod, qty: 1 };
+                    cartItems[prodId] = { ...prod, qty: 1 };
                 } else {
-                    cartItems[prodId].qty += 1;
+                    cartItems[prodId].qty = nextQty;
                 }
             } else if (action === 'decrease') {
                 if (cartItems[prodId]) {
@@ -937,6 +944,22 @@
                 return;
             }
 
+            for (let id in cartItems) {
+                const cartItem = cartItems[id];
+                const originalProd = allProductsData.find(p => p.id === id);
+                const currentStock = originalProd ? Number(originalProd.stock || 0) : 0;
+
+                if (cartItem.qty > currentStock) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal Memproses Transaksi',
+                        text: `Produk "${cartItem.name}" (Qty: ${cartItem.qty}) melebihi stok gudang yang tersedia (${currentStock}).`,
+                        confirmButtonColor: '#5114B9'
+                    });
+                    return;
+                }
+            }
+
             try {
                 Swal.fire({ title: 'Menyimpan transaksi...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
@@ -968,20 +991,38 @@
                     return;
                 }
 
+                const hppAccount = settingsData.akunHpp || '';
+                if (!hppAccount) {
+                    Swal.fire('Peringatan', 'Akun Harga Pokok Penjualan (HPP) belum diatur di menu Pengaturan (Mapping Akun).', 'warning');
+                    return;
+                }
+
+                const inventoryAccount = settingsData.akunPersediaan || '';
+                if (!inventoryAccount) {
+                    Swal.fire('Peringatan', 'Akun Persediaan Barang belum diatur di menu Pengaturan (Mapping Akun).', 'warning');
+                    return;
+                }
+
                 let transactionDate = salesDate.value || new Date().toISOString().split('T')[0];
 
                 let totalQty = 0, subTotalGross = 0;
+                let totalHppModal = 0;
                 let itemsArray = [];
 
                 for (let id in cartItems) {
                     const item = cartItems[id];
                     totalQty += item.qty;
                     subTotalGross += (item.sellPrice || 0) * item.qty;
+
+                    const unitCost = Number(item.costPrice || item.buyPrice || item.modal || 0);
+                    totalHppModal += unitCost * item.qty;
+
                     itemsArray.push({
                         productId: item.id,
                         code: item.code || '',
                         name: item.name,
                         price: item.sellPrice || 0,
+                        costPrice: unitCost,
                         qty: item.qty
                     });
                 }
@@ -1023,6 +1064,7 @@
                     additionalFee: additionalFeeAmount,
                     discount: discountAmount,
                     totalPrice: finalTotalPrice,
+                    totalHpp: totalHppModal,
                     paymentMethod: selectedPaymentMethod,
                     journalNumber: journalNumber,
                     createdAt: serverTimestamp()
@@ -1030,7 +1072,7 @@
 
                 await addDoc(collection(db, 'sales'), transactionData);
 
-                const journalEntries = [
+                let journalEntries = [
                     {
                         accCode: debitAccount.split(' - ')[0].trim(),
                         debit: finalTotalPrice,
@@ -1043,13 +1085,36 @@
                     }
                 ];
 
+                let totalJournalDebit = finalTotalPrice;
+                let totalJournalKredit = finalTotalPrice;
+
+                if (totalHppModal > 0) {
+                    const hppCode = hppAccount.split(' - ')[0].trim();
+                    const invCode = inventoryAccount.split(' - ')[0].trim();
+
+                    journalEntries.push(
+                        {
+                            accCode: hppCode,
+                            debit: totalHppModal,
+                            kredit: 0
+                        },
+                        {
+                            accCode: invCode,
+                            debit: 0,
+                            kredit: totalHppModal
+                        }
+                    );
+                    totalJournalDebit += totalHppModal;
+                    totalJournalKredit += totalHppModal;
+                }
+
                 const journalPayload = {
                     journalNumber: journalNumber,
                     date: transactionDate,
                     keterangan: `Penjualan ${salesCategory.value} (${salesUnit.value}) - (${agentId.value} - ${selectedAgentData ? selectedAgentData.name : '-'})`,
                     items: journalEntries,
-                    totalDebit: finalTotalPrice,
-                    totalKredit: finalTotalPrice,
+                    totalDebit: totalJournalDebit,
+                    totalKredit: totalJournalKredit,
                     createdAt: serverTimestamp()
                 };
 

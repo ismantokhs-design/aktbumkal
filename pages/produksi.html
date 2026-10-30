@@ -21,14 +21,30 @@
         .form-container { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
         .form-group { display: flex; flex-direction: column; gap: 5px; }
         .form-group label { font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; }
-        .form-control { width: 100%; height: 38px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; outline: none; background-color: #f8fafc; color: #0f172a; }
+        .form-control { width: 100%; height: 38px; padding: 0 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; outline: none; background-color: #f8fafc; color: #0f172a; }
         .form-control:focus { border-color: #5114B9; background-color: #ffffff; }
+        .form-control[readonly] { background-color: #e2e8f0; color: #475569; cursor: not-allowed; font-weight: bold; }
+
+        .saldo-info { font-size: 11px; color: #0284c7; font-weight: 600; margin-top: 2px; }
+
+        .row-4-cols { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 5px; }
+        .row-2-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .row-2-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
 
         .section-box { background: #f1f5f9; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 10px; }
         .section-title { font-size: 12px; font-weight: 700; color: #334155; display: flex; justify-content: space-between; align-items: center; }
 
-        .btn-submit { background-color: #5114B9; color: #ffffff; border: none; border-radius: 6px; height: 42px; font-weight: 700; font-size: 13px; cursor: pointer; margin-top: 10px; width: 100%; }
+        .product-item-row { background: #ffffff; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; display: flex; flex-direction: column; gap: 8px; position: relative; }
+        .btn-remove-product { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 4px; padding: 4px 8px; font-size: 10px; cursor: pointer; align-self: flex-end; display: flex; align-items: center; gap: 2px; font-weight: bold; }
+        .btn-remove-product:hover { opacity: 0.85; }
+        .btn-add-product { background-color: #2563eb; color: #ffffff; border: none; border-radius: 6px; height: 32px; font-weight: 700; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; }
+
+        .total-hpp-box { display: flex; justify-content: space-between; align-items: center; background: #e2e8f0; padding: 8px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; color: #1e293b; margin-top: 4px; }
+
+        .btn-submit { background-color: #5114B9; color: #ffffff; border: none; border-radius: 6px; height: 42px; font-weight: 700; font-size: 13px; cursor: pointer; width: 100%; }
         .btn-submit:active { transform: scale(0.98); }
+        .btn-cancel { background-color: #e2e8f0; color: #334155; border: 1px solid #cbd5e1; border-radius: 6px; height: 42px; font-weight: 700; font-size: 13px; cursor: pointer; width: 100%; }
+        .btn-cancel:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
@@ -41,14 +57,23 @@
         </header>
 
         <div class="form-container">
-            <div class="form-group">
-                <label>Tanggal Produksi *</label>
-                <input type="date" id="prodDate" class="form-control">
+            <!-- Unit Usaha & Tanggal Produksi Sejajar 2 Kolom -->
+            <div class="row-2-cols">
+                <div class="form-group">
+                    <label>Unit Usaha *</label>
+                    <select id="prodUnit" class="form-control">
+                        <option value="">-- Pilih Unit --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tanggal Produksi *</label>
+                    <input type="date" id="prodDate" class="form-control">
+                </div>
             </div>
 
             <div class="form-group">
-                <label>Nomor Batch / Keterangan *</label>
-                <input type="text" id="prodDesc" class="form-control" placeholder="Contoh: Produksi Batch #01 Bulan Ini">
+                <label>Nomor Transaksi *</label>
+                <input type="text" id="prodDesc" class="form-control" readonly placeholder="Otomatis...">
             </div>
 
             <div class="section-box">
@@ -56,54 +81,69 @@
                     <span>1. BAHAN BAKU DIGUNAKAN</span>
                 </div>
                 <div class="form-group">
-                    <label>Pilih Bahan Baku (Master Barang)</label>
+                    <label>Pilih Bahan Baku (Akun Level 4)</label>
                     <select id="materialSelect" class="form-control">
-                        <option value="">-- Pilih Bahan Baku --</option>
+                        <option value="">-- Pilih Akun Level 4 --</option>
                     </select>
+                    <div id="materialSaldoInfo" class="saldo-info" style="display: none;"></div>
                 </div>
                 <div class="form-group">
                     <label>Total Nilai Bahan Baku (Rp) *</label>
-                    <input type="text" id="materialCost" class="form-control" placeholder="0" inputmode="numeric">
+                    <input type="text" id="materialCost" class="form-control" readonly placeholder="Otomatis dari Total HPP...">
                 </div>
             </div>
 
             <div class="section-box">
                 <div class="section-title">
-                    <span>2. HASIL PRODUK JADI</span>
+                    <span>2. HASIL PRODUK JADI (MULTI)</span>
                 </div>
-                <div class="form-group">
-                    <label>Pilih Produk Jadi (Master Barang)</label>
-                    <select id="productSelect" class="form-control">
-                        <option value="">-- Pilih Produk Jadi --</option>
-                    </select>
+                <div id="productListContainer" style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Dinamis Baris Produk Jadi -->
                 </div>
-                <div class="form-group">
-                    <label>Jumlah Hasil (Qty Karung/Satuan) *</label>
-                    <input type="text" id="productQty" class="form-control" placeholder="0" inputmode="numeric">
+                <button type="button" class="btn-add-product" id="btnAddProductRow">
+                    <span class="material-icons" style="font-size: 16px;">add</span> Tambah Produk Jadi
+                </button>
+                
+                <!-- Total HPP Keseluruhan -->
+                <div class="total-hpp-box">
+                    <span>Total HPP Keseluruhan:</span>
+                    <span id="labelTotalHppOverall" style="color: #5114B9; font-size: 14px;">Rp 0</span>
                 </div>
             </div>
 
-            <button class="btn-submit" id="btnSimpanProduksi">SIMPAN & PROSES KONVERSI</button>
+            <!-- Tombol Aksi Sejajar: Batal & Simpan -->
+            <div class="row-2-buttons">
+                <button type="button" class="btn-cancel" id="btnBatalProduksi">BATAL</button>
+                <button type="button" class="btn-submit" id="btnSimpanProduksi">SIMPAN</button>
+            </div>
         </div>
     </div>
 
     <script type="module">
         import { db } from '../assets/js/firebase-config.js';
-        import { collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { collection, getDocs, addDoc, updateDoc, doc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         window.addEventListener('pageshow', () => {
             document.body.classList.remove('no-scroll');
         });
 
+        const prodUnit = document.getElementById('prodUnit');
         const prodDate = document.getElementById('prodDate');
         const prodDesc = document.getElementById('prodDesc');
         const materialSelect = document.getElementById('materialSelect');
         const materialCost = document.getElementById('materialCost');
-        const productSelect = document.getElementById('productSelect');
-        const productQty = document.getElementById('productQty');
+        const materialSaldoInfo = document.getElementById('materialSaldoInfo');
+        const productListContainer = document.getElementById('productListContainer');
+        const btnAddProductRow = document.getElementById('btnAddProductRow');
+        const labelTotalHppOverall = document.getElementById('labelTotalHppOverall');
         const btnSimpanProduksi = document.getElementById('btnSimpanProduksi');
+        const btnBatalProduksi = document.getElementById('btnBatalProduksi');
 
-        prodDate.valueAsDate = new Date();
+        let accountsDataMap = {}; 
+        let productsDataMap = {}; 
+        let level4AccountOptionsHTML = '<option value="">-- Pilih Akun Level 4 --</option>';
+        let productOptionsHTML = '<option value="">-- Pilih Produk Jadi --</option>';
+        let inventoryFinishedGoodsAccountCode = '1.01.04.002'; // Default akun persediaan barang jadi
 
         function formatNumberInput(inputElem) {
             inputElem.addEventListener('input', (e) => {
@@ -111,67 +151,564 @@
                 e.target.value = clean ? parseInt(clean, 10).toLocaleString('id-ID') : '';
             });
         }
-        formatNumberInput(materialCost);
-        formatNumberInput(productQty);
 
-        async function loadDropdownBarang() {
-            try {
-                const snapshot = await getDocs(collection(db, 'products'));
-                materialSelect.innerHTML = '<option value="">-- Pilih Bahan Baku --</option>';
-                productSelect.innerHTML = '<option value="">-- Pilih Produk Jadi --</option>';
+        function calculateRowAndOverall(row) {
+            const qtyInput = row.querySelector('.item-product-qty');
+            const hppInput = row.querySelector('.item-product-hpp');
+            const totalNilaiInput = row.querySelector('.item-product-total');
 
-                snapshot.forEach(docSnap => {
-                    const data = docSnap.data();
-                    const opt = document.createElement('option');
-                    opt.value = data.name;
-                    opt.textContent = `${data.name} [SKU: ${data.sku}]`;
+            const qty = parseInt(qtyInput.value.replace(/\D/g, ''), 10) || 0;
+            const hpp = parseInt(hppInput.value.replace(/\D/g, ''), 10) || 0;
 
-                    if (data.category === 'Bahan Baku') {
-                        materialSelect.appendChild(opt);
-                    } else {
-                        productSelect.appendChild(opt.cloneNode(true));
+            const totalNilai = qty * hpp;
+            totalNilaiInput.value = totalNilai > 0 ? totalNilai.toLocaleString('id-ID') : '0';
+
+            calculateOverallHpp();
+        }
+
+        function calculateOverallHpp() {
+            const rows = productListContainer.querySelectorAll('.product-item-row');
+            let grandTotal = 0;
+
+            rows.forEach(row => {
+                const totalNilaiStr = row.querySelector('.item-product-total').value.replace(/\D/g, '');
+                grandTotal += parseInt(totalNilaiStr, 10) || 0;
+            });
+
+            labelTotalHppOverall.textContent = `Rp ${grandTotal.toLocaleString('id-ID')}`;
+            materialCost.value = grandTotal > 0 ? grandTotal.toLocaleString('id-ID') : '0';
+        }
+
+        function addProductRow(selectedVal = '', qtyVal = '', hppVal = '', sellVal = '') {
+            const row = document.createElement('div');
+            row.className = 'product-item-row';
+            row.innerHTML = `
+                <button type="button" class="btn-remove-product" title="Batal Baris">
+                    <span class="material-icons" style="font-size: 14px;">close</span> Batal
+                </button>
+                <div class="form-group">
+                    <label>Pilih Produk Jadi</label>
+                    <select class="form-control item-product-select">
+                        ${productOptionsHTML}
+                    </select>
+                </div>
+                <div class="row-4-cols">
+                    <div class="form-group">
+                        <label>Jml *</label>
+                        <input type="text" class="form-control item-product-qty" placeholder="0" inputmode="numeric" value="${qtyVal}">
+                    </div>
+                    <div class="form-group">
+                        <label>HPP Sat *</label>
+                        <input type="text" class="form-control item-product-hpp" placeholder="0" inputmode="numeric" value="${hppVal}">
+                    </div>
+                    <div class="form-group">
+                        <label>Nilai HPP *</label>
+                        <input type="text" class="form-control item-product-total" readonly placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Harga Jual *</label>
+                        <input type="text" class="form-control item-product-sell" placeholder="0" inputmode="numeric" value="${sellVal}">
+                    </div>
+                </div>
+            `;
+
+            const selectElem = row.querySelector('.item-product-select');
+            if (selectedVal) selectElem.value = selectedVal;
+
+            const qtyInput = row.querySelector('.item-product-qty');
+            const hppInput = row.querySelector('.item-product-hpp');
+            const sellInput = row.querySelector('.item-product-sell');
+
+            formatNumberInput(qtyInput);
+            formatNumberInput(hppInput);
+            formatNumberInput(sellInput);
+
+            selectElem.addEventListener('change', () => {
+                const codeFull = selectElem.value;
+                if (codeFull) {
+                    const code = codeFull.split(' - ')[0].trim();
+                    const pInfo = productsDataMap[code];
+                    if (pInfo) {
+                        if (pInfo.buyPrice > 0 && !hppInput.value) {
+                            hppInput.value = pInfo.buyPrice.toLocaleString('id-ID');
+                        }
+                        if (pInfo.sellPrice > 0 && !sellInput.value) {
+                            sellInput.value = pInfo.sellPrice.toLocaleString('id-ID');
+                        }
+                        calculateRowAndOverall(row);
                     }
-                });
-            } catch (err) {
-                console.error("Gagal memuat master barang:", err);
+                }
+            });
+
+            qtyInput.addEventListener('input', () => calculateRowAndOverall(row));
+            hppInput.addEventListener('input', () => calculateRowAndOverall(row));
+
+            row.querySelector('.btn-remove-product').addEventListener('click', () => {
+                if (productListContainer.children.length > 1) {
+                    row.remove();
+                    calculateOverallHpp();
+                } else {
+                    Swal.fire('Peringatan', 'Minimal harus ada 1 produk jadi hasil konversi.', 'warning');
+                }
+            });
+
+            productListContainer.appendChild(row);
+            calculateRowAndOverall(row);
+        }
+
+        btnAddProductRow.addEventListener('click', () => addProductRow());
+
+        function updateSaldoDisplay(accCodeFull, infoElem) {
+            if (!accCodeFull) {
+                infoElem.style.display = 'none';
+                infoElem.textContent = '';
+                return;
+            }
+            const code = accCodeFull.split(' - ')[0].trim();
+            const accData = accountsDataMap[code];
+            if (accData) {
+                infoElem.style.display = 'block';
+                infoElem.textContent = `Saldo: Rp ${accData.saldo.toLocaleString('id-ID')}`;
+            } else {
+                infoElem.style.display = 'none';
+                infoElem.textContent = '';
             }
         }
 
+        materialSelect.addEventListener('change', () => {
+            updateSaldoDisplay(materialSelect.value, materialSaldoInfo);
+        });
+
+        async function loadProductsForUnit() {
+            try {
+                const selectedUnit = prodUnit ? prodUnit.value.trim() : '';
+                const productsSnap = await getDocs(collection(db, 'products'));
+                let productList = [];
+                productsDataMap = {};
+
+                productsSnap.forEach(pDoc => {
+                    const p = pDoc.data();
+                    const pUnit = String(p.unitLocation || p.unitId || p.unit || '').trim();
+
+                    if (!selectedUnit || pUnit === selectedUnit || selectedUnit.includes(pUnit) || pUnit.includes(selectedUnit)) {
+                        const code = String(p.sku || p.productCode || p.kodeBarang || '').trim();
+                        const name = String(p.name || p.productName || p.namaBarang || '').trim();
+                        const buyPrice = parseFloat(p.buyPrice || p.hpp || 0) || 0;
+                        const sellPrice = parseFloat(p.sellPrice || p.hargaJual || 0) || 0;
+
+                        if (code) {
+                            productsDataMap[code] = { buyPrice, sellPrice };
+                            productList.push({ code, name });
+                        }
+                    }
+                });
+
+                productList.sort((a, b) => (a.code || '').localeCompare(b.code || ''));
+
+                let pOptsHTML = '<option value="">-- Pilih Produk Jadi --</option>';
+                productList.forEach(prod => {
+                    pOptsHTML += `<option value="${prod.code} - ${prod.name}">${prod.code} - ${prod.name}</option>`;
+                });
+
+                productOptionsHTML = pOptsHTML;
+
+                document.querySelectorAll('.item-product-select').forEach(sel => {
+                    const currentVal = sel.value;
+                    sel.innerHTML = pOptsHTML;
+                    sel.value = currentVal;
+                });
+
+            } catch (err) {
+                console.error("Gagal memuat data produk:", err);
+            }
+        }
+
+        async function loadAccountsWithBalance() {
+            try {
+                const accountsSnap = await getDocs(collection(db, 'accounts'));
+                let accountsMap = {};
+
+                accountsSnap.forEach(accDoc => {
+                    const acc = accDoc.data();
+                    const code = String(acc.accCode || '').trim();
+                    if (!code) return;
+
+                    if ((acc.accName || '').toLowerCase().includes('barang jadi') || code === '1.01.04.002') {
+                        inventoryFinishedGoodsAccountCode = code;
+                    }
+
+                    let initDebit = 0;
+                    let initKredit = 0;
+
+                    if (acc.unitBalances && typeof acc.unitBalances === 'object') {
+                        Object.values(acc.unitBalances).forEach(ub => {
+                            initDebit += parseFloat(ub.initialDebit) || 0;
+                            initKredit += parseFloat(ub.initialKredit) || 0;
+                        });
+                    }
+
+                    if (initDebit === 0 && initKredit === 0) {
+                        initDebit = parseFloat(acc.initialDebit) || 0;
+                        initKredit = parseFloat(acc.initialKredit) || 0;
+                    }
+
+                    accountsMap[code] = {
+                        accCode: code,
+                        accName: acc.accName || '',
+                        level: String(acc.level || ''),
+                        normalBalance: (acc.normalBalance || '').trim(),
+                        totalDebit: initDebit,
+                        totalKredit: initKredit
+                    };
+                });
+
+                const journalsSnap = await getDocs(collection(db, 'journals'));
+                journalsSnap.forEach(jDoc => {
+                    const jData = jDoc.data();
+                    if (jData.items && Array.isArray(jData.items)) {
+                        jData.items.forEach(item => {
+                            const code = String(item.accCode || '').trim();
+                            if (accountsMap[code]) {
+                                accountsMap[code].totalDebit += parseFloat(item.debit) || 0;
+                                accountsMap[code].totalKredit += parseFloat(item.kredit) || 0;
+                            }
+                        });
+                    }
+                });
+
+                let level4Accounts = [];
+                accountsDataMap = {};
+
+                Object.values(accountsMap).forEach(acc => {
+                    if (acc.level === '4') {
+                        let saldo = 0;
+                        if (acc.normalBalance === 'Kredit') {
+                            saldo = acc.totalKredit - acc.totalDebit;
+                        } else {
+                            saldo = acc.totalDebit - acc.totalKredit;
+                        }
+
+                        accountsDataMap[acc.accCode] = {
+                            accName: acc.accName,
+                            saldo: saldo
+                        };
+
+                        level4Accounts.push({
+                            accCode: acc.accCode,
+                            accName: acc.accName,
+                            saldo: saldo
+                        });
+                    }
+                });
+
+                level4Accounts.sort((a, b) => (a.accCode || '').localeCompare(b.accCode || ''));
+
+                let accOptsHTML = '<option value="">-- Pilih Akun Level 4 --</option>';
+                level4Accounts.forEach(acc => {
+                    accOptsHTML += `<option value="${acc.accCode} - ${acc.accName}">${acc.accCode} - ${acc.accName}</option>`;
+                });
+
+                materialSelect.innerHTML = level4Accounts.length > 0 ? accOptsHTML : '<option value="">Tidak ada akun level 4</option>';
+                updateSaldoDisplay(materialSelect.value, materialSaldoInfo);
+
+            } catch (err) {
+                console.error("Gagal memuat saldo akun:", err);
+            }
+        }
+
+        async function generateTransactionNumber(dateStr) {
+            try {
+                const parts = dateStr.split('-');
+                if (parts.length < 3) return "PRD-0000-0001";
+                
+                const yyyy = parts[0];
+                const mm = parts[1];
+                const yy = yyyy.slice(-2);
+                
+                const prefix = `PRD-${mm}${yy}`;
+
+                const snap = await getDocs(collection(db, 'productions'));
+                let maxSeq = 0;
+
+                snap.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const jNum = data.journalNumber || data.description || '';
+                    if (jNum.startsWith(prefix)) {
+                        const seqParts = jNum.split('-');
+                        if (seqParts.length >= 3) {
+                            const seq = parseInt(seqParts[2], 10);
+                            if (!isNaN(seq) && seq > maxSeq) {
+                                maxSeq = seq;
+                            }
+                        }
+                    }
+                });
+
+                const nextSeq = maxSeq + 1;
+                return `${prefix}-${String(nextSeq).padStart(4, '0')}`;
+            } catch (err) {
+                console.error("Gagal generate nomor transaksi:", err);
+                return "PRD-0000-0001";
+            }
+        }
+
+        async function updateTransactionNumber() {
+            if (prodDate.value) {
+                prodDesc.value = await generateTransactionNumber(prodDate.value);
+            }
+        }
+
+        async function resetForm() {
+            if (prodUnit.options.length > 1) {
+                prodUnit.selectedIndex = 0;
+            }
+            materialCost.value = '0';
+            if (materialSelect.options.length > 0) {
+                materialSelect.selectedIndex = 0;
+            }
+            materialSaldoInfo.style.display = 'none';
+            productListContainer.innerHTML = '';
+            addProductRow();
+            await updateTransactionNumber();
+        }
+
+        async function initPage() {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                let defaultDate = new Date().toISOString().split('T')[0];
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+
+                    if (data.activeMonthCode) {
+                        const [y, m] = data.activeMonthCode.split('-');
+                        if (y && m) {
+                            const now = new Date();
+                            const currentDay = String(now.getDate()).padStart(2, '0');
+                            defaultDate = `${y}-${m}-${currentDay}`;
+                        }
+                    } else if (data.tglMulai) {
+                        defaultDate = data.tglMulai;
+                    }
+
+                    const unitList = data.unitList || [];
+                    prodUnit.innerHTML = '<option value="">-- Pilih Unit --</option>';
+                    unitList.forEach(u => {
+                        const code = u.kodeUnit || '';
+                        const name = u.namaUnit || '';
+                        const opt = document.createElement('option');
+                        opt.value = name || code;
+                        opt.textContent = `Unit: ${code ? code + ' - ' : ''}${name}`;
+                        prodUnit.appendChild(opt);
+                    });
+                }
+
+                prodDate.value = defaultDate;
+                await updateTransactionNumber();
+
+                await loadAccountsWithBalance();
+                await loadProductsForUnit();
+
+                productListContainer.innerHTML = '';
+                addProductRow();
+
+            } catch (err) {
+                console.error("Gagal inisialisasi halaman produksi:", err);
+            }
+        }
+
+        prodDate.addEventListener('change', async () => {
+            await updateTransactionNumber();
+        });
+
+        prodUnit.addEventListener('change', async () => {
+            await loadProductsForUnit();
+        });
+
+        btnBatalProduksi.addEventListener('click', async () => {
+            const result = await Swal.fire({
+                title: 'Batalkan Form?',
+                text: 'Semua inputan akan direset.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Reset',
+                cancelButtonText: 'Tidak'
+            });
+            if (result.isConfirmed) {
+                await resetForm();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Direset',
+                    text: 'Form berhasil dikosongkan.',
+                    timer: 1200,
+                    showConfirmButton: false
+                });
+            }
+        });
+
         btnSimpanProduksi.addEventListener('click', async () => {
-            if (!prodDate.value || !prodDesc.value || !materialSelect.value || !materialCost.value || !productSelect.value || !productQty.value) {
-                Swal.fire('Peringatan', 'Semua kolom wajib diisi dengan lengkap.', 'warning');
+            if (!prodUnit.value || !prodDate.value || !prodDesc.value || !materialSelect.value || !materialCost.value) {
+                Swal.fire('Peringatan', 'Lengkapi Unit Usaha, Tanggal, Bahan Baku, dan Total Nilai.', 'warning');
                 return;
             }
 
+            const productRows = productListContainer.querySelectorAll('.product-item-row');
+            let itemsArray = [];
+            let isValid = true;
+            let totalOverallHpp = 0;
+
+            productRows.forEach(row => {
+                const prodVal = row.querySelector('.item-product-select').value;
+                const qtyStr = row.querySelector('.item-product-qty').value;
+                const hppStr = row.querySelector('.item-product-hpp').value;
+                const totalStr = row.querySelector('.item-product-total').value;
+                const sellStr = row.querySelector('.item-product-sell').value;
+
+                const qty = parseInt(qtyStr.replace(/\D/g, ''), 10) || 0;
+                const hpp = parseInt(hppStr.replace(/\D/g, ''), 10) || 0;
+                const totalHpp = parseInt(totalStr.replace(/\D/g, ''), 10) || 0;
+                const sellPrice = parseInt(sellStr.replace(/\D/g, ''), 10) || 0;
+
+                if (!prodVal || qty <= 0 || hpp <= 0 || sellPrice <= 0) {
+                    isValid = false;
+                } else {
+                    const [prodCode, prodName] = prodVal.split(' - ');
+                    itemsArray.push({
+                        productCode: prodCode.trim(),
+                        productName: prodName ? prodName.trim() : '',
+                        productQty: qty,
+                        productHpp: hpp,
+                        totalHpp: totalHpp,
+                        productSellPrice: sellPrice
+                    });
+                    totalOverallHpp += totalHpp;
+                }
+            });
+
+            if (!isValid || itemsArray.length === 0) {
+                Swal.fire('Peringatan', 'Pastikan semua produk jadi dipilih, jumlah (qty), HPP satuan, dan harga jual terisi dengan benar (> 0).', 'warning');
+                return;
+            }
+
+            // --- VALIDASI SALDO BAHAN BAKU ---
+            const [matCode] = materialSelect.value.split(' - ');
+            const trimmedMatCode = matCode.trim();
+            const matAccount = accountsDataMap[trimmedMatCode];
+            const currentSaldo = matAccount ? matAccount.saldo : 0;
+
+            if (totalOverallHpp > currentSaldo) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Saldo Tidak Cukup',
+                    text: `Total HPP Keseluruhan (Rp ${totalOverallHpp.toLocaleString('id-ID')}) melebihi saldo bahan baku (Rp ${currentSaldo.toLocaleString('id-ID')}).`
+                });
+                return;
+            }
+            // --------------------------------
+
             const cost = parseInt(materialCost.value.replace(/\D/g, ''), 10) || 0;
-            const qty = parseInt(productQty.value.replace(/\D/g, ''), 10) || 0;
+            const [matCodeName, matName] = materialSelect.value.split(' - ');
 
             try {
+                const finalJournalNumber = prodDesc.value.trim();
+                const descriptionText = `Proses Produksi [${finalJournalNumber}]`;
+
                 const productionData = {
+                    journalNumber: finalJournalNumber,
+                    unitId: prodUnit.value,
                     date: prodDate.value,
-                    description: prodDesc.value.trim(),
-                    materialName: materialSelect.value,
+                    description: descriptionText,
+                    materialCode: trimmedMatCode,
+                    materialName: matName ? matName.trim() : '',
                     materialCost: cost,
-                    productName: productSelect.value,
-                    productQty: qty,
+                    products: itemsArray,
+                    grandTotalHpp: totalOverallHpp,
                     createdAt: serverTimestamp()
                 };
 
+                // 1. Simpan ke koleksi productions
                 await addDoc(collection(db, 'productions'), productionData);
+
+                // 2. Buat Jurnal Akuntansi Otomatis ke koleksi journals (Debit: Persediaan Barang Jadi, Kredit: Persediaan Bahan Baku)
+                const journalEntryData = {
+                    journalNumber: finalJournalNumber,
+                    date: prodDate.value,
+                    unitId: prodUnit.value,
+                    type: 'PRODUKSI',
+                    description: descriptionText,
+                    items: [
+                        {
+                            accCode: inventoryFinishedGoodsAccountCode,
+                            accName: 'Persediaan Barang Jadi',
+                            debit: totalOverallHpp,
+                            kredit: 0
+                        },
+                        {
+                            accCode: trimmedMatCode,
+                            accName: matName ? matName.trim() : '',
+                            debit: 0,
+                            kredit: totalOverallHpp
+                        }
+                    ],
+                    createdAt: serverTimestamp()
+                };
+                await addDoc(collection(db, 'journals'), journalEntryData);
+
+                // 3. Update stok dan HPP master products menggunakan METODE AVERAGE (RATA-RATA TERTIMBANG)
+                const productsSnap = await getDocs(collection(db, 'products'));
+                for (const item of itemsArray) {
+                    let targetDocId = null;
+                    let existingData = {};
+
+                    productsSnap.forEach(pDoc => {
+                        const p = pDoc.data();
+                        const pSku = String(p.sku || p.productCode || p.kodeBarang || '').trim();
+                        if (pSku === item.productCode) {
+                            targetDocId = pDoc.id;
+                            existingData = p;
+                        }
+                    });
+
+                    if (targetDocId) {
+                        const productDocRef = doc(db, 'products', targetDocId);
+                        
+                        const oldStock = parseFloat(existingData.stock || existingData.qty || 0) || 0;
+                        const oldBuyPrice = parseFloat(existingData.buyPrice || existingData.hpp || 0) || 0;
+                        
+                        const incomingQty = item.productQty;
+                        const incomingHpp = item.productHpp;
+
+                        let newBuyPrice = incomingHpp;
+                        const newStock = oldStock + incomingQty;
+
+                        // Perhitungan Average Cost (Rata-Rata Tertimbang)
+                        if (oldStock > 0 && oldBuyPrice > 0) {
+                            const totalOldValue = oldStock * oldBuyPrice;
+                            const totalIncomingValue = incomingQty * incomingHpp;
+                            newBuyPrice = Math.round((totalOldValue + totalIncomingValue) / newStock);
+                        }
+
+                        await updateDoc(productDocRef, {
+                            buyPrice: newBuyPrice,
+                            sellPrice: item.productSellPrice,
+                            stock: newStock,
+                            qty: newStock
+                        });
+                    }
+                }
 
                 Swal.fire({
                     icon: 'success',
                     title: 'Berhasil',
-                    text: 'Proses produksi & konversi persediaan berhasil disimpan.',
+                    text: 'Proses produksi, jurnal akuntansi, dan pembaruan HPP rata-rata produk berhasil disimpan.',
                     timer: 1800,
                     showConfirmButton: false
                 });
 
-                prodDesc.value = '';
-                materialCost.value = '';
-                productQty.value = '';
-                materialSelect.value = '';
-                productSelect.value = '';
+                // Reset form otomatis tanpa menutup halaman
+                await resetForm();
 
             } catch (err) {
                 console.error("Gagal menyimpan produksi:", err);
@@ -179,7 +716,7 @@
             }
         });
 
-        loadDropdownBarang();
+        initPage();
     </script>
 </body>
 </html>

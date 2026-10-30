@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PENGATURAN PENGGUNA & ROLE</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Link External CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header Utama */
+        .page-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-title-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-back {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Container Body */
+        .content-body {
+            padding: 20px 16px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            padding-bottom: 40px;
+            gap: 16px;
+        }
+
+        .form-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 6px;
+            margin-bottom: 4px;
+        }
+
+        .form-section-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: #5114B9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-add-user {
+            background-color: #5114B9;
+            color: #ffffff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 2px 6px rgba(81, 20, 185, 0.2);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #1e293b;
+            outline: none;
+            background-color: #ffffff;
+        }
+
+        .form-control:focus {
+            border-color: #5114B9;
+            box-shadow: 0 0 0 2px rgba(81, 20, 185, 0.1);
+        }
+
+        select.form-control {
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24' viewBox='0 0 24 24' width='24'%3E%3Cpath d='M7 10l5 5 5-5z' fill='%23475569'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            padding-right: 32px;
+            appearance: none;
+        }
+
+        /* List User Card */
+        .user-list-box {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .user-card-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background-color: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .user-name-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .badge-role {
+            background-color: #ede9fe;
+            color: #5114B9;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .user-detail {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-user-action {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: #64748b;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-user-action:hover {
+            background-color: #e2e8f0;
+            color: #5114B9;
+        }
+
+        /* Modal Overlay & Box */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 300;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-box {
+            width: 100%;
+            max-width: 400px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .modal-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .modal-footer {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .btn-save-modal {
+            background-color: #5114B9;
+            color: #ffffff;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 2px 6px rgba(81, 20, 185, 0.3);
+        }
+
+        .btn-cancel-modal {
+            background-color: #ffffff;
+            color: #5114B9;
+            border: 1.5px solid #5114B9;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <!-- Header Halaman -->
+        <header class="page-header">
+            <div class="header-title-box">
+                <a href="../index.html" class="btn-back">
+                    <span class="material-icons">arrow_back</span>
+                </a>
+                <h1>PENGATURAN PENGGUNA</h1>
+            </div>
+        </header>
+
+        <!-- Body Content -->
+        <div class="content-body">
+            <div class="form-section-header">
+                <span class="form-section-title">Daftar Pengguna Sistem</span>
+                <button type="button" class="btn-add-user" id="btnOpenAddUserModal">
+                    <span class="material-icons" style="font-size: 14px;">add</span>
+                    <span>Tambah User</span>
+                </button>
+            </div>
+
+            <div class="user-list-box" id="userListBox">
+                <div style="text-align: center; padding: 16px; color: #94a3b8; font-size: 11px;">
+                    Memuat daftar pengguna...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form Tambah / Edit User -->
+    <div class="modal-overlay" id="modalUser">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span class="modal-title" id="modalUserTitle">Tambah Pengguna Baru</span>
+                <button type="button" class="btn-user-action" id="btnCloseUserModal" style="color: white;">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="userId">
+                
+                <div class="form-group">
+                    <label class="form-label" for="namaUser">Nama Lengkap *</label>
+                    <input type="text" id="namaUser" class="form-control" placeholder="Contoh: Ismanto" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="usernameUser">Email Login (Firebase Auth) *</label>
+                    <input type="email" id="usernameUser" class="form-control" placeholder="Contoh: ismanto.khs@gmail.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="passwordUser">Password *</label>
+                    <input type="password" id="passwordUser" class="form-control" placeholder="Minimal 6 karakter" required>
+                    <small style="color: #64748b; font-size: 10px;" id="passwordHint">Isi password baru jika ingin mengubahnya.</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="roleUser">Role / Hak Akses *</label>
+                    <select id="roleUser" class="form-control" required>
+                        <option value="" disabled selected>Pilih Role Pengguna...</option>
+                        <option value="Administrator">Administrator</option>
+                        <option value="Kasir / Operator">Kasir / Operator</option>
+                        <option value="Akuntan">Akuntan</option>
+                        <option value="Manajer / Pimpinan">Manajer / Pimpinan</option>
+                    </select>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-save-modal" id="btnSaveUserItem">Simpan</button>
+                    <button type="button" class="btn-cancel-modal" id="btnCancelUserItem">Batal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Integrasi Firebase Auth & Firestore -->
+    <script type="module">
+        import { db, auth } from '../assets/js/firebase-config.js';
+        import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { collection, getDocs, doc, setDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const userListBox = document.getElementById('userListBox');
+        const modalUser = document.getElementById('modalUser');
+        const modalUserTitle = document.getElementById('modalUserTitle');
+        const btnOpenAddUserModal = document.getElementById('btnOpenAddUserModal');
+        const btnCloseUserModal = document.getElementById('btnCloseUserModal');
+        const btnCancelUserItem = document.getElementById('btnCancelUserItem');
+        const btnSaveUserItem = document.getElementById('btnSaveUserItem');
+
+        const userIdInput = document.getElementById('userId');
+        const namaUserInput = document.getElementById('namaUser');
+        const usernameUserInput = document.getElementById('usernameUser');
+        const passwordUserInput = document.getElementById('passwordUser');
+        const roleUserInput = document.getElementById('roleUser');
+
+        let usersList = [];
+
+        async function loadUsers() {
+            try {
+                const querySnapshot = await getDocs(collection(db, 'users'));
+                usersList = [];
+                querySnapshot.forEach(docSnap => {
+                    usersList.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                if (usersList.length === 0) {
+                    const defaultUserRef = doc(db, 'users', 'ismanto_default');
+                    const defaultData = {
+                        nama: 'Ismanto',
+                        username: 'ismanto.khs@gmail.com',
+                        role: 'Administrator',
+                        createdAt: serverTimestamp()
+                    };
+                    await setDoc(defaultUserRef, defaultData);
+                    usersList.push({ id: 'ismanto_default', ...defaultData });
+                }
+
+                renderUserList();
+            } catch (err) {
+                console.error("Gagal memuat pengguna:", err);
+                userListBox.innerHTML = `<div style="text-align: center; padding: 16px; color: #ef4444; font-size: 11px;">Gagal memuat data pengguna.</div>`;
+            }
+        }
+
+        function renderUserList() {
+            userListBox.innerHTML = '';
+
+            usersList.forEach((user) => {
+                const item = document.createElement('div');
+                item.className = 'user-card-item';
+
+                item.innerHTML = `
+                    <div class="user-info">
+                        <div class="user-name-row">
+                            <span class="user-name">${user.nama}</span>
+                            <span class="badge-role">${user.role}</span>
+                        </div>
+                        <span class="user-detail">Email: <b>${user.username}</b></span>
+                    </div>
+                    <div class="user-actions">
+                        <button type="button" class="btn-user-action btn-edit-user" data-id="${user.id}" title="Edit Pengguna">
+                            <span class="material-icons" style="font-size: 18px; color: #5114B9;">edit</span>
+                        </button>
+                        <button type="button" class="btn-user-action btn-delete-user" data-id="${user.id}" title="Hapus Pengguna">
+                            <span class="material-icons" style="font-size: 18px; color: #ef4444;">delete</span>
+                        </button>
+                    </div>
+                `;
+
+                userListBox.appendChild(item);
+            });
+
+            // Event Listener Tombol Edit
+            document.querySelectorAll('.btn-edit-user').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.dataset.id;
+                    const user = usersList.find(u => u.id === id);
+                    if (!user) return;
+
+                    userIdInput.value = user.id;
+                    namaUserInput.value = user.nama || '';
+                    usernameUserInput.value = user.username || '';
+                    passwordUserInput.value = ''; // Kosongkan password saat edit
+                    passwordUserInput.required = false;
+                    roleUserInput.value = user.role || '';
+
+                    modalUserTitle.textContent = 'Edit Pengguna';
+                    modalUser.classList.add('active');
+                });
+            });
+
+            // Event Listener Tombol Hapus
+            document.querySelectorAll('.btn-delete-user').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.currentTarget.dataset.id;
+                    
+                    const confirmRes = await Swal.fire({
+                        title: 'Hapus Pengguna?',
+                        text: 'Data pengguna ini akan dihapus dari daftar.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc2626',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: 'Ya, Hapus',
+                        cancelButtonText: 'Batal'
+                    });
+
+                    if (confirmRes.isConfirmed) {
+                        try {
+                            await deleteDoc(doc(db, 'users', id));
+                            Swal.fire({ icon: 'success', title: 'Terhapus!', timer: 1200, showConfirmButton: false });
+                            loadUsers();
+                        } catch (err) {
+                            Swal.fire('Error', err.message, 'error');
+                        }
+                    }
+                });
+            });
+        }
+
+        btnOpenAddUserModal.addEventListener('click', () => {
+            userIdInput.value = '';
+            namaUserInput.value = '';
+            usernameUserInput.value = '';
+            passwordUserInput.value = '';
+            passwordUserInput.required = true;
+            roleUserInput.value = '';
+            modalUserTitle.textContent = 'Tambah Pengguna Baru';
+            modalUser.classList.add('active');
+        });
+
+        function closeModal() {
+            modalUser.classList.remove('active');
+        }
+
+        btnCloseUserModal.addEventListener('click', closeModal);
+        btnCancelUserItem.addEventListener('click', closeModal);
+
+        // Proses Simpan (Tambah Baru atau Update)
+        btnSaveUserItem.addEventListener('click', async () => {
+            const userId = userIdInput.value;
+            const nama = namaUserInput.value.trim();
+            const email = usernameUserInput.value.trim();
+            const password = passwordUserInput.value.trim();
+            const role = roleUserInput.value;
+
+            if (!nama || !email || !role) {
+                Swal.fire('Peringatan', 'Nama, Email, dan Role wajib diisi.', 'warning');
+                return;
+            }
+
+            try {
+                Swal.fire({ title: 'Menyimpan data...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+                if (!userId) {
+                    // Tambah User Baru ke Firebase Auth & Firestore
+                    if (!password) {
+                        Swal.fire('Peringatan', 'Password wajib diisi untuk pengguna baru.', 'warning');
+                        return;
+                    }
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    const uid = userCredential.user.uid;
+
+                    const userData = {
+                        nama,
+                        username: email,
+                        role,
+                        createdAt: serverTimestamp()
+                    };
+                    await setDoc(doc(db, 'users', uid), userData);
+                } else {
+                    // Update User di Firestore
+                    const userRef = doc(db, 'users', userId);
+                    const updateData = {
+                        nama,
+                        username: email,
+                        role,
+                        updatedAt: serverTimestamp()
+                    };
+                    await setDoc(userRef, updateData, { merge: true });
+                }
+
+                closeModal();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: 'Data pengguna berhasil disimpan.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                loadUsers();
+
+            } catch (err) {
+                console.error("Gagal simpan user:", err);
+                let errMessage = err.message;
+                if (err.code === 'auth/email-already-in-use') {
+                    errMessage = 'Email tersebut sudah terdaftar di sistem.';
+                } else if (err.code === 'auth/weak-password') {
+                    errMessage = 'Password terlalu lemah (minimal 6 karakter).';
+                }
+                Swal.fire('Gagal', errMessage, 'error');
+            }
+        });
+
+        loadUsers();
+    </script>
+</body>
+</html>

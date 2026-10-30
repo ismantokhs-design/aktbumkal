@@ -598,7 +598,7 @@
                         </select>
                     </div>
 
-                    <!-- 4b. Akun Retur Penjualan (BARU) -->
+                    <!-- 4b. Akun Retur Penjualan -->
                     <div class="form-group">
                         <label class="form-label" for="akunReturPenjualan">Akun Retur Penjualan</label>
                         <select id="akunReturPenjualan" class="form-control account-dropdown">
@@ -606,6 +606,28 @@
                         </select>
                         <span style="font-size: 10px; color: #64748b;">
                             Digunakan untuk menampung nilai barang yang dikembalikan (retur) oleh pelanggan.
+                        </span>
+                    </div>
+
+                    <!-- 4c. Akun Harga Pokok Penjualan (HPP) -->
+                    <div class="form-group">
+                        <label class="form-label" for="akunHpp">Akun Harga Pokok Penjualan (HPP)</label>
+                        <select id="akunHpp" class="form-control account-dropdown">
+                            <option value="">Pilih Akun Harga Pokok Penjualan (HPP)...</option>
+                        </select>
+                        <span style="font-size: 10px; color: #64748b;">
+                            Digunakan untuk mencatat beban HPP saat transaksi penjualan barang terjadi.
+                        </span>
+                    </div>
+
+                    <!-- 4d. Akun Persediaan Barang (BARU) -->
+                    <div class="form-group">
+                        <label class="form-label" for="akunPersediaan">Akun Persediaan Barang</label>
+                        <select id="akunPersediaan" class="form-control account-dropdown">
+                            <option value="">Pilih Akun Persediaan Barang...</option>
+                        </select>
+                        <span style="font-size: 10px; color: #64748b;">
+                            Digunakan di sisi kredit pada jurnal HPP untuk mengurangi nilai persediaan saat barang terjual.
                         </span>
                     </div>
 
@@ -756,6 +778,8 @@
         const akunPiutangKreditSelect = document.getElementById('akunPiutangKredit');
         const akunPendapatanSelect = document.getElementById('akunPendapatan');
         const akunReturPenjualanSelect = document.getElementById('akunReturPenjualan');
+        const akunHppSelect = document.getElementById('akunHpp');
+        const akunPersediaanSelect = document.getElementById('akunPersediaan'); // BARU
         const akunLabaDitahanSelect = document.getElementById('akunLabaDitahan');
         const mappingBankContainer = document.getElementById('mappingBankContainer');
 
@@ -865,7 +889,7 @@
         }
 
         function populateAccountDropdowns() {
-            const dropdowns = [akunTunaiKasSelect, akunTransferBankSelect, akunPiutangKreditSelect, akunPendapatanSelect, akunReturPenjualanSelect, akunLabaDitahanSelect];
+            const dropdowns = [akunTunaiKasSelect, akunTransferBankSelect, akunPiutangKreditSelect, akunPendapatanSelect, akunReturPenjualanSelect, akunHppSelect, akunPersediaanSelect, akunLabaDitahanSelect];
             dropdowns.forEach(sel => {
                 if (!sel) return;
                 const currentVal = sel.value;
@@ -1077,6 +1101,8 @@
                         akunPiutangKredit: '',
                         akunPendapatan: '',
                         akunReturPenjualan: '',
+                        akunHpp: '',
+                        akunPersediaan: '',
                         akunLabaDitahan: '',
                         akunAsetList: [],
                         akunAkumulasiList: [],
@@ -1120,6 +1146,8 @@
 
             if (data.akunPendapatan) akunPendapatanSelect.value = data.akunPendapatan;
             if (data.akunReturPenjualan) akunReturPenjualanSelect.value = data.akunReturPenjualan;
+            if (data.akunHpp) akunHppSelect.value = data.akunHpp;
+            if (data.akunPersediaan) akunPersediaanSelect.value = data.akunPersediaan;
             if (data.akunLabaDitahan) akunLabaDitahanSelect.value = data.akunLabaDitahan;
 
             renderUnitList();
@@ -1291,6 +1319,8 @@
                 akunPiutangKredit: akunPiutangKreditSelect.value,
                 akunPendapatan: akunPendapatanSelect.value,
                 akunReturPenjualan: akunReturPenjualanSelect.value,
+                akunHpp: akunHppSelect.value,
+                akunPersediaan: akunPersediaanSelect.value, // BARU
                 akunLabaDitahan: akunLabaDitahanSelect.value,
                 akunAsetList: selectedAkunAsetList,
                 akunAkumulasiList: selectedAkunAkumulasiList,

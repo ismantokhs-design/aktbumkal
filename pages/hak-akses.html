@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PENGATURAN HAK AKSES & ROLE</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Link External CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header Utama */
+        .page-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-title-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-back {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Container Body */
+        .content-body {
+            padding: 20px 16px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            padding-bottom: 40px;
+            gap: 16px;
+        }
+
+        .form-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 6px;
+            margin-bottom: 4px;
+        }
+
+        .form-section-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: #5114B9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #1e293b;
+            outline: none;
+            background-color: #ffffff;
+        }
+
+        .form-control:focus {
+            border-color: #5114B9;
+            box-shadow: 0 0 0 2px rgba(81, 20, 185, 0.1);
+        }
+
+        select.form-control {
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24' viewBox='0 0 24 24' width='24'%3E%3Cpath d='M7 10l5 5 5-5z' fill='%23475569'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            padding-right: 32px;
+            appearance: none;
+        }
+
+        /* Checklist Hak Akses Card */
+        .permission-list-box {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .permission-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            background-color: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+        }
+
+        .permission-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .permission-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .permission-desc {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        /* Custom Checkbox Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1;
+            transition: .3s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #5114B9;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        .btn-save-access {
+            background-color: #5114B9;
+            color: #ffffff;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 2px 6px rgba(81, 20, 185, 0.3);
+            margin-top: 10px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <!-- Header Halaman -->
+        <header class="page-header">
+            <div class="header-title-box">
+                <a href="../index.html" class="btn-back">
+                    <span class="material-icons">arrow_back</span>
+                </a>
+                <h1>PENGATURAN HAK AKSES</h1>
+            </div>
+        </header>
+
+        <!-- Body Content -->
+        <div class="content-body">
+            <div class="form-group">
+                <label class="form-label" for="selectRole">Pilih Role / Peran Pengguna</label>
+                <select id="selectRole" class="form-control">
+                    <option value="Administrator">Administrator</option>
+                    <option value="Kasir_Operator">Kasir / Operator</option>
+                    <option value="Akuntan">Akuntan</option>
+                    <option value="Manajer_Pimpinan">Manajer / Pimpinan</option>
+                </select>
+            </div>
+
+            <div class="form-section-header" style="margin-top: 10px;">
+                <span class="form-section-title">Daftar Modul & Izin Akses Menu Utama</span>
+            </div>
+
+            <div class="permission-list-box" id="permissionListBox">
+                <!-- Daftar Menu/Modul akan dimuat secara dinamis -->
+            </div>
+
+            <button type="button" class="btn-save-access" id="btnSavePermissions">Simpan Perubahan Akses</button>
+        </div>
+    </div>
+
+    <!-- Script Integrasi Firestore -->
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const selectRole = document.getElementById('selectRole');
+        const permissionListBox = document.getElementById('permissionListBox');
+        const btnSavePermissions = document.getElementById('btnSavePermissions');
+
+        // Daftar modul/menu lengkap disesuaikan dengan seluruh menu aplikasi BUMKal
+        const appModules = [
+            // Kategori Data
+            { id: 'menu_kontak', title: 'Data Kontak', desc: 'Mengelola data agen, pelanggan, dan supplier' },
+            { id: 'menu_akun', title: 'Akun / Perkiraan (COA)', desc: 'Mengelola daftar akun dan perkiraan akuntansi' },
+            { id: 'menu_pagu', title: 'Pagu Anggaran', desc: 'Akses pengelolaan pagu anggaran BUMKal' },
+            { id: 'menu_barang', title: 'Data Barang / Produk', desc: 'Tambah, edit, dan hapus data barang dan stok' },
+
+            // Kategori Transaksi
+            { id: 'menu_saldo_awal', title: 'Saldo Awal', desc: 'Entri saldo awal akun dan neraca' },
+            { id: 'menu_input_jurnal', title: 'Entri Jurnal Umum', desc: 'Membuat dan mencatat entri jurnal transaksi' },
+            { id: 'menu_aset', title: 'Manajemen Aset', desc: 'Pencatatan dan pengelolaan aset perusahaan' },
+            { id: 'menu_penyusutan', title: 'Penyusutan Aset', desc: 'Proses dan perhitungan penyusutan aset' },
+            { id: 'menu_pembelian', title: 'Transaksi Pembelian', desc: 'Akses pencatatan pembelian stok barang & supplier' },
+            { id: 'menu_produksi', title: 'Proses Produksi', desc: 'Manajemen pencatatan proses produksi barang' },
+            { id: 'menu_penjualan', title: 'Transaksi Penjualan Produk', desc: 'Akses kasir dan input transaksi penjualan produk' },
+            { id: 'menu_koreksi_penjualan', title: 'Koreksi Penjualan', desc: 'Pengelolaan retur dan koreksi transaksi penjualan' },
+
+            // Kategori Transaksi Khusus
+            { id: 'menu_modal', title: 'Transaksi Modal', desc: 'Pencatatan mutasi dan penambahan modal usaha' },
+            { id: 'menu_kas_masuk', title: 'Penerimaan Kas', desc: 'Pencatatan transaksi kas masuk/pendapatan operasional' },
+            { id: 'menu_kas_keluar', title: 'Pengeluaran Kas', desc: 'Pencatatan transaksi kas keluar/biaya operasional' },
+            { id: 'menu_piutang', title: 'Manajemen Piutang', desc: 'Pengelolaan data dan pembayaran piutang pelanggan' },
+            { id: 'menu_hutang', title: 'Manajemen Hutang', desc: 'Pengelolaan data dan pembayaran hutang usaha' },
+
+            // Kategori Laporan & Analisis
+            { id: 'menu_laporan_jurnal', title: 'Laporan Jurnal', desc: 'Melihat rekapitulasi jurnal umum' },
+            { id: 'menu_buku_besar', title: 'Buku Besar', desc: 'Melihat rincian buku besar tiap perkiraan' },
+            { id: 'menu_neraca_saldo', title: 'Neraca Saldo', desc: 'Melihat laporan neraca saldo periodik' },
+            { id: 'menu_laba_rugi', title: 'Laporan Laba / Rugi', desc: 'Melihat rekapitulasi laba dan rugi perusahaan' },
+            { id: 'menu_neraca', title: 'Laporan Neraca', desc: 'Melihat posisi keuangan neraca (aktiva & pasiva)' },
+            { id: 'menu_arus_kas', title: 'Laporan Arus Kas', desc: 'Melihat rekapitulasi arus kas masuk dan keluar' },
+            { id: 'menu_perubahan_modal', title: 'Perubahan Modal', desc: 'Melihat laporan perubahan modal akhir periode' },
+            { id: 'menu_rekonsiliasi_bank', title: 'Rekonsiliasi Bank', desc: 'Pencocokan saldo kas bank dengan buku kas fisik' },
+            { id: 'menu_calk', title: 'CALK', desc: 'Catatan Atas Laporan Keuangan' },
+            { id: 'menu_laporan_operasional', title: 'Laporan Pembelian, Produksi & Penjualan', desc: 'Melihat rekap laporan pembelian, produksi, penjualan, retur, dan pagu' },
+
+            // Kategori Pengaturan Sistem & Administratif
+            { id: 'menu_setting_profil', title: 'Pengaturan Profil & Mapping', desc: 'Mengubah profil BUMKal, unit usaha, dan mapping akun transaksi' },
+            { id: 'menu_setting_user', title: 'Setting User & Hak Akses', desc: 'Mengelola manajemen akun pengguna dan hak akses sistem' },
+            { id: 'menu_tutup_buku', title: 'Tutup Bulan, Tutup Buku & Backup', desc: 'Akses fitur tutup akhir bulan, tutup buku akhir tahun, backup, restore, dan reset data' }
+        ];
+
+        // Render daftar modul ke dalam bentuk daftar interaktif toggle switch
+        function renderPermissions(activePermissions = {}) {
+            permissionListBox.innerHTML = '';
+
+            appModules.forEach(mod => {
+                const isChecked = activePermissions[mod.id] === true ? 'checked' : '';
+
+                const item = document.createElement('div');
+                item.className = 'permission-item';
+                item.innerHTML = `
+                    <div class="permission-info">
+                        <span class="permission-title">${mod.title}</span>
+                        <span class="permission-desc">${mod.desc}</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" class="perm-checkbox" data-id="${mod.id}" ${isChecked}>
+                        <span class="slider"></span>
+                    </label>
+                `;
+                permissionListBox.appendChild(item);
+            });
+        }
+
+        // Ambil data hak akses dari Firestore berdasarkan role yang dipilih
+        async function loadRolePermissions(roleName) {
+            try {
+                Swal.fire({ title: 'Memuat data...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                
+                const docRef = doc(db, 'permissions', roleName);
+                const docSnap = await getDoc(docRef);
+
+                Swal.close();
+
+                let permissionsData = {};
+                if (docSnap.exists()) {
+                    permissionsData = docSnap.data().modules || {};
+                } else {
+                    // Default akses: Administrator mendapatkan semua akses, role lain default false
+                    appModules.forEach(mod => {
+                        permissionsData[mod.id] = (roleName === 'Administrator');
+                    });
+                }
+
+                renderPermissions(permissionsData);
+            } catch (err) {
+                console.error("Gagal memuat hak akses:", err);
+                Swal.fire('Error', 'Gagal memuat konfigurasi hak akses.', 'error');
+            }
+        }
+
+        // Event saat role diganti pada dropdown
+        selectRole.addEventListener('change', (e) => {
+            loadRolePermissions(e.target.value);
+        });
+
+        // Simpan perubahan hak akses ke Firestore
+        btnSavePermissions.addEventListener('click', async () => {
+            const roleName = selectRole.value;
+            const roleLabel = selectRole.options[selectRole.selectedIndex].text;
+            const updatedModules = {};
+
+            document.querySelectorAll('.perm-checkbox').forEach(chk => {
+                const modId = chk.dataset.id;
+                updatedModules[modId] = chk.checked;
+            });
+
+            try {
+                Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+                const docRef = doc(db, 'permissions', roleName);
+                await setDoc(docRef, {
+                    role: roleLabel,
+                    modules: updatedModules,
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: `Hak akses untuk role ${roleLabel} berhasil disimpan.`,
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            } catch (err) {
+                console.error("Gagal menyimpan:", err);
+                Swal.fire('Gagal', err.message, 'error');
+            }
+        });
+
+        // Load awal saat halaman dibuka
+        loadRolePermissions(selectRole.value);
+    </script>
+</body>
+</html>

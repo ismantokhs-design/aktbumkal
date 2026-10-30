@@ -98,25 +98,25 @@
         <!-- Konten Menu Akordion Tengah -->
         <div class="drawer-content" id="drawerContent">
             <!-- KATEGORI 1: DATA -->
-            <div class="menu-section">
+            <div class="menu-section" data-category="data">
                 <div class="menu-category-header">
                     <span>DATA</span>
                     <span class="material-icons">expand_more</span>
                 </div>
                 <div class="menu-items-group">
-                    <a href="./pages/kontak.html" class="menu-item">
+                    <a href="./pages/kontak.html" class="menu-item" data-module-id="menu_kontak">
                         <span class="material-icons">badge</span>
                         <span>Kontak</span>
                     </a>
-                    <a href="./pages/akun.html" class="menu-item">
+                    <a href="./pages/akun.html" class="menu-item" data-module-id="menu_akun">
                         <span class="material-icons">list_alt</span>
                         <span>Akun/Perkiraan</span>
                     </a>
-                    <a href="./pages/pagu-anggaran.html" class="menu-item">
+                    <a href="./pages/pagu-anggaran.html" class="menu-item" data-module-id="menu_pagu">
                         <span class="material-icons">account_balance</span>
                         <span>Pagu Anggaran</span>
                     </a>
-                    <a href="./pages/barang.html" class="menu-item">
+                    <a href="./pages/barang.html" class="menu-item" data-module-id="menu_barang">
                         <span class="material-icons">inventory_2</span>
                         <span>Barang</span>
                     </a>
@@ -124,37 +124,41 @@
             </div>
 
             <!-- KATEGORI 2: TRANSAKSI -->
-            <div class="menu-section">
+            <div class="menu-section" data-category="transaksi">
                 <div class="menu-category-header">
                     <span>TRANSAKSI</span>
                     <span class="material-icons">expand_more</span>
                 </div>
                 <div class="menu-items-group">
-                    <a href="./pages/saldo-awal.html" class="menu-item">
+                    <a href="./pages/saldo-awal.html" class="menu-item" data-module-id="menu_saldo_awal">
                         <span class="material-icons">edit_note</span>
                         <span>Saldo Awal</span>
                     </a>
-                    <a href="./pages/input-jurnal.html" class="menu-item">
+                    <a href="./pages/input-jurnal.html" class="menu-item" data-module-id="menu_input_jurnal">
                         <span class="material-icons">post_add</span>
                         <span>Entri Jurnal</span>
                     </a>
-                    <a href="./pages/aset.html" class="menu-item">
+                    <a href="./pages/aset.html" class="menu-item" data-module-id="menu_aset">
                         <span class="material-icons">devices_other</span>
                         <span>Aset</span>
                     </a>
-                    <a href="./pages/penyusutan.html" class="menu-item">
+                    <a href="./pages/penyusutan.html" class="menu-item" data-module-id="menu_penyusutan">
                         <span class="material-icons">trending_down</span>
                         <span>Penyusutan</span>
                     </a>
-                    <a href="./pages/produksi.html" class="menu-item">
+                    <a href="./pages/pembelian.html" class="menu-item" data-module-id="menu_pembelian">
+                        <span class="material-icons">shopping_cart</span>
+                        <span>Pembelian</span>
+                    </a>
+                    <a href="./pages/produksi.html" class="menu-item" data-module-id="menu_produksi">
                         <span class="material-icons">factory</span>
                         <span>Proses Produksi</span>
                     </a>
-                    <a href="./pages/penjualan.html" class="menu-item">
+                    <a href="./pages/penjualan.html" class="menu-item" data-module-id="menu_penjualan">
                         <span class="material-icons">point_of_sale</span>
                         <span>Penjualan Produk</span>
                     </a>
-                    <a href="./pages/koreksi-penjualan.html" class="menu-item">
+                    <a href="./pages/koreksi-penjualan.html" class="menu-item" data-module-id="menu_koreksi_penjualan">
                         <span class="material-icons">rule</span>
                         <span>Koreksi Penjualan</span>
                     </a>
@@ -162,29 +166,29 @@
             </div>
 
             <!-- KATEGORI 3: TRANSAKSI KHUSUS -->
-            <div class="menu-section">
+            <div class="menu-section" data-category="transaksi_khusus">
                 <div class="menu-category-header">
                     <span>TRANSAKSI KHUSUS</span>
                     <span class="material-icons">expand_more</span>
                 </div>
                 <div class="menu-items-group">
-                    <a href="./pages/modal.html" class="menu-item">
+                    <a href="./pages/modal.html" class="menu-item" data-module-id="menu_modal">
                         <span class="material-icons">account_balance_wallet</span>
                         <span>Modal</span>
                     </a>
-                    <a href="./pages/kas-masuk.html" class="menu-item">
+                    <a href="./pages/kas-masuk.html" class="menu-item" data-module-id="menu_kas_masuk">
                         <span class="material-icons">add_circle</span>
                         <span>Penerimaan Kas</span>
                     </a>
-                    <a href="./pages/kas-keluar.html" class="menu-item">
+                    <a href="./pages/kas-keluar.html" class="menu-item" data-module-id="menu_kas_keluar">
                         <span class="material-icons">remove_circle</span>
                         <span>Pengeluaran Kas</span>
                     </a>
-                    <a href="./pages/piutang.html" class="menu-item">
+                    <a href="./pages/piutang.html" class="menu-item" data-module-id="menu_piutang">
                         <span class="material-icons">receipt_long</span>
                         <span>Piutang</span>
                     </a>
-                    <a href="./pages/hutang.html" class="menu-item">
+                    <a href="./pages/hutang.html" class="menu-item" data-module-id="menu_hutang">
                         <span class="material-icons">request_quote</span>
                         <span>Hutang</span>
                     </a>
@@ -192,53 +196,65 @@
             </div>
 
             <!-- KATEGORI 4: LAPORAN -->
-            <div class="menu-section">
+            <div class="menu-section" data-category="laporan">
                 <div class="menu-category-header">
                     <span>LAPORAN</span>
                     <span class="material-icons">expand_more</span>
                 </div>
                 <div class="menu-items-group">
-                    <a href="./pages/jurnal.html" class="menu-item">
+                    <a href="./pages/jurnal.html" class="menu-item" data-module-id="menu_laporan_jurnal">
                         <span class="material-icons">chat_bubble</span>
                         <span>Jurnal</span>
                     </a>
-                    <a href="./pages/buku-besar.html" class="menu-item">
+                    <a href="./pages/buku-besar.html" class="menu-item" data-module-id="menu_buku_besar">
                         <span class="material-icons">menu_book</span>
                         <span>Buku Besar</span>
                     </a>
-                    <a href="./pages/neraca-saldo.html" class="menu-item">
+                    <a href="./pages/neraca-saldo.html" class="menu-item" data-module-id="menu_neraca_saldo">
                         <span class="material-icons">view_list</span>
                         <span>Neraca Saldo</span>
                     </a>
-                    <a href="./pages/laba-rugi.html" class="menu-item">
+                    <a href="./pages/laba-rugi.html" class="menu-item" data-module-id="menu_laba_rugi">
                         <span class="material-icons">insert_photo</span>
                         <span>Laba/Rugi</span>
                     </a>
-                    <a href="./pages/neraca.html" class="menu-item">
+                    <a href="./pages/neraca.html" class="menu-item" data-module-id="menu_neraca">
                         <span class="material-icons">view_column</span>
                         <span>Neraca</span>
                     </a>
-                    <a href="./pages/arus-kas.html" class="menu-item">
+                    <a href="./pages/arus-kas.html" class="menu-item" data-module-id="menu_arus_kas">
                         <span class="material-icons">show_chart</span>
                         <span>Arus Kas</span>
                     </a>
-                    <a href="./pages/perubahan-modal.html" class="menu-item">
+                    <a href="./pages/perubahan-modal.html" class="menu-item" data-module-id="menu_perubahan_modal">
                         <span class="material-icons">trending_up</span>
                         <span>Perubahan Modal</span>
                     </a>
-                    <a href="./pages/rekonsiliasi-bank.html" class="menu-item">
+                    <a href="./pages/rekonsiliasi-bank.html" class="menu-item" data-module-id="menu_rekonsiliasi_bank">
                         <span class="material-icons">account_balance</span>
                         <span>Rekonsiliasi Bank</span>
                     </a>
-                    <a href="./pages/calk.html" class="menu-item">
+                    <a href="./pages/calk.html" class="menu-item" data-module-id="menu_calk">
                         <span class="material-icons">description</span>
                         <span>CALK</span>
                     </a>
-                    <a href="./pages/laporan-penjualan.html" class="menu-item">
+                    <a href="./pages/laporan-pembelian.html" class="menu-item" data-module-id="menu_laporan_operasional">
+                        <span class="material-icons">receipt</span>
+                        <span>Laporan Pembelian</span>
+                    </a>
+                    <a href="./pages/laporan-produksi.html" class="menu-item" data-module-id="menu_laporan_operasional">
+                        <span class="material-icons">fact_check</span>
+                        <span>Laporan Produksi</span>
+                    </a>
+                    <a href="./pages/laporan-penjualan.html" class="menu-item" data-module-id="menu_laporan_operasional">
                         <span class="material-icons">point_of_sale</span>
                         <span>Laporan Penjualan</span>
                     </a>
-                    <a href="./pages/laporan-pagu.html" class="menu-item">
+                    <a href="./pages/laporan-retur-penjualan.html" class="menu-item" data-module-id="menu_laporan_operasional">
+                        <span class="material-icons">assignment_return</span>
+                        <span>Laporan Retur Penjualan</span>
+                    </a>
+                    <a href="./pages/laporan-pagu.html" class="menu-item" data-module-id="menu_laporan_operasional">
                         <span class="material-icons">assignment_turned_in</span>
                         <span>Laporan Pagu</span>
                     </a>
@@ -260,46 +276,46 @@
     <div class="option-menu-popup" id="optionMenuPopup">
         <div class="option-header">OPTION MENU</div>
         <div class="option-list">
-            <a href="./pages/setting.html" class="option-item">
+            <a href="./pages/setting.html" class="option-item" data-module-id="menu_setting_profil">
                 <span class="material-icons">settings</span>
                 <span>Pengaturan</span>
             </a>
-            <a href="./pages/setting-user.html" class="option-item">
+            <a href="./pages/setting-user.html" class="option-item" data-module-id="menu_setting_user">
                 <span class="material-icons">manage_accounts</span>
                 <span>Setting User</span>
             </a>
-            <a href="./pages/hak-akses.html" class="option-item">
+            <a href="./pages/hak-akses.html" class="option-item" data-module-id="menu_setting_user">
                 <span class="material-icons">admin_panel_settings</span>
                 <span>Hak Akses</span>
             </a>
 
             <div class="option-divider"></div>
 
-            <a href="./pages/tutup-bulan.html" class="option-item">
+            <a href="./pages/tutup-bulan.html" class="option-item" data-module-id="menu_tutup_buku">
                 <span class="material-icons">event_repeat</span>
                 <span>Tutup Akhir Bulan</span>
             </a>
 
-            <a href="./pages/tutup-buku.html" class="option-item">
+            <a href="./pages/tutup-buku.html" class="option-item" data-module-id="menu_tutup_buku">
                 <span class="material-icons">published_with_changes</span>
                 <span>Tutup Buku Akhir Tahun</span>
             </a>
-            <a href="#" class="option-item">
+            <a href="#" class="option-item" data-module-id="menu_tutup_buku">
                 <span class="material-icons">history</span>
                 <span>Backup</span>
             </a>
-            <a href="#" class="option-item">
+            <a href="#" class="option-item" data-module-id="menu_tutup_buku">
                 <span class="material-icons">restore</span>
                 <span>Restore</span>
             </a>
-            <a href="./pages/reset-data.html" class="option-item">
+            <a href="./pages/reset-data.html" class="option-item" data-module-id="menu_tutup_buku">
                 <span class="material-icons">restart_alt</span>
                 <span>Reset Data</span>
             </a>
 
             <div class="option-divider"></div>
 
-            <a href="#" class="option-item">
+            <a href="#" class="option-item" data-module-id="menu_setting_profil">
                 <span class="material-icons">cloud_upload</span>
                 <span>Google Drive</span>
             </a>
@@ -524,7 +540,7 @@
         });
     </script>
 
-    <!-- Script Integrasi Firestore Dashboard & Nama User Login -->
+    <!-- Script Integrasi Firestore Dashboard & Hak Akses Berdasarkan Role -->
     <script type="module">
         import { auth, db } from './assets/js/firebase-config.js';
         import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -590,23 +606,77 @@
             return `${monthsFull[now.getMonth()]} ${now.getFullYear()}`;
         }
 
+        // Fungsi Menerapkan Hak Akses Menu Berdasarkan Role
+        async function applyUserPermissions(rawUserRole) {
+            try {
+                // Administrator mendapatkan akses penuh ke semua menu
+                if (rawUserRole === 'Administrator') {
+                    document.querySelectorAll('[data-module-id]').forEach(el => el.style.display = '');
+                    document.querySelectorAll('.menu-section').forEach(sec => sec.style.display = '');
+                    return;
+                }
+
+                // Bersihkan string role agar aman sebagai ID dokumen Firestore (misal: "Manajer / Pimpinan" -> "Manajer_Pimpinan")
+                const userRole = rawUserRole.trim().replace(/\s*\/\s*/g, '_').replace(/\s+/g, '_');
+
+                const permRef = doc(db, 'permissions', userRole);
+                const permSnap = await getDoc(permRef);
+
+                let modules = {};
+                if (permSnap.exists()) {
+                    modules = permSnap.data().modules || {};
+                }
+
+                // Periksa setiap elemen menu yang memiliki data-module-id
+                document.querySelectorAll('[data-module-id]').forEach(el => {
+                    const modId = el.getAttribute('data-module-id');
+                    // Jika di database bernilai true, tampilkan; jika false/tidak ada, sembunyikan
+                    if (modules[modId] === true) {
+                        el.style.display = '';
+                    } else {
+                        el.style.display = 'none';
+                    }
+                });
+
+                // Periksa apakah kategori menu masih memiliki anak menu yang aktif
+                document.querySelectorAll('.menu-section').forEach(sec => {
+                    const visibleItems = sec.querySelectorAll('.menu-item:not([style*="display: none"])');
+                    if (visibleItems.length === 0) {
+                        sec.style.display = 'none';
+                    } else {
+                        sec.style.display = '';
+                    }
+                });
+
+            } catch (err) {
+                console.error("Gagal menerapkan hak akses:", err);
+            }
+        }
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 let userName = user.displayName || user.email || 'Administrator';
+                let userRole = 'Administrator'; // Default role jika tidak ditemukan
                 
                 try {
                     const userDocRef = doc(db, 'users', user.uid);
                     const userDocSnap = await getDoc(userDocRef);
-                    if (userDocSnap.exists() && userDocSnap.data().nama) {
-                        userName = userDocSnap.data().nama;
+                    if (userDocSnap.exists()) {
+                        const userData = userDocSnap.data();
+                        if (userData.nama) userName = userData.nama;
+                        if (userData.role) userRole = userData.role;
                     }
                 } catch (e) {
-                    console.warn("Menggunakan nama auth default");
+                    console.warn("Gagal membaca dokumen user, menggunakan role default.");
                 }
 
                 if (drawerUserNameLogin) {
-                    drawerUserNameLogin.textContent = userName;
+                    drawerUserNameLogin.textContent = `${userName} (${userRole})`;
                 }
+
+                // Jalankan fungsi pembatasan menu sesuai role
+                await applyUserPermissions(userRole);
+
             } else {
                 window.location.href = './pages/login.html';
             }

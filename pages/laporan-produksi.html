@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Produksi - Akt-BUMKal</title>
+    
+    <!-- Link Manifest & CSS -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background-color: #f8fafc; color: #1e293b; display: flex; justify-content: center; min-height: 100vh; }
+        .page-container { width: 100%; max-width: 480px; background-color: #ffffff; display: flex; flex-direction: column; min-height: 100vh; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; padding-bottom: 70px; }
+        
+        .page-header { background-color: #5114B9; color: #ffffff; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .header-left { display: flex; align-items: center; gap: 14px; }
+        .btn-back { color: #ffffff; text-decoration: none; display: flex; align-items: center; }
+        .page-header h1 { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .filter-container { padding: 14px 16px; background-color: #f1f5f9; border-bottom: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 10px; }
+        .filter-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .form-group label { font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; }
+        .form-control { width: 100%; height: 34px; padding: 0 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 11px; outline: none; background-color: #ffffff; color: #0f172a; }
+        .form-control:focus { border-color: #5114B9; }
+
+        .content-container { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+        
+        .summary-card { background: linear-gradient(135deg, #5114B9, #7c3aed); color: #ffffff; padding: 14px; border-radius: 8px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 2px 6px rgba(81,20,185,0.2); }
+        .summary-title { font-size: 11px; font-weight: 600; text-transform: uppercase; opacity: 0.9; }
+        .summary-value { font-size: 18px; font-weight: 700; }
+
+        .production-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .prod-header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px; }
+        .prod-no { font-size: 12px; font-weight: bold; color: #5114B9; }
+        .prod-date { font-size: 11px; color: #64748b; font-weight: 600; }
+        
+        .prod-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 11px; color: #334155; background: #f8fafc; padding: 6px 8px; border-radius: 6px; }
+        
+        .product-item-list { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+        .product-item-row { display: flex; justify-content: space-between; font-size: 11px; background: #f1f5f9; padding: 4px 8px; border-radius: 4px; align-items: center; }
+        .product-name { font-weight: 600; color: #0f172a; }
+        .product-detail { color: #475569; }
+
+        .action-buttons { display: flex; gap: 6px; justify-content: flex-end; margin-top: 6px; }
+        .btn-action { padding: 4px 10px; border-radius: 4px; font-size: 10px; font-weight: 700; cursor: pointer; border: none; display: flex; align-items: center; gap: 2px; }
+        .btn-edit { background-color: #e0f2fe; color: #0284c7; }
+        .btn-delete { background-color: #fee2e2; color: #b91c1c; }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: #64748b; font-size: 12px; }
+
+        /* Modal Edit */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; padding: 16px; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { background: #ffffff; width: 100%; max-width: 440px; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 12px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; font-weight: bold; font-size: 13px; color: #5114B9; }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Header -->
+        <header class="page-header">
+            <div class="header-left">
+                <a href="../index.html" class="btn-back"><span class="material-icons">arrow_back</span></a>
+                <h1>Laporan Produksi</h1>
+            </div>
+        </header>
+
+        <!-- Filter Section -->
+        <div class="filter-container">
+            <div class="form-group">
+                <label>Unit Usaha</label>
+                <select id="filterUnit" class="form-control">
+                    <option value="">-- Semua Unit --</option>
+                </select>
+            </div>
+            <div class="filter-row">
+                <div class="form-group">
+                    <label>Dari Tanggal</label>
+                    <input type="date" id="filterStartDate" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Sampai Tanggal</label>
+                    <input type="date" id="filterEndDate" class="form-control">
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content-container">
+            <!-- Ringkasan Total -->
+            <div class="summary-card">
+                <span class="summary-title">Total Keseluruhan HPP Produksi</span>
+                <span class="summary-value" id="summaryTotalHpp">Rp 0</span>
+            </div>
+
+            <!-- Daftar Laporan Produksi -->
+            <div id="productionListContainer" style="display: flex; flex-direction: column; gap: 10px;">
+                <!-- Dinamis Data -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Edit Produksi -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span>Edit Transaksi Produksi</span>
+                <span class="material-icons" style="cursor: pointer;" id="btnCloseModal">close</span>
+            </div>
+            <input type="hidden" id="editDocId">
+            <div class="form-group">
+                <label>Nomor Transaksi</label>
+                <input type="text" id="editJournalNumber" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+                <label>Tanggal Produksi *</label>
+                <input type="date" id="editDate" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Unit Usaha *</label>
+                <select id="editUnitId" class="form-control"></select>
+            </div>
+            <div class="form-group">
+                <label>Total Nilai HPP Keseluruhan (Rp) *</label>
+                <input type="text" id="editGrandTotalHpp" class="form-control" inputmode="numeric">
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 8px;">
+                <button type="button" class="form-control" id="btnCancelEdit" style="background: #e2e8f0; font-weight: bold; cursor: pointer;">Batal</button>
+                <button type="button" class="form-control" id="btnSaveEdit" style="background: #5114B9; color: #fff; font-weight: bold; cursor: pointer;">Simpan Perubahan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Logika -->
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const filterUnit = document.getElementById('filterUnit');
+        const filterStartDate = document.getElementById('filterStartDate');
+        const filterEndDate = document.getElementById('filterEndDate');
+        const productionListContainer = document.getElementById('productionListContainer');
+        const summaryTotalHpp = document.getElementById('summaryTotalHpp');
+
+        // Modal Elements
+        const editModal = document.getElementById('editModal');
+        const btnCloseModal = document.getElementById('btnCloseModal');
+        const btnCancelEdit = document.getElementById('btnCancelEdit');
+        const btnSaveEdit = document.getElementById('btnSaveEdit');
+        const editDocId = document.getElementById('editDocId');
+        const editJournalNumber = document.getElementById('editJournalNumber');
+        const editDate = document.getElementById('editDate');
+        const editUnitId = document.getElementById('editUnitId');
+        const editGrandTotalHpp = document.getElementById('editGrandTotalHpp');
+
+        let allProductions = [];
+        let unitOptionsHTML = '<option value="">-- Pilih Unit --</option>';
+
+        function formatNumberInput(inputElem) {
+            inputElem.addEventListener('input', (e) => {
+                let clean = e.target.value.replace(/\D/g, '');
+                e.target.value = clean ? parseInt(clean, 10).toLocaleString('id-ID') : '';
+            });
+        }
+        formatNumberInput(editGrandTotalHpp);
+
+        async function initPage() {
+            try {
+                const profileRef = doc(db, 'settings', 'profile');
+                const profileSnap = await getDoc(profileRef);
+
+                let defaultStartDate = `${new Date().getFullYear()}-01-01`;
+                let defaultEndDate = `${new Date().getFullYear()}-12-31`;
+
+                if (profileSnap.exists()) {
+                    const data = profileSnap.data();
+                    if (data.tglMulai) defaultStartDate = data.tglMulai;
+                    if (data.tglSelesai) defaultEndDate = data.tglSelesai;
+
+                    const unitList = data.unitList || [];
+                    let opts = '<option value="">-- Semua Unit --</option>';
+                    let editOpts = '<option value="">-- Pilih Unit --</option>';
+                    
+                    unitList.forEach(u => {
+                        const code = u.kodeUnit || '';
+                        const name = u.namaUnit || '';
+                        const val = name || code;
+                        const label = `Unit: ${code ? code + ' - ' : ''}${name}`;
+                        opts += `<option value="${val}">${label}</option>`;
+                        editOpts += `<option value="${val}">${label}</option>`;
+                    });
+
+                    filterUnit.innerHTML = opts;
+                    editUnitId.innerHTML = editOpts;
+                    unitOptionsHTML = editOpts;
+                }
+
+                filterStartDate.value = defaultStartDate;
+                filterEndDate.value = defaultEndDate;
+
+                await loadProductionsData();
+
+            } catch (err) {
+                console.error("Gagal inisialisasi laporan produksi:", err);
+            }
+        }
+
+        async function loadProductionsData() {
+            try {
+                productionListContainer.innerHTML = '<div class="empty-state">Memuat data laporan...</div>';
+                
+                const q = query(collection(db, 'productions'), orderBy('date', 'desc'));
+                const snap = await getDocs(q);
+                allProductions = [];
+
+                snap.forEach(docSnap => {
+                    allProductions.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                renderReport();
+
+            } catch (err) {
+                console.error("Gagal memuat data productions:", err);
+                productionListContainer.innerHTML = '<div class="empty-state" style="color: #dc2626;">Gagal memuat data dari database.</div>';
+            }
+        }
+
+        function renderReport() {
+            const selectedUnit = filterUnit.value.trim();
+            const startDate = filterStartDate.value;
+            const endDate = filterEndDate.value;
+
+            let filtered = allProductions.filter(item => {
+                const itemDate = item.date || '';
+                if (startDate && itemDate < startDate) return false;
+                if (endDate && itemDate > endDate) return false;
+                if (selectedUnit && String(item.unitId || '').trim() !== selectedUnit) return false;
+                return true;
+            });
+
+            productionListContainer.innerHTML = '';
+            let grandTotalOverallHpp = 0;
+
+            if (filtered.length === 0) {
+                productionListContainer.innerHTML = '<div class="empty-state">Tidak ada data produksi pada rentang filter ini.</div>';
+                summaryTotalHpp.textContent = 'Rp 0';
+                return;
+            }
+
+            filtered.forEach(item => {
+                const totalHpp = parseFloat(item.grandTotalHpp || 0);
+                grandTotalOverallHpp += totalHpp;
+
+                const card = document.createElement('div');
+                card.className = 'production-card';
+
+                let productsHTML = '';
+                if (item.products && Array.isArray(item.products)) {
+                    item.products.forEach(p => {
+                        const pQty = parseInt(p.productQty || 0, 10);
+                        const pHpp = parseInt(p.productHpp || 0, 10);
+                        const pTotal = parseInt(p.totalHpp || 0, 10);
+
+                        productsHTML += `
+                            <div class="product-item-row">
+                                <span class="product-name">${p.productCode} - ${p.productName}</span>
+                                <span class="product-detail">${pQty} unit @ Rp ${pHpp.toLocaleString('id-ID')} = <b>Rp ${pTotal.toLocaleString('id-ID')}</b></span>
+                            </div>
+                        `;
+                    });
+                }
+
+                card.innerHTML = `
+                    <div class="prod-header-row">
+                        <span class="prod-no">${item.journalNumber || '-'}</span>
+                        <span class="prod-date">${item.date || '-'}</span>
+                    </div>
+                    <div class="prod-info-grid">
+                        <div>Unit: <b>${item.unitId || '-'}</b></div>
+                        <div>Bahan Baku: <b>${item.materialName || item.materialCode || '-'}</b></div>
+                        <div style="grid-column: span 2;">Nilai Bahan Baku: <b>Rp ${(item.materialCost || 0).toLocaleString('id-ID')}</b></div>
+                    </div>
+                    <div style="font-size: 11px; font-weight: 700; color: #475569; margin-top: 4px;">PRODUK JADI HASIL KONVERSI:</div>
+                    <div class="product-item-list">
+                        ${productsHTML}
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #cbd5e1; padding-top: 6px; margin-top: 4px; font-size: 11px;">
+                        <span>Total HPP Konversi:</span>
+                        <span style="font-weight: bold; color: #5114B9;">Rp ${totalHpp.toLocaleString('id-ID')}</span>
+                    </div>
+                    <div class="action-buttons">
+                        <button type="button" class="btn-action btn-edit" data-id="${item.id}"><span class="material-icons" style="font-size: 12px;">edit</span> Edit</button>
+                        <button type="button" class="btn-action btn-delete" data-id="${item.id}"><span class="material-icons" style="font-size: 12px;">delete</span> Hapus</button>
+                    </div>
+                `;
+
+                productionListContainer.appendChild(card);
+            });
+
+            summaryTotalHpp.textContent = `Rp ${grandTotalOverallHpp.toLocaleString('id-ID')}`;
+
+            // Event Listeners untuk Tombol Edit & Hapus
+            productionListContainer.querySelectorAll('.btn-edit').forEach(btn => {
+                btn.addEventListener('click', () => openEditModal(btn.getAttribute('data-id')));
+            });
+
+            productionListContainer.querySelectorAll('.btn-delete').forEach(btn => {
+                btn.addEventListener('click', () => deleteProduction(btn.getAttribute('data-id')));
+            });
+        }
+
+        function openEditModal(id) {
+            const item = allProductions.find(p => p.id === id);
+            if (!item) return;
+
+            editDocId.value = item.id;
+            editJournalNumber.value = item.journalNumber || '';
+            editDate.value = item.date || '';
+            editUnitId.value = item.unitId || '';
+            editGrandTotalHpp.value = (item.grandTotalHpp || 0).toLocaleString('id-ID');
+
+            editModal.classList.add('active');
+        }
+
+        function closeEditModal() {
+            editModal.classList.remove('active');
+        }
+
+        btnCloseModal.addEventListener('click', closeEditModal);
+        btnCancelEdit.addEventListener('click', closeEditModal);
+
+        btnSaveEdit.addEventListener('click', async () => {
+            const id = editDocId.value;
+            const newDate = editDate.value;
+            const newUnit = editUnitId.value;
+            const newTotalHpp = parseInt(editGrandTotalHpp.value.replace(/\D/g, ''), 10) || 0;
+
+            if (!newDate || !newUnit || newTotalHpp <= 0) {
+                Swal.fire('Peringatan', 'Lengkapi Tanggal, Unit, dan Total HPP dengan benar.', 'warning');
+                return;
+            }
+
+            try {
+                const docRef = doc(db, 'productions', id);
+                await updateDoc(docRef, {
+                    date: newDate,
+                    unitId: newUnit,
+                    grandTotalHpp: newTotalHpp,
+                    materialCost: newTotalHpp
+                });
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil',
+                    text: 'Data produksi berhasil diperbarui.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                closeEditModal();
+                await loadProductionsData();
+
+            } catch (err) {
+                console.error("Gagal mengupdate produksi:", err);
+                Swal.fire('Error', err.message, 'error');
+            }
+        });
+
+        async function deleteProduction(id) {
+            const result = await Swal.fire({
+                title: 'Hapus Transaksi?',
+                text: 'Data produksi ini akan dihapus permanen dari sistem.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Hapus',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#dc2626'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    await deleteDoc(doc(db, 'productions', id));
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Terhapus',
+                        text: 'Data produksi berhasil dihapus.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    await loadProductionsData();
+                } catch (err) {
+                    console.error("Gagal menghapus produksi:", err);
+                    Swal.fire('Error', err.message, 'error');
+                }
+            }
+        }
+
+        filterUnit.addEventListener('change', renderReport);
+        filterStartDate.addEventListener('change', renderReport);
+        filterEndDate.addEventListener('change', renderReport);
+
+        initPage();
+    </script>
+</body>
+</html>
