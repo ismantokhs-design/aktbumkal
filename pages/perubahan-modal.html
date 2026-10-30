@@ -201,11 +201,13 @@
         <!-- Area Isi Laporan Perubahan Modal -->
         <div class="report-wrapper">
             <div class="report-paper">
-                <!-- Section 1: MODAL AWAL -->
+                <!-- Section 1: MODAL AWAL (Semua Akun Modal Level 4 Ditampilkan) -->
                 <div class="report-section-title">MODAL AWAL</div>
-                <div class="report-row-item">
-                    <span>Modal Awal</span>
-                    <span class="val-num" id="valModalAwal">0</span>
+                <div id="containerModalAwalItems">
+                    <div class="report-row-item">
+                        <span>Memuat rincian akun...</span>
+                        <span class="val-num">0</span>
+                    </div>
                 </div>
                 <div class="report-row-item">
                     <span>LABA/RUGI</span>
@@ -239,12 +241,12 @@
     <!-- Script Firestore Integrasi Real-Time -->
     <script type="module">
         import { db } from '../assets/js/firebase-config.js';
-        import { doc, getDoc, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { doc, getDoc, collection, getDocs, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const startDateInput = document.getElementById('startDate');
         const endDateInput = document.getElementById('endDate');
 
-        const valModalAwal = document.getElementById('valModalAwal');
+        const containerModalAwalItems = document.getElementById('containerModalAwalItems');
         const valLabaRugi = document.getElementById('valLabaRugi');
         const totalModalAwalDanLaba = document.getElementById('totalModalAwalDanLaba');
 
@@ -311,19 +313,39 @@
             const eDate = endDateInput.value;
 
             try {
+                // 1. Ambil Seluruh Master Akun dari Koleksi accounts untuk Menemukan Semua Akun Modal Level 4
                 const accSnap = await getDocs(collection(db, 'accounts'));
                 const accountsMap = {};
+                const modalAccountsList = []; // Menyimpan daftar akun modal level 4 (non-prive)
+
                 accSnap.forEach(d => {
                     const data = d.data();
                     const code = String(data.accCode || '').trim();
-                    accountsMap[code] = {
-                        name: data.accName || '',
-                        category: data.category || '',
-                        reportGroup: (data.reportGroup || '').toLowerCase()
-                    };
+                    const name = data.accName || '';
+                    const cat = (data.category || '').toLowerCase();
+                    const isPostable = data.isPostable === true || data.isPostable === 'true' || parseInt(data.level, 10) === 4;
+
+                    accountsMap[code] = name;
+
+                    // Filter Akun Modal / Ekuitas Level 4 (Kategori 3)
+                    if (isPostable && (code.startsWith('3') || cat.includes('modal') || cat.includes('ekuitas'))) {
+                        const lowName = name.toLowerCase();
+                        if (!lowName.includes('prive') && !lowName.includes('pribadi')) {
+                            modalAccountsList.push({ code: code, name: name });
+                        }
+                    }
                 });
 
-                // Fetch Semua Jurnal s.d Tanggal Akhir
+                // Urutkan berdasarkan kode akun
+                modalAccountsList.sort((a, b) => a.code.localeCompare(b.code));
+
+                // Siapkan peta saldo awal bernilai 0 untuk setiap akun modal yang ditemukan
+                const modalBalancesByAccount = {};
+                modalAccountsList.forEach(acc => {
+                    modalBalancesByAccount[acc.code] = 0;
+                });
+
+                // 2. Fetch Semua Jurnal s.d Tanggal Akhir
                 const qJurnalAll = query(
                     collection(db, 'journals'),
                     where('date', '<=', eDate),
@@ -332,7 +354,6 @@
 
                 const jSnap = await getDocs(qJurnalAll);
 
-                let modalAwalSum = 0;
                 let sumPendapatan = 0;
                 let sumBeban = 0;
                 let sumPrive = 0;
@@ -346,26 +367,28 @@
                             const code = String(item.accCode || '').trim();
                             const debit = parseFloat(item.debit) || 0;
                             const kredit = parseFloat(item.kredit) || 0;
-                            const accInfo = accountsMap[code] || {};
-                            const cat = (accInfo.category || '').toLowerCase();
-                            const name = (accInfo.name || '').toLowerCase();
-                            const repGroup = accInfo.reportGroup || '';
+                            const accNameLower = (accountsMap[code] || '').toLowerCase();
 
-                            // 1. Akun Modal Murni (Awalan 3 / Ekuitas / Modal)
-                            if (code.startsWith('3') || cat.includes('modal') || cat.includes('ekuitas')) {
-                                if (name.includes('prive') || name.includes('pribadi')) {
+                            // Akuntansi Akun Modal
+                            if (code.startsWith('3')) {
+                                if (accNameLower.includes('prive') || accNameLower.includes('pribadi') || journal.jenisModal === 'PRIVE') {
                                     if (jDate >= sDate && jDate <= eDate) {
-                                        sumPrive += (debit - kredit);
+                                        sumPrive += debit;
                                     }
                                 } else {
-                                    modalAwalSum += (kredit - debit);
+                                    if (modalBalancesByAccount[code] !== undefined) {
+                                        modalBalancesByAccount[code] += (kredit - debit);
+                                    } else {
+                                        // Jika ada akun modal transaksi baru yang belum masuk list master
+                                        modalBalancesByAccount[code] = (kredit - debit);
+                                    }
                                 }
                             }
 
-                            // 2. Perhitungan Laba/Rugi Periode Berjalan (Menyamakan persis dengan Laporan Laba Rugi)
+                            // Perhitungan Laba/Rugi Periode Berjalan
                             if (jDate >= sDate && jDate <= eDate) {
-                                const isPendapatan = code.startsWith('4') || code.startsWith('8') || cat.includes('pendapatan');
-                                const isBeban = code.startsWith('5') || code.startsWith('6') || code.startsWith('7') || code.startsWith('9') || cat.includes('beban') || cat.includes('biaya');
+                                const isPendapatan = code.startsWith('4') || code.startsWith('8');
+                                const isBeban = code.startsWith('5') || code.startsWith('6') || code.startsWith('7') || code.startsWith('9');
 
                                 if (isPendapatan) {
                                     sumPendapatan += (kredit - debit);
@@ -377,11 +400,37 @@
                     }
                 });
 
+                // 3. Render SEMUA Akun Modal Level 4 ke HTML (Termasuk yang bernilai 0)
+                let htmlModalItems = '';
+                let totalModalAwalSum = 0;
+                const modalCodes = Object.keys(modalBalancesByAccount);
+
+                if (modalCodes.length > 0) {
+                    modalCodes.sort().forEach(code => {
+                        const bal = modalBalancesByAccount[code];
+                        totalModalAwalSum += bal;
+                        const accName = accountsMap[code] || `Akun ${code}`;
+                        htmlModalItems += `
+                            <div class="report-row-item">
+                                <span>${accName}</span>
+                                <span class="val-num">${bal.toLocaleString('id-ID')}</span>
+                            </div>
+                        `;
+                    });
+                } else {
+                    htmlModalItems = `
+                        <div class="report-row-item">
+                            <span>Modal Awal</span>
+                            <span class="val-num">0</span>
+                        </div>
+                    `;
+                }
+                containerModalAwalItems.innerHTML = htmlModalItems;
+
                 const labaRugi = sumPendapatan - sumBeban;
-                const totalAwalLaba = modalAwalSum + labaRugi;
+                const totalAwalLaba = totalModalAwalSum + labaRugi;
                 const totalModalAkhirVal = totalAwalLaba - sumPrive;
 
-                valModalAwal.textContent = modalAwalSum.toLocaleString('id-ID');
                 valLabaRugi.textContent = labaRugi.toLocaleString('id-ID');
                 totalModalAwalDanLaba.textContent = totalAwalLaba.toLocaleString('id-ID');
 

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CATATAN ATAS LAPORAN KEUANGAN (CALK)</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Times New Roman', Times, serif, 'Segoe UI', Roboto;
+        }
+
+        /* Hide Scrollbar Visual */
+        html, body, *, .page-container, .report-wrapper {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+
+        ::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            background: transparent !important;
+        }
+
+        body {
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header Utama */
+        .page-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .btn-back {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Filter Periode Section */
+        .filter-section {
+            padding: 10px 14px;
+            background-color: #ffffff;
+            border-bottom: 2px solid #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 11px;
+            color: #334155;
+            font-weight: 600;
+        }
+
+        .input-date-inline {
+            border: none;
+            border-bottom: 1px solid #5114B9;
+            font-size: 11px;
+            font-weight: 700;
+            color: #5114B9;
+            outline: none;
+            background: transparent;
+            padding: 2px 0;
+            text-align: center;
+            width: 110px;
+        }
+
+        /* Paper Container */
+        .report-wrapper {
+            padding: 12px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .report-paper {
+            border: 1px solid #cbd5e1;
+            padding: 16px 14px;
+            background-color: #ffffff;
+            border-radius: 2px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .calk-title-section {
+            text-align: center;
+            margin-bottom: 14px;
+            border-bottom: 2px solid #0f172a;
+            padding-bottom: 8px;
+        }
+
+        .calk-title-section h2 {
+            font-size: 13px;
+            font-weight: bold;
+            color: #0f172a;
+            text-transform: uppercase;
+        }
+
+        .calk-title-section p {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 2px;
+        }
+
+        .calk-chapter {
+            font-size: 11px;
+            font-weight: bold;
+            color: #0f172a;
+            margin-top: 12px;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .calk-content {
+            font-size: 11px;
+            color: #334155;
+            line-height: 1.5;
+            text-align: justify;
+            margin-bottom: 8px;
+        }
+
+        /* Pengaturan Tabel & Lebar Kolom Konsisten */
+        .calk-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 6px;
+            margin-bottom: 10px;
+            font-size: 10px;
+            table-layout: fixed;
+        }
+
+        .calk-table th, .calk-table td {
+            border: 1px solid #cbd5e1;
+            padding: 5px 6px;
+            word-wrap: break-word;
+        }
+
+        .calk-table th {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* Lebar Kolom */
+        .col-code { width: 22%; text-align: center; }
+        .col-name { width: 53%; text-align: left; }
+        .col-val  { width: 25%; text-align: right; }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <!-- Header Atas -->
+        <header class="page-header">
+            <div class="header-left">
+                <a href="../index.html" class="btn-back">
+                    <span class="material-icons">arrow_back</span>
+                </a>
+                <h1>CATATAN ATAS LAPORAN KEUANGAN (CALK)</h1>
+            </div>
+            <div>
+                <span class="material-icons" style="font-size: 20px; cursor: pointer;">more_vert</span>
+            </div>
+        </header>
+
+        <!-- Baris Filter Periode -->
+        <div class="filter-section">
+            <span class="filter-label">Periode</span>
+            <input type="date" id="startDate" class="input-date-inline">
+            <span class="filter-label">s.d</span>
+            <input type="date" id="endDate" class="input-date-inline">
+        </div>
+
+        <!-- Area Isi CALK -->
+        <div class="report-wrapper">
+            <div class="report-paper">
+                <div class="calk-title-section">
+                    <h2 id="calkCompanyName">BUMKal</h2>
+                    <p>CATATAN ATAS LAPORAN KEUANGAN</p>
+                    <p id="calkPeriodText">Untuk Periode yang Berakhir pada ...</p>
+                </div>
+
+                <div class="calk-chapter">BAB I. UMUM</div>
+                <div class="calk-content" id="calkUmum">
+                    Badan Usaha Milik Desa / Kampung (BUMKal) didirikan berdasarkan peraturan perundang-undangan yang berlaku serta Anggaran Dasar dan Anggaran Rumah Tangga (AD/ART) lembaga. Unit usaha ini bertujuan untuk mengembangkan perekonomian desa, meningkatkan pendapatan asli desa, serta mengoptimalkan aset dan potensi ekonomi lokal.
+                </div>
+
+                <div class="calk-chapter">BAB II. IKHTISAR KEBIJAKAN AKUNTANSI</div>
+                <div class="calk-content">
+                    1. <b>Basis Akuntansi:</b> Laporan keuangan disusun menggunakan basis kas menuju akrual (*cash towards accrual*) atau akrual penuh sesuai standar entitas mikro kecil menengah (SAK EMKM).<br>
+                    2. <b>Mata Uang Pelaporan:</b> Seluruh transaksi dicatat dalam mata uang Rupiah (IDR).<br>
+                    3. <b>Pengakuan Pendapatan dan Beban:</b> Pendapatan diakui saat kas diterima atau hak atas pendapatan timbul, sedangkan beban diakui saat terjadinya kewajiban atau pengeluaran.
+                </div>
+
+                <div class="calk-chapter">BAB III. RINCIAN POS-POS LAPORAN KEUANGAN</div>
+                <div class="calk-content">
+                    Berikut adalah rincian saldo akun tingkat 4 (rinci) per tanggal pelaporan:
+                </div>
+
+                <div style="font-size: 11px; font-weight: bold; margin-top: 4px;">A. Kas dan Setara Kas</div>
+                <table class="calk-table">
+                    <thead>
+                        <tr>
+                            <th class="col-code">Kode</th>
+                            <th class="col-name">Nama Akun</th>
+                            <th class="col-val">Jumlah (Rp)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableKasBankRows">
+                        <tr><td colspan="3" class="text-center">Memuat data...</td></tr>
+                    </tbody>
+                </table>
+
+                <div style="font-size: 11px; font-weight: bold; margin-top: 8px;">B. Piutang Usaha</div>
+                <table class="calk-table">
+                    <thead>
+                        <tr>
+                            <th class="col-code">Kode</th>
+                            <th class="col-name">Nama Akun</th>
+                            <th class="col-val">Jumlah (Rp)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablePiutangRows">
+                        <tr><td colspan="3" class="text-center">Memuat data...</td></tr>
+                    </tbody>
+                </table>
+
+                <div style="font-size: 11px; font-weight: bold; margin-top: 8px;">C. Persediaan & Aset Lainnya</div>
+                <table class="calk-table">
+                    <thead>
+                        <tr>
+                            <th class="col-code">Kode</th>
+                            <th class="col-name">Nama Akun</th>
+                            <th class="col-val">Jumlah (Rp)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablePersediaanRows">
+                        <tr><td colspan="3" class="text-center">Memuat data...</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="calk-chapter" style="margin-top: 14px;">BAB IV. INFORMASI TAMBAHAN & PENUTUP</div>
+                <div class="calk-content">
+                    Catatan atas Laporan Keuangan ini merupakan bagian yang tidak terpisahkan dari laporan keuangan secara keseluruhan (Neraca, Laporan Laba Rugi, dan Laporan Perubahan Modal). Manajemen bertanggung jawab penuh atas penyajian laporan keuangan ini.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Firestore Integrasi CALK (Hanya Level 4) -->
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import { doc, getDoc, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        const calkCompanyName = document.getElementById('calkCompanyName');
+        const calkPeriodText = document.getElementById('calkPeriodText');
+
+        const tableKasBankRows = document.getElementById('tableKasBankRows');
+        const tablePiutangRows = document.getElementById('tablePiutangRows');
+        const tablePersediaanRows = document.getElementById('tablePersediaanRows');
+
+        async function initActiveDates() {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                let startStr = '';
+                let endStr = '';
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.namaProfil) calkCompanyName.textContent = data.namaProfil;
+
+                    if (data.activeMonthCode && data.activeMonthCode.includes('-')) {
+                        const [y, m] = data.activeMonthCode.split('-');
+                        const yearNum = parseInt(y, 10);
+                        const monthNum = parseInt(m, 10);
+
+                        const firstDay = new Date(yearNum, monthNum - 1, 1);
+                        const lastDay = new Date(yearNum, monthNum, 0);
+
+                        startStr = firstDay.toISOString().split('T')[0];
+                        endStr = lastDay.toISOString().split('T')[0];
+                    }
+                }
+
+                if (!startStr || !endStr) {
+                    const now = new Date();
+                    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                    startStr = firstDay.toISOString().split('T')[0];
+                    endStr = lastDay.toISOString().split('T')[0];
+                }
+
+                startDateInput.value = startStr;
+                endDateInput.value = endStr;
+
+                await generateCalkReport();
+
+            } catch (err) {
+                console.error("Gagal memuat profil CALK:", err);
+                const now = new Date();
+                startDateInput.value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+                endDateInput.value = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+                await generateCalkReport();
+            }
+        }
+
+        async function generateCalkReport() {
+            const sDate = startDateInput.value;
+            const eDate = endDateInput.value;
+            calkPeriodText.textContent = `Untuk Periode ${sDate} s.d ${eDate}`;
+
+            try {
+                const accSnap = await getDocs(collection(db, 'accounts'));
+                const accountsMap = {};
+                
+                accSnap.forEach(d => {
+                    const data = d.data();
+                    const code = String(data.accCode || '').trim();
+                    const level = parseInt(data.level, 10) || (code.split('.').length);
+                    const isPostable = data.isPostable === true || data.isPostable === 'true' || level === 4;
+
+                    // Filter Hanya Ambil Akun Level 4 (Akun Rinci/Postable)
+                    if (isPostable || level === 4 || code.split('.').length >= 4) {
+                        accountsMap[code] = {
+                            name: data.accName || '',
+                            cashFlowGroup: String(data.cashFlowGroup || '').trim(),
+                            balance: (parseFloat(data.initialDebit) || 0) - (parseFloat(data.initialKredit) || 0)
+                        };
+                    }
+                });
+
+                // Fetch Jurnal untuk kalkulasi saldo berjalan
+                const qJurnal = query(collection(db, 'journals'), where('date', '<=', eDate), orderBy('date', 'asc'));
+                const jSnap = await getDocs(qJurnal);
+
+                jSnap.forEach(d => {
+                    const journal = d.data();
+                    if (journal.items && Array.isArray(journal.items)) {
+                        journal.items.forEach(item => {
+                            const code = String(item.accCode || '').trim();
+                            const debit = parseFloat(item.debit) || 0;
+                            const kredit = parseFloat(item.kredit) || 0;
+                            if (accountsMap[code]) {
+                                accountsMap[code].balance += (debit - kredit);
+                            }
+                        });
+                    }
+                });
+
+                // Render Tabel Kas & Bank, Piutang, Persediaan (Hanya Level 4)
+                let htmlKas = '';
+                let htmlPiutang = '';
+                let htmlPersediaan = '';
+
+                let hasKas = false;
+                let hasPiutang = false;
+                let hasPersediaan = false;
+
+                Object.keys(accountsMap).sort().forEach(code => {
+                    const acc = accountsMap[code];
+                    const lowName = acc.name.toLowerCase();
+                    const rowHtml = `
+                        <tr>
+                            <td class="col-code">${code}</td>
+                            <td class="col-name">${acc.name}</td>
+                            <td class="col-val">${acc.balance.toLocaleString('id-ID')}</td>
+                        </tr>
+                    `;
+
+                    if (code.startsWith('1.01') || acc.cashFlowGroup === 'Kas dan Bank' || lowName.includes('kas') || lowName.includes('bank')) {
+                        htmlKas += rowHtml;
+                        hasKas = true;
+                    } else if (code.startsWith('1.02') || lowName.includes('piutang')) {
+                        htmlPiutang += rowHtml;
+                        hasPiutang = true;
+                    } else if (code.startsWith('1.03') || lowName.includes('persediaan') || lowName.includes('barang')) {
+                        htmlPersediaan += rowHtml;
+                        hasPersediaan = true;
+                    }
+                });
+
+                tableKasBankRows.innerHTML = hasKas ? htmlKas : '<tr><td colspan="3" class="text-center">Tidak ada data</td></tr>';
+                tablePiutangRows.innerHTML = hasPiutang ? htmlPiutang : '<tr><td colspan="3" class="text-center">Tidak ada data</td></tr>';
+                tablePersediaanRows.innerHTML = hasPersediaan ? htmlPersediaan : '<tr><td colspan="3" class="text-center">Tidak ada data</td></tr>';
+
+            } catch (err) {
+                console.error("Gagal memuat rincian CALK:", err);
+            }
+        }
+
+        startDateInput.addEventListener('change', generateCalkReport);
+        endDateInput.addEventListener('change', generateCalkReport);
+
+        initActiveDates();
+    </script>
+</body>
+</html>

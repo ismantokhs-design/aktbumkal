@@ -41,7 +41,7 @@
         .info-agent-box img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid #cbd5e1; flex-shrink: 0; }
         .info-agent-text { font-size: 11px; color: #334155; line-height: 1.3; }
 
-        .btn-submit { background-color: #fb8c00; color: #ffffff; border: none; border-radius: 6px; height: 44px; font-weight: 700; font-size: 14px; cursor: pointer; width: 100%; box-shadow: 0 2px 6px rgba(251,140,0,0.3); margin-top: 4px; flex-shrink: 0; transition: transform 0.1s ease, background-color 0.2s ease; }
+        .btn-submit { background-color: #5114B9; color: #ffffff; border: none; border-radius: 6px; height: 44px; font-weight: 700; font-size: 14px; cursor: pointer; width: 100%; box-shadow: 0 2px 6px rgba(81,20,185,0.3); margin-top: 4px; flex-shrink: 0; transition: transform 0.1s ease, background-color 0.2s ease; }
         .btn-submit:active { transform: scale(0.98); }
 
         /* Halaman Pencarian Produk */
@@ -74,7 +74,7 @@
         .qty-btn:active { background: #e2e8f0; }
         .qty-value { padding: 0 8px; font-size: 12px; font-weight: 700; color: #0f172a; min-width: 24px; text-align: center; }
 
-        .bottom-cart-bar { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; background-color: #fb8c00; color: #ffffff; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; z-index: 90; box-shadow: 0 -4px 12px rgba(0,0,0,0.1); border-top-left-radius: 12px; border-top-right-radius: 12px; cursor: pointer; }
+        .bottom-cart-bar { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; background-color: #5114B9; color: #ffffff; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; z-index: 90; box-shadow: 0 -4px 12px rgba(0,0,0,0.1); border-top-left-radius: 12px; border-top-right-radius: 12px; cursor: pointer; }
         .cart-info-item { display: flex; flex-direction: column; gap: 1px; }
         .cart-label { font-size: 10px; opacity: 0.9; text-transform: uppercase; }
         .cart-val { font-size: 13px; font-weight: 700; }
@@ -113,7 +113,7 @@
         <header class="page-header">
             <div class="header-left">
                 <a href="../index.html" class="btn-back"><span class="material-icons">arrow_back</span></a>
-                <h1>Transaksi</h1>
+                <h1>Transaksi Penjualan</h1>
             </div>
         </header>
 
@@ -196,7 +196,7 @@
             <span class="material-icons" style="color: #5114B9; font-size: 28px; cursor: pointer;">qr_code_scanner</span>
         </div>
 
-        <div style="padding: 8px 16px 0 16px; font-size: 11px; color: #64748b;" id="productCountLabel">Memuat produk...</div>
+        <div style="padding: 10px 16px; font-size: 12px; font-weight: 600; color: #ffffff; text-align: center; background-color: #5114B9;" id="productCountLabel">Memuat produk...</div>
 
         <div class="product-list-container" id="productListContainer"></div>
 
@@ -233,7 +233,11 @@
                 </div>
                 <div class="bill-row">
                     <span>Biaya Tambahan</span>
-                    <span style="color: #16a34a; font-weight: 600; cursor: pointer;">Pilih Biaya Tambahan</span>
+                    <span id="btnPilihBiayaTambahan" style="color: #16a34a; font-weight: 600; cursor: pointer;">Pilih Biaya Tambahan</span>
+                </div>
+                <div class="bill-row">
+                    <span>Potongan</span>
+                    <span id="btnPilihPotongan" style="color: #16a34a; font-weight: 600; cursor: pointer;">Pilih Potongan</span>
                 </div>
                 <div class="bill-row total">
                     <span>Total Harga</span>
@@ -270,12 +274,20 @@
             <!-- Ringkasan Item Terpilih -->
             <div class="section-box-pay" id="paymentItemListContainer"></div>
 
-            <!-- Pratinjau Biaya Tambahan -->
+            <!-- Pratinjau Tagihan, Biaya Tambahan & Potongan -->
             <div class="section-box-pay">
-                <div class="section-box-pay-title">Pratinjau Biaya Tambahan</div>
+                <div class="section-box-pay-title">Pratinjau Tagihan</div>
                 <div class="bill-row">
                     <span>Total Quantity</span>
                     <span id="payTotalQty">0</span>
+                </div>
+                <div class="bill-row">
+                    <span>Biaya Tambahan</span>
+                    <span id="payAdditionalFeeVal" style="color: #16a34a; font-weight: 600;">Rp 0</span>
+                </div>
+                <div class="bill-row">
+                    <span>Potongan</span>
+                    <span id="payPotonganVal" style="color: #dc2626; font-weight: 600;">Rp 0</span>
                 </div>
                 <div class="bill-row total">
                     <span>Total Harga</span>
@@ -291,9 +303,20 @@
                     <select id="paymentMethodSelect" class="form-control" autocomplete="off">
                         <option value="Tunai (Kas)">Tunai (Kas)</option>
                         <option value="Transfer Bank">Transfer Bank</option>
+                        <option value="QRIS">QRIS</option>
                         <option value="Piutang / Kredit">Piutang / Kredit</option>
                     </select>
                 </div>
+            </div>
+
+            <!-- Container QR Code (Muncul otomatis jika QRIS dipilih) -->
+            <div class="section-box-pay" id="qrisContainerBox" style="display: none; align-items: center; text-align: center;">
+                <div class="section-box-pay-title" style="width: 100%;">Scan QRIS</div>
+                <div id="qrisImageWrapper" style="padding: 10px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 5px;">
+                    <!-- QR Code akan digenerate otomatis menggunakan API publik berdasarkan Norek/Akun QRIS -->
+                    <img id="qrisImagePreview" src="" alt="QR Code QRIS" style="width: 180px; height: 180px; object-fit: contain; display: block; margin: 0 auto;">
+                </div>
+                <div id="qrisAccountText" style="font-size: 11px; color: #64748b; margin-top: 6px;">Norek / Akun: -</div>
             </div>
 
             <!-- Konfirmasi Staf -->
@@ -357,17 +380,29 @@
 
         const billTotalQty = document.getElementById('billTotalQty');
         const billTotalPrice = document.getElementById('billTotalPrice');
+        const btnPilihBiayaTambahan = document.getElementById('btnPilihBiayaTambahan');
+        const btnPilihPotongan = document.getElementById('btnPilihPotongan');
 
         const payTotalQty = document.getElementById('payTotalQty');
+        const payAdditionalFeeVal = document.getElementById('payAdditionalFeeVal');
+        const payPotonganVal = document.getElementById('payPotonganVal');
         const payTotalPrice = document.getElementById('payTotalPrice');
         const staffPassword = document.getElementById('staffPassword');
         const togglePasswordBtn = document.getElementById('togglePasswordBtn');
         const togglePassIcon = document.getElementById('togglePassIcon');
         const paymentMethodSelect = document.getElementById('paymentMethodSelect');
 
+        const qrisContainerBox = document.getElementById('qrisContainerBox');
+        const qrisImagePreview = document.getElementById('qrisImagePreview');
+        const qrisAccountText = document.getElementById('qrisAccountText');
+
         let selectedAgentData = null;
         let allProductsData = [];
+        let unitListMapping = [];
+        let systemSettingsData = {};
         let cartItems = {};
+        let additionalFeeAmount = 0;
+        let discountAmount = 0;
 
         // Inisialisasi Tanggal & Load Unit List dari settings/profile
         async function initPageData() {
@@ -377,23 +412,23 @@
                 
                 if (settingsSnap.exists()) {
                     const data = settingsSnap.data();
+                    systemSettingsData = data;
                     
-                    // Set Tanggal Default
                     if (data.activeMonthCode) {
                         salesDate.value = data.activeMonthCode + '-01';
                     } else {
                         salesDate.value = new Date().toISOString().split('T')[0];
                     }
 
-                    // Populate Unit List dari database & pilih isDefault = true
                     if (data.unitList && Array.isArray(data.unitList)) {
+                        unitListMapping = data.unitList;
                         salesUnit.innerHTML = '';
                         data.unitList.forEach(u => {
                             const option = document.createElement('option');
-                            option.value = u.namaUnit || u.kodeUnit;
+                            const unitValue = u.namaUnit || u.kodeUnit;
+                            option.value = unitValue;
                             option.textContent = `${u.namaUnit} (${u.kodeUnit})`;
                             
-                            // Cek jika isDefault bernilai true
                             if (u.isDefault === true || u.isDefault === "true") {
                                 option.selected = true;
                             }
@@ -414,6 +449,112 @@
             }
         }
         initPageData();
+
+        // Helper fungsi format ribuan
+        function formatNumber(num) {
+            if (isNaN(num) || num === '') return '';
+            return Number(num).toLocaleString('id-ID');
+        }
+
+        // Event listener saat pilihan metode pembayaran diubah
+        paymentMethodSelect.addEventListener('change', (e) => {
+            const selectedMethod = e.target.value;
+            if (selectedMethod === 'QRIS') {
+                qrisContainerBox.style.display = 'flex';
+                
+                // Ambil nomor rekening/data qris dari mapping pengaturan
+                const qrisAccount = systemSettingsData.akunQris || systemSettingsData.akunTransferBank || 'QRIS-MERCHANT-DEFAULT';
+                qrisAccountText.textContent = `Norek / Akun: ${qrisAccount}`;
+                
+                // Generate QR Code otomatis menggunakan API QR Code generator publik berdasarkan teks norek/akun
+                const qrText = encodeURIComponent(qrisAccount);
+                qrisImagePreview.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${qrText}`;
+            } else {
+                qrisContainerBox.style.display = 'none';
+            }
+        });
+
+        // Fitur Pilih Biaya Tambahan dengan input teks dan format ribuan otomatis
+        btnPilihBiayaTambahan.addEventListener('click', async () => {
+            const { value: inputValue } = await Swal.fire({
+                title: 'Masukkan Biaya Tambahan',
+                input: 'text',
+                inputLabel: 'Jumlah Biaya Tambahan (Rp)',
+                inputValue: additionalFeeAmount > 0 ? formatNumber(additionalFeeAmount) : '0',
+                showCancelButton: true,
+                confirmButtonText: 'Simpan',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#5114B9',
+                didOpen: () => {
+                    const input = Swal.getInput();
+                    if (input) {
+                        input.select();
+                        input.addEventListener('input', (e) => {
+                            let raw = e.target.value.replace(/\D/g, '');
+                            if (raw === '') {
+                                e.target.value = '';
+                            } else {
+                                e.target.value = Number(raw).toLocaleString('id-ID');
+                            }
+                        });
+                    }
+                }
+            });
+
+            if (inputValue !== undefined) {
+                let cleanVal = String(inputValue).replace(/\D/g, '');
+                additionalFeeAmount = parseFloat(cleanVal) || 0;
+                if (additionalFeeAmount < 0) additionalFeeAmount = 0;
+                
+                if (additionalFeeAmount > 0) {
+                    btnPilihBiayaTambahan.textContent = `Rp ${additionalFeeAmount.toLocaleString('id-ID')}`;
+                } else {
+                    btnPilihBiayaTambahan.textContent = 'Pilih Biaya Tambahan';
+                }
+                renderCartCheckoutList();
+            }
+        });
+
+        // Fitur Pilih Potongan dengan input teks dan format ribuan otomatis
+        btnPilihPotongan.addEventListener('click', async () => {
+            const { value: inputValue } = await Swal.fire({
+                title: 'Masukkan Nominal Potongan',
+                input: 'text',
+                inputLabel: 'Jumlah Potongan (Rp)',
+                inputValue: discountAmount > 0 ? formatNumber(discountAmount) : '0',
+                showCancelButton: true,
+                confirmButtonText: 'Simpan',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#5114B9',
+                didOpen: () => {
+                    const input = Swal.getInput();
+                    if (input) {
+                        input.select();
+                        input.addEventListener('input', (e) => {
+                            let raw = e.target.value.replace(/\D/g, '');
+                            if (raw === '') {
+                                e.target.value = '';
+                            } else {
+                                e.target.value = Number(raw).toLocaleString('id-ID');
+                            }
+                        });
+                    }
+                }
+            });
+
+            if (inputValue !== undefined) {
+                let cleanVal = String(inputValue).replace(/\D/g, '');
+                discountAmount = parseFloat(cleanVal) || 0;
+                if (discountAmount < 0) discountAmount = 0;
+                
+                if (discountAmount > 0) {
+                    btnPilihPotongan.textContent = `Rp ${discountAmount.toLocaleString('id-ID')}`;
+                } else {
+                    btnPilihPotongan.textContent = 'Pilih Potongan';
+                }
+                renderCartCheckoutList();
+            }
+        });
 
         btnIconSearch.addEventListener('click', async () => {
             const category = salesCategory.value;
@@ -545,6 +686,16 @@
             cartCheckoutPage.style.display = 'none';
             paymentPage.style.display = 'flex';
             renderPaymentPageSummary();
+            
+            // Cek kondisi awal saat halaman pembayaran dibuka
+            if (paymentMethodSelect.value === 'QRIS') {
+                qrisContainerBox.style.display = 'flex';
+                const qrisAccount = systemSettingsData.akunQris || systemSettingsData.akunTransferBank || 'QRIS-MERCHANT-DEFAULT';
+                qrisAccountText.textContent = `Norek / Akun: ${qrisAccount}`;
+                qrisImagePreview.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrisAccount)}`;
+            } else {
+                qrisContainerBox.style.display = 'none';
+            }
         });
 
         btnBackToCart.addEventListener('click', (e) => {
@@ -577,9 +728,21 @@
             try {
                 const snapshot = await getDocs(collection(db, 'products'));
                 allProductsData = [];
+                
+                const selectedUnitName = salesUnit.value;
+                const matchedUnitObj = unitListMapping.find(u => (u.namaUnit === selectedUnitName || u.kodeUnit === selectedUnitName));
+                const selectedKodeUnit = matchedUnitObj ? matchedUnitObj.kodeUnit : '';
+                const selectedNamaUnit = matchedUnitObj ? matchedUnitObj.namaUnit : '';
+
                 snapshot.forEach(docSnap => {
-                    allProductsData.push({ id: docSnap.id, ...docSnap.data() });
+                    const pData = docSnap.data();
+                    const prodLocation = pData.unitLocation || '';
+
+                    if (!selectedKodeUnit || prodLocation === selectedKodeUnit || prodLocation === selectedNamaUnit || prodLocation.includes(selectedKodeUnit)) {
+                        allProductsData.push({ id: docSnap.id, ...pData });
+                    }
                 });
+
                 renderProductList(allProductsData);
             } catch (err) {
                 console.error("Gagal memuat produk:", err);
@@ -635,12 +798,12 @@
 
         function renderCartCheckoutList() {
             cartProductListContainer.innerHTML = '';
-            let totalQty = 0, totalPrice = 0;
+            let totalQty = 0, subTotalGross = 0;
 
             for (let id in cartItems) {
                 const item = cartItems[id];
                 totalQty += item.qty;
-                totalPrice += (item.sellPrice || 0) * item.qty;
+                subTotalGross += (item.sellPrice || 0) * item.qty;
 
                 const thumb = item.photo || 'https://via.placeholder.com/50?text=Prod';
                 const price = item.sellPrice ? item.sellPrice.toLocaleString('id-ID') : '0';
@@ -668,21 +831,23 @@
                 cartProductListContainer.appendChild(card);
             }
 
+            const finalTotalPrice = Math.max(0, subTotalGross + additionalFeeAmount - discountAmount);
+
             billTotalQty.textContent = totalQty;
-            billTotalPrice.textContent = `Rp ${totalPrice.toLocaleString('id-ID')}`;
+            billTotalPrice.textContent = `Rp ${finalTotalPrice.toLocaleString('id-ID')}`;
 
             attachCartActionListeners();
         }
 
         function renderPaymentPageSummary() {
             paymentItemListContainer.innerHTML = '';
-            let totalQty = 0, totalPrice = 0;
+            let totalQty = 0, subTotalGross = 0;
 
             for (let id in cartItems) {
                 const item = cartItems[id];
                 totalQty += item.qty;
                 const subTotal = (item.sellPrice || 0) * item.qty;
-                totalPrice += subTotal;
+                subTotalGross += subTotal;
 
                 const priceStr = item.sellPrice ? item.sellPrice.toLocaleString('id-ID') : '0';
                 const subTotalStr = subTotal.toLocaleString('id-ID');
@@ -700,8 +865,12 @@
                 paymentItemListContainer.appendChild(card);
             }
 
+            const finalTotalPrice = Math.max(0, subTotalGross + additionalFeeAmount - discountAmount);
+
             payTotalQty.textContent = totalQty;
-            payTotalPrice.textContent = `Rp ${totalPrice.toLocaleString('id-ID')}`;
+            payAdditionalFeeVal.textContent = `Rp ${additionalFeeAmount.toLocaleString('id-ID')}`;
+            payPotonganVal.textContent = `Rp ${discountAmount.toLocaleString('id-ID')}`;
+            payTotalPrice.textContent = `Rp ${finalTotalPrice.toLocaleString('id-ID')}`;
         }
 
         function attachProductActionListeners() {
@@ -741,14 +910,15 @@
         }
 
         function updateCartSummary() {
-            let totalQty = 0, totalPrice = 0;
+            let totalQty = 0, subTotalGross = 0;
             for (let id in cartItems) {
                 const item = cartItems[id];
                 totalQty += item.qty;
-                totalPrice += (item.sellPrice || 0) * item.qty;
+                subTotalGross += (item.sellPrice || 0) * item.qty;
             }
+            const finalTotalPrice = Math.max(0, subTotalGross + additionalFeeAmount - discountAmount);
             cartTotalQty.textContent = totalQty;
-            cartTotalPrice.textContent = `Rp ${totalPrice.toLocaleString('id-ID')}`;
+            cartTotalPrice.textContent = `Rp ${finalTotalPrice.toLocaleString('id-ID')}`;
         }
 
         searchProductInput.addEventListener('input', (e) => {
@@ -781,6 +951,8 @@
                     debitAccount = settingsData.akunTunaiKas || settingsData.akunKasUtama || '';
                 } else if (selectedPaymentMethod === 'Transfer Bank') {
                     debitAccount = settingsData.akunTransferBank || '';
+                } else if (selectedPaymentMethod === 'QRIS') {
+                    debitAccount = settingsData.akunQris || settingsData.akunTransferBank || '';
                 } else if (selectedPaymentMethod === 'Piutang / Kredit') {
                     debitAccount = settingsData.akunPiutangKredit || settingsData.akunPiutang || '';
                 }
@@ -798,13 +970,13 @@
 
                 let transactionDate = salesDate.value || new Date().toISOString().split('T')[0];
 
-                let totalQty = 0, totalPrice = 0;
+                let totalQty = 0, subTotalGross = 0;
                 let itemsArray = [];
 
                 for (let id in cartItems) {
                     const item = cartItems[id];
                     totalQty += item.qty;
-                    totalPrice += (item.sellPrice || 0) * item.qty;
+                    subTotalGross += (item.sellPrice || 0) * item.qty;
                     itemsArray.push({
                         productId: item.id,
                         code: item.code || '',
@@ -813,6 +985,8 @@
                         qty: item.qty
                     });
                 }
+
+                const finalTotalPrice = Math.max(0, subTotalGross + additionalFeeAmount - discountAmount);
 
                 const nowYear = transactionDate.substring(0, 4);
                 const nowMonth = transactionDate.substring(5, 7);
@@ -845,7 +1019,10 @@
                     agentName: selectedAgentData ? selectedAgentData.name : '-',
                     items: itemsArray,
                     totalQty: totalQty,
-                    totalPrice: totalPrice,
+                    subTotal: subTotalGross,
+                    additionalFee: additionalFeeAmount,
+                    discount: discountAmount,
+                    totalPrice: finalTotalPrice,
                     paymentMethod: selectedPaymentMethod,
                     journalNumber: journalNumber,
                     createdAt: serverTimestamp()
@@ -856,13 +1033,13 @@
                 const journalEntries = [
                     {
                         accCode: debitAccount.split(' - ')[0].trim(),
-                        debit: totalPrice,
+                        debit: finalTotalPrice,
                         kredit: 0
                     },
                     {
                         accCode: creditAccount.split(' - ')[0].trim(),
                         debit: 0,
-                        kredit: totalPrice
+                        kredit: finalTotalPrice
                     }
                 ];
 
@@ -871,8 +1048,8 @@
                     date: transactionDate,
                     keterangan: `Penjualan ${salesCategory.value} (${salesUnit.value}) - (${agentId.value} - ${selectedAgentData ? selectedAgentData.name : '-'})`,
                     items: journalEntries,
-                    totalDebit: totalPrice,
-                    totalKredit: totalPrice,
+                    totalDebit: finalTotalPrice,
+                    totalKredit: finalTotalPrice,
                     createdAt: serverTimestamp()
                 };
 
@@ -887,11 +1064,14 @@
                 });
 
                 cartItems = {};
+                additionalFeeAmount = 0;
+                discountAmount = 0;
                 agentId.value = '';
                 salesCategory.value = '';
                 staffPassword.value = '';
+                btnPilihBiayaTambahan.textContent = 'Pilih Biaya Tambahan';
+                btnPilihPotongan.textContent = 'Pilih Potongan';
                 
-                // Reset unit kembali ke default yang isDefault = true jika ada
                 initPageData();
 
                 infoAgentContainer.innerHTML = `

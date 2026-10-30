@@ -570,12 +570,16 @@
                         </select>
                     </div>
 
-                    <!-- 2. Akun untuk Transfer Bank -->
+                    <!-- 2. Akun untuk Transfer Bank & No. Rekening -->
                     <div class="form-group">
                         <label class="form-label" for="akunTransferBank">Akun Penjualan Transfer Bank</label>
                         <select id="akunTransferBank" class="form-control account-dropdown">
                             <option value="">Pilih Akun Rekening Bank...</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="akunNoRekening">No. Rekening / Akun Bank (Untuk Transfer / QRIS)</label>
+                        <input type="text" id="akunNoRekening" class="form-control" placeholder="Contoh: 1234-5678-9012 (BCA) atau No. Merchant QRIS">
                     </div>
 
                     <!-- 3. Akun untuk Piutang / Kredit -->
@@ -592,6 +596,17 @@
                         <select id="akunPendapatan" class="form-control account-dropdown">
                             <option value="">Pilih Akun Pendapatan Penjualan...</option>
                         </select>
+                    </div>
+
+                    <!-- 4b. Akun Retur Penjualan (BARU) -->
+                    <div class="form-group">
+                        <label class="form-label" for="akunReturPenjualan">Akun Retur Penjualan</label>
+                        <select id="akunReturPenjualan" class="form-control account-dropdown">
+                            <option value="">Pilih Akun Retur Penjualan...</option>
+                        </select>
+                        <span style="font-size: 10px; color: #64748b;">
+                            Digunakan untuk menampung nilai barang yang dikembalikan (retur) oleh pelanggan.
+                        </span>
                     </div>
 
                     <!-- 5. Akun Laba Ditahan (Tutup Tahun) -->
@@ -737,8 +752,10 @@
         // Mapping Elements
         const akunTunaiKasSelect = document.getElementById('akunTunaiKas');
         const akunTransferBankSelect = document.getElementById('akunTransferBank');
+        const akunNoRekeningInput = document.getElementById('akunNoRekening');
         const akunPiutangKreditSelect = document.getElementById('akunPiutangKredit');
         const akunPendapatanSelect = document.getElementById('akunPendapatan');
+        const akunReturPenjualanSelect = document.getElementById('akunReturPenjualan');
         const akunLabaDitahanSelect = document.getElementById('akunLabaDitahan');
         const mappingBankContainer = document.getElementById('mappingBankContainer');
 
@@ -834,7 +851,6 @@
                     cashAccountsList = [...allAccountsCOA];
                 }
 
-                // SORTING KODE AKUN (A - Z / Numeric Ascending)
                 const sortByCode = (a, b) => a.code.localeCompare(b.code, undefined, { numeric: true });
                 allAccountsCOA.sort(sortByCode);
                 bankAccountsList.sort(sortByCode);
@@ -849,7 +865,7 @@
         }
 
         function populateAccountDropdowns() {
-            const dropdowns = [akunTunaiKasSelect, akunTransferBankSelect, akunPiutangKreditSelect, akunPendapatanSelect, akunLabaDitahanSelect];
+            const dropdowns = [akunTunaiKasSelect, akunTransferBankSelect, akunPiutangKreditSelect, akunPendapatanSelect, akunReturPenjualanSelect, akunLabaDitahanSelect];
             dropdowns.forEach(sel => {
                 if (!sel) return;
                 const currentVal = sel.value;
@@ -865,7 +881,6 @@
         }
 
         function renderMultiSelectOptions() {
-            // Populate Akun Aset Helper Dropdown
             if (selectAkunAsetHelper) {
                 selectAkunAsetHelper.innerHTML = '<option value="">-- Tambah Akun Aset --</option>';
                 allAccountsCOA.forEach(acc => {
@@ -880,7 +895,6 @@
             }
             renderTagsAset();
 
-            // Populate Akun Akumulasi Helper Dropdown
             if (selectAkunAkumulasiHelper) {
                 selectAkunAkumulasiHelper.innerHTML = '<option value="">-- Tambah Akun Akumulasi --</option>';
                 allAccountsCOA.forEach(acc => {
@@ -895,7 +909,6 @@
             }
             renderTagsAkumulasi();
 
-            // Populate Akun Biaya Helper Dropdown
             if (selectAkunBiayaHelper) {
                 selectAkunBiayaHelper.innerHTML = '<option value="">-- Tambah Akun Biaya --</option>';
                 allAccountsCOA.forEach(acc => {
@@ -1001,7 +1014,6 @@
             });
         }
 
-        // Render Mapping Bank dengan Kas Pendukung
         function renderBankMappingUI() {
             if (!mappingBankContainer) return;
             mappingBankContainer.innerHTML = '';
@@ -1033,7 +1045,6 @@
             });
         }
 
-        // Load Settings dari Firestore
         async function loadSettings() {
             await loadChartOfAccounts();
             try {
@@ -1062,8 +1073,10 @@
                         tglSelesai: '2026-12-31',
                         akunTunaiKas: '',
                         akunTransferBank: '',
+                        akunNoRekening: '',
                         akunPiutangKredit: '',
                         akunPendapatan: '',
+                        akunReturPenjualan: '',
                         akunLabaDitahan: '',
                         akunAsetList: [],
                         akunAkumulasiList: [],
@@ -1100,17 +1113,18 @@
             else if (data.akunKasUtama) akunTunaiKasSelect.value = data.akunKasUtama;
 
             if (data.akunTransferBank) akunTransferBankSelect.value = data.akunTransferBank;
+            if (akunNoRekeningInput) akunNoRekeningInput.value = data.akunNoRekening || '';
 
             if (data.akunPiutangKredit) akunPiutangKreditSelect.value = data.akunPiutangKredit;
             else if (data.akunPiutang) akunPiutangKreditSelect.value = data.akunPiutang;
 
             if (data.akunPendapatan) akunPendapatanSelect.value = data.akunPendapatan;
+            if (data.akunReturPenjualan) akunReturPenjualanSelect.value = data.akunReturPenjualan;
             if (data.akunLabaDitahan) akunLabaDitahanSelect.value = data.akunLabaDitahan;
 
             renderUnitList();
         }
 
-        // Render List Unit Usaha
         function renderUnitList() {
             unitListBox.innerHTML = '';
 
@@ -1273,8 +1287,10 @@
                 tglSelesai: tglSelesaiInput.value,
                 akunTunaiKas: akunTunaiKasSelect.value,
                 akunTransferBank: akunTransferBankSelect.value,
+                akunNoRekening: akunNoRekeningInput ? akunNoRekeningInput.value.trim() : '',
                 akunPiutangKredit: akunPiutangKreditSelect.value,
                 akunPendapatan: akunPendapatanSelect.value,
+                akunReturPenjualan: akunReturPenjualanSelect.value,
                 akunLabaDitahan: akunLabaDitahanSelect.value,
                 akunAsetList: selectedAkunAsetList,
                 akunAkumulasiList: selectedAkunAkumulasiList,

@@ -123,29 +123,78 @@
             padding: 14px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
+            max-height: 420px;
+            overflow-y: auto;
+        }
+
+        .options-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 8px;
         }
 
         .options-title {
             font-size: 11px;
             font-weight: 700;
             color: #334155;
-            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .select-actions-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-select-action {
+            background: none;
+            border: none;
+            font-size: 10px;
+            font-weight: 700;
+            color: #5114B9;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        .btn-select-action:hover {
+            background-color: #ede9fe;
+        }
+
+        /* Grup Menu */
+        .menu-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .menu-group-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            background-color: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border-left: 3px solid #5114B9;
         }
 
         .checkbox-item {
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 12px;
+            font-size: 11px;
             color: #1e293b;
             cursor: pointer;
+            padding-left: 6px;
         }
 
         .checkbox-item input[type="checkbox"] {
             accent-color: #dc2626;
-            width: 16px;
-            height: 16px;
+            width: 15px;
+            height: 15px;
         }
 
         /* Input Konfirmasi */
@@ -335,22 +384,81 @@
 
             <!-- Pilih Data yang Ingin Dihapus -->
             <div class="reset-options-box">
-                <div class="options-title">PILIH DATA YANG INGIN DIRESET:</div>
+                <div class="options-header-row">
+                    <div class="options-title">PILIH DATA BERDASARKAN MENU:</div>
+                    <div class="select-actions-group">
+                        <button type="button" class="btn-select-action" id="btnSelectAll">Pilih Semua</button>
+                        <button type="button" class="btn-select-action" id="btnDeselectAll">Batal</button>
+                    </div>
+                </div>
                 
-                <label class="checkbox-item">
-                    <input type="checkbox" id="chkJournals" checked>
-                    <span>Semua Transaksi & Jurnal Umum</span>
-                </label>
+                <!-- Kelompok 1: Transaksi & Keuangan -->
+                <div class="menu-group">
+                    <div class="menu-group-title">Menu Transaksi & Keuangan</div>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="reset-chk" id="chkJournals" checked>
+                        <span>Entri Jurnal Umum / Semua Transaksi</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="reset-chk" id="chkSales">
+                        <span>Transaksi Penjualan (POS)</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="reset-chk" id="chkSalesCorrection">
+                        <span>Koreksi Penjualan</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="reset-chk" id="chkAssets">
+                        <span>Transaksi Aset</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="reset-chk" id="chkDepreciation">
+                        <span>Transaksi Penyusutan</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="reset-chk" id="chkBudget">
+                        <span>Pagu Anggaran</span>
+                    </label>
+                </div>
 
-                <label class="checkbox-item">
-                    <input type="checkbox" id="chkAccounts">
-                    <span>Daftar Akun / Kode Perkiraan</span>
-                </label>
+                <!-- Kelompok 2: Stok & Produksi -->
+                <div class="menu-group">
+                    <div class="menu-group-title">Menu Stok & Produksi</div>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="reset-chk" id="chkProducts">
+                        <span>Produk (Barang / Inventori)</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="reset-chk" id="chkProduction">
+                        <span>Produksi</span>
+                    </label>
+                </div>
 
-                <label class="checkbox-item">
-                    <input type="checkbox" id="chkSettings">
-                    <span>Pengaturan Profil & Aplikasi</span>
-                </label>
+                <!-- Kelompok 3: Kontak & Master -->
+                <div class="menu-group">
+                    <div class="menu-group-title">Menu Kontak & Master Data</div>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="reset-chk" id="chkContacts">
+                        <span>Data Kontak (Supplier / Pelanggan)</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="reset-chk" id="chkAccounts">
+                        <span>Daftar Akun / Kode Perkiraan</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="reset-chk" id="chkInitialBalances">
+                        <span>Saldo Awal Akun (Reset unitBalances jadi 0)</span>
+                    </label>
+                </div>
+
+                <!-- Kelompok 4: Pengaturan -->
+                <div class="menu-group">
+                    <div class="menu-group-title">Menu Pengaturan</div>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="reset-chk" id="chkSettings">
+                        <span>Pengaturan Profil & Aplikasi</span>
+                    </label>
+                </div>
             </div>
 
             <!-- Input Verifikasi Keamanan -->
@@ -380,7 +488,7 @@
             </div>
             <div class="modal-title">Konfirmasi Reset Data</div>
             <div class="modal-desc">
-                Apakah Anda benar-benar yakin ingin menghapus data yang dipilih? Proses ini <b>TIDAK DAPAT DIBATALKAN!</b>
+                Apakah Anda benar-benar yakin ingin menghapus/mereset data yang dipilih? Proses ini <b>TIDAK DAPAT DIBATALKAN!</b>
             </div>
             <div class="modal-btn-group">
                 <button class="btn-cancel-delete" id="btnCancelResetModal">Batal</button>
@@ -392,11 +500,26 @@
     <!-- Script Firestore Integrasi -->
     <script type="module">
         import { db } from '../assets/js/firebase-config.js';
-        import { collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { collection, getDocs, deleteDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        // Checkbox Elements
+        const allCheckboxes = document.querySelectorAll('.reset-chk');
+        const btnSelectAll = document.getElementById('btnSelectAll');
+        const btnDeselectAll = document.getElementById('btnDeselectAll');
 
         const chkJournals = document.getElementById('chkJournals');
+        const chkSales = document.getElementById('chkSales');
+        const chkProducts = document.getElementById('chkProducts');
+        const chkContacts = document.getElementById('chkContacts');
+        const chkAssets = document.getElementById('chkAssets');
+        const chkDepreciation = document.getElementById('chkDepreciation');
+        const chkProduction = document.getElementById('chkProduction');
+        const chkSalesCorrection = document.getElementById('chkSalesCorrection');
+        const chkBudget = document.getElementById('chkBudget');
         const chkAccounts = document.getElementById('chkAccounts');
+        const chkInitialBalances = document.getElementById('chkInitialBalances');
         const chkSettings = document.getElementById('chkSettings');
+
         const inputConfirmText = document.getElementById('inputConfirmText');
         const btnExecuteReset = document.getElementById('btnExecuteReset');
         const statusMessage = document.getElementById('statusMessage');
@@ -405,6 +528,15 @@
         const confirmResetModal = document.getElementById('confirmResetModal');
         const btnCancelResetModal = document.getElementById('btnCancelResetModal');
         const btnConfirmResetModal = document.getElementById('btnConfirmResetModal');
+
+        // Tombol Pilih Semua & Batalkan Semua
+        btnSelectAll.addEventListener('click', () => {
+            allCheckboxes.forEach(chk => chk.checked = true);
+        });
+
+        btnDeselectAll.addEventListener('click', () => {
+            allCheckboxes.forEach(chk => chk.checked = false);
+        });
 
         // Validasi Teks Konfirmasi
         inputConfirmText.addEventListener('input', () => {
@@ -437,13 +569,41 @@
             return snapshot.size;
         }
 
-        // Eksekusi Penghapusan Data
+        // Fungsi Khusus Mereset Saldo Awal (unitBalances) pada Koleksi accounts menjadi 0
+        async function resetInitialBalances() {
+            const colRef = collection(db, 'accounts');
+            const snapshot = await getDocs(colRef);
+            let count = 0;
+
+            const updatePromises = snapshot.docs.map(async (docSnap) => {
+                const data = docSnap.data();
+                if (data.unitBalances) {
+                    let resetUnitBalances = {};
+                    // Set nilai initialDebit dan initialKredit menjadi 0 untuk setiap unit yang ada
+                    for (let unitCode in data.unitBalances) {
+                        resetUnitBalances[unitCode] = {
+                            initialDebit: 0,
+                            initialKredit: 0
+                        };
+                    }
+                    await updateDoc(doc(db, 'accounts', docSnap.id), {
+                        unitBalances: resetUnitBalances
+                    });
+                    count++;
+                }
+            });
+
+            await Promise.all(updatePromises);
+            return count;
+        }
+
+        // Eksekusi Penghapusan/Reset Data
         btnConfirmResetModal.addEventListener('click', async () => {
             confirmResetModal.classList.remove('active');
             btnExecuteReset.disabled = true;
             inputConfirmText.disabled = true;
             statusMessage.className = "status-message info";
-            statusMessage.textContent = "Memproses penghapusan data...";
+            statusMessage.textContent = "Memproses pembaruan/penghapusan data...";
 
             try {
                 let report = [];
@@ -453,9 +613,54 @@
                     report.push(`${count} jurnal`);
                 }
 
+                if (chkSales.checked) {
+                    const count = await deleteCollection('sales');
+                    report.push(`${count} transaksi penjualan`);
+                }
+
+                if (chkProducts.checked) {
+                    const count = await deleteCollection('products');
+                    report.push(`${count} produk`);
+                }
+
+                if (chkContacts.checked) {
+                    const count = await deleteCollection('contacts');
+                    report.push(`${count} kontak`);
+                }
+
+                if (chkAssets.checked) {
+                    const count = await deleteCollection('assets');
+                    report.push(`${count} transaksi aset`);
+                }
+
+                if (chkDepreciation.checked) {
+                    const count = await deleteCollection('depreciation');
+                    report.push(`${count} penyusutan`);
+                }
+
+                if (chkProduction.checked) {
+                    const count = await deleteCollection('production');
+                    report.push(`${count} produksi`);
+                }
+
+                if (chkSalesCorrection.checked) {
+                    const count = await deleteCollection('sales_correction');
+                    report.push(`${count} koreksi penjualan`);
+                }
+
+                if (chkBudget.checked) {
+                    const count = await deleteCollection('pagu_anggaran');
+                    report.push(`${count} pagu anggaran`);
+                }
+
                 if (chkAccounts.checked) {
                     const count = await deleteCollection('accounts');
                     report.push(`${count} akun`);
+                }
+
+                if (chkInitialBalances.checked) {
+                    const count = await resetInitialBalances();
+                    report.push(`saldo awal ${count} akun`);
                 }
 
                 if (chkSettings.checked) {
@@ -473,7 +678,7 @@
             } catch (err) {
                 console.error("Gagal melakukan reset data:", err);
                 statusMessage.className = "status-message error";
-                statusMessage.textContent = "Terjadi kesalahan saat menghapus data.";
+                statusMessage.textContent = "Terjadi kesalahan saat mereset data.";
                 btnExecuteReset.disabled = false;
                 inputConfirmText.disabled = false;
             }

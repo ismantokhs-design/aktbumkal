@@ -170,7 +170,7 @@
             align-items: center;
             font-size: 11px;
             color: #64748b;
-            padding-right: 28px;
+            padding-right: 52px;
         }
 
         .badge-unit {
@@ -190,6 +190,26 @@
             margin-top: 2px;
         }
 
+        /* Rincian Akun pada Kartu */
+        .trx-accounts-detail {
+            font-size: 11px;
+            color: #475569;
+            background-color: #f8fafc;
+            border: 1px solid #f1f5f9;
+            border-radius: 6px;
+            padding: 6px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-top: 2px;
+        }
+
+        .trx-acc-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         .trx-footer {
             display: flex;
             justify-content: space-between;
@@ -203,26 +223,41 @@
             color: #16a34a;
         }
 
-        /* Tombol Edit pada Card */
-        .btn-edit-card {
+        /* Tombol Aksi Berwarna (Edit & Hapus) pada Card */
+        .card-actions {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 8px;
+            right: 8px;
+            display: flex;
+            gap: 4px;
+        }
+
+        .btn-action-card {
             background: none;
             border: none;
-            color: #64748b;
             cursor: pointer;
             padding: 4px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background-color 0.2s, color 0.2s;
+            transition: background-color 0.2s;
         }
 
-        .btn-edit-card:hover {
-            background-color: #f1f5f9;
+        .btn-action-card.btn-edit {
             color: #5114B9;
+        }
+
+        .btn-action-card.btn-edit:hover {
+            background-color: #f3e8ff;
+        }
+
+        .btn-action-card.btn-delete {
+            color: #dc2626;
+        }
+
+        .btn-action-card.btn-delete:hover {
+            background-color: #fef2f2;
         }
 
         .empty-state {
@@ -526,6 +561,7 @@
             doc, 
             addDoc,
             updateDoc,
+            deleteDoc,
             query, 
             orderBy,
             serverTimestamp 
@@ -553,9 +589,10 @@
         const modalJumlah = document.getElementById('modalJumlah');
         const modalKeterangan = document.getElementById('modalKeterangan');
 
-        let accountsList = [];
+        let accountsMapName = {}; 
         let transactionsMap = {};
         let defaultUnitCode = "";
+        let activeMonthDateStr = "";
 
         // Fitur Draggable (Geser Modal)
         let isDragging = false;
@@ -606,10 +643,28 @@
             return cleanNumber ? parseInt(cleanNumber, 10) : 0;
         }
 
-        // Set Default Date
+        // Ambil activeMonthCode dari settings/profile untuk tanggal awal default
+        async function initActiveMonthDate() {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.activeMonthCode) {
+                        activeMonthDateStr = `${data.activeMonthCode}-01`;
+                    }
+                }
+            } catch (err) {
+                console.error("Gagal memuat activeMonthCode:", err);
+            }
+
+            if (!activeMonthDateStr) {
+                activeMonthDateStr = new Date().toISOString().split('T')[0];
+            }
+        }
+
         function initModalDate() {
-            const today = new Date().toISOString().split('T')[0];
-            modalTanggal.value = today;
+            modalTanggal.value = activeMonthDateStr || new Date().toISOString().split('T')[0];
         }
 
         // 1. Memuat Daftar Unit Usaha dari settings/profile -> unitList
@@ -630,13 +685,11 @@
                         const val = unit.kodeUnit || unit.namaUnit;
                         const label = `[${unit.kodeUnit || '-'}] ${unit.namaUnit}`;
 
-                        // Opsi di Filter Top
                         const optFilter = document.createElement('option');
                         optFilter.value = val;
                         optFilter.textContent = label;
                         filterUnit.appendChild(optFilter);
 
-                        // Opsi di Modal Input
                         const optModal = document.createElement('option');
                         optModal.value = val;
                         optModal.textContent = label;
@@ -652,43 +705,42 @@
             }
         }
 
-        // 2. Memuat Daftar Akun LEVEL 4
+        // 2. Memuat Daftar Akun dari koleksi accounts
         async function loadAccounts() {
             try {
                 const q = query(collection(db, 'accounts'), orderBy('accCode', 'asc'));
                 const querySnapshot = await getDocs(q);
 
-                accountsList = [];
+                accountsMapName = {};
                 modalSelectKas.innerHTML = '<option value="">-- Pilih Akun Kas/Bank --</option>';
                 modalSelectModalAcc.innerHTML = '<option value="">-- Pilih Akun Modal --</option>';
 
                 querySnapshot.forEach(docSnap => {
                     const data = docSnap.data();
+                    const accCode = data.accCode || '';
+                    const accName = data.accName || '';
+                    
+                    if (accCode) {
+                        accountsMapName[accCode] = accName;
+                    }
+
                     const isPostable = data.isPostable === true || data.isPostable === 'true' || parseInt(data.level, 10) === 4;
 
                     if (isPostable) {
-                        const accObj = {
-                            id: docSnap.id,
-                            accCode: data.accCode || '',
-                            accName: data.accName || '',
-                            category: (data.category || '').toLowerCase(),
-                            code: String(data.accCode || '')
-                        };
-                        accountsList.push(accObj);
+                        const category = (data.category || '').toLowerCase();
+                        const code = String(accCode);
 
-                        // Filter Akun Kas & Bank Level 4
-                        if (accObj.code.startsWith('1.01.01.') || accObj.code.startsWith('1.01.02.') || accObj.category.includes('kas') || accObj.category.includes('bank')) {
+                        if (code.startsWith('1.01.01.') || code.startsWith('1.01.02.') || category.includes('kas') || category.includes('bank')) {
                             const opt = document.createElement('option');
-                            opt.value = accObj.accCode;
-                            opt.textContent = `${accObj.accCode} - ${accObj.accName}`;
+                            opt.value = accCode;
+                            opt.textContent = `${accCode} - ${accName}`;
                             modalSelectKas.appendChild(opt);
                         }
 
-                        // Filter Akun Modal Level 4
-                        if (accObj.code.startsWith('3.') || accObj.category.includes('modal') || accObj.category.includes('ekuitas')) {
+                        if (code.startsWith('3.') || category.includes('modal') || category.includes('ekuitas') || category.includes('equity')) {
                             const opt = document.createElement('option');
-                            opt.value = accObj.accCode;
-                            opt.textContent = `${accObj.accCode} - ${accObj.accName}`;
+                            opt.value = accCode;
+                            opt.textContent = `${accCode} - ${accName}`;
                             modalSelectModalAcc.appendChild(opt);
                         }
                     }
@@ -733,21 +785,69 @@
                     return;
                 }
 
-                // Urutkan berdasarkan tanggal terbaru (Descending)
                 transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
                 let html = '';
                 transactions.forEach(data => {
+                    let accountDetailsHtml = '';
+                    
+                    // Pemetaan berdasarkan struktur Firestore (TAMBAH: items[0]=Kas, items[1]=Modal)
+                    if (data.items && Array.isArray(data.items) && data.items.length >= 2) {
+                        let kasAcc, modalAcc;
+
+                        if (data.jenisModal === 'PRIVE') {
+                            modalAcc = data.items[0].accCode || '';
+                            kasAcc = data.items[1].accCode || '';
+                        } else {
+                            // TAMBAH MODAL
+                            kasAcc = data.items[0].accCode || '';
+                            modalAcc = data.items[1].accCode || '';
+                        }
+
+                        let kasName = accountsMapName[kasAcc] || kasAcc;
+                        let modalName = accountsMapName[modalAcc] || modalAcc;
+
+                        if (data.jenisModal === 'PRIVE') {
+                            accountDetailsHtml = `
+                                <div class="trx-accounts-detail">
+                                    <div class="trx-acc-row"><span><b>Dari Akun Modal:</b> ${modalAcc} - ${modalName}</span></div>
+                                    <div class="trx-acc-row"><span><b>Ke Kas/Bank (Prive):</b> ${kasAcc} - ${kasName}</span></div>
+                                </div>
+                            `;
+                        } else {
+                            accountDetailsHtml = `
+                                <div class="trx-accounts-detail">
+                                    <div class="trx-acc-row"><span><b>Simpan ke Kas/Bank:</b> ${kasAcc} - ${kasName}</span></div>
+                                    <div class="trx-acc-row"><span><b>Dari Akun Modal:</b> ${modalAcc} - ${modalName}</span></div>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        accountDetailsHtml = `
+                            <div class="trx-accounts-detail">
+                                <div class="trx-acc-row"><span><b>Keterangan Akun:</b> ${data.keterangan || 'Transaksi Modal'}</span></div>
+                            </div>
+                        `;
+                    }
+
+                    let badgeJenis = data.jenisModal === 'PRIVE' ? '<span style="color:#dc2626; font-size:10px; font-weight:700; margin-left:4px;">[PRIVE]</span>' : '<span style="color:#16a34a; font-size:10px; font-weight:700; margin-left:4px;">[TAMBAH]</span>';
+
                     html += `
                         <div class="transaction-card">
-                            <button class="btn-edit-card" onclick="editTransaction('${data.id}')" title="Edit Transaksi">
-                                <span class="material-icons" style="font-size: 18px;">edit</span>
-                            </button>
+                            <div class="card-actions">
+                                <button class="btn-action-card btn-edit" onclick="editTransaction('${data.id}')" title="Edit Transaksi">
+                                    <span class="material-icons" style="font-size: 18px;">edit</span>
+                                </button>
+                                <button class="btn-action-card btn-delete" onclick="deleteTransaction('${data.id}')" title="Hapus Transaksi">
+                                    <span class="material-icons" style="font-size: 18px;">delete</span>
+                                </button>
+                            </div>
                             <div class="trx-header">
                                 <span>${data.date}</span>
                                 <span class="badge-unit">Unit: ${data.unitId || '-'}</span>
                             </div>
-                            <div class="trx-title">${data.keterangan || 'Transaksi Modal'}</div>
+                            <div class="trx-title">${data.keterangan || 'Transaksi Modal'} ${badgeJenis}</div>
+                            ${accountDetailsHtml}
                             <div class="trx-footer">
                                 <div></div>
                                 <div class="trx-amount">${formatRupiah(data.amount)}</div>
@@ -776,7 +876,7 @@
                 formTransaksiModal.reset();
                 initModalDate();
                 document.querySelector('input[name="jenisModal"][value="TAMBAH"]').checked = true;
-                modalSelectUnit.value = defaultUnitCode; // Set unit default saat tambah baru
+                modalSelectUnit.value = defaultUnitCode;
             } else {
                 modalIconHeader.textContent = 'edit';
                 modalTitleHeader.textContent = 'Edit Transaksi Modal';
@@ -797,18 +897,15 @@
 
             editDocId.value = id;
 
-            // Set Radio Jenis Modal
             const jenis = trx.jenisModal || 'TAMBAH';
             const radioEl = document.querySelector(`input[name="jenisModal"][value="${jenis}"]`);
             if (radioEl) radioEl.checked = true;
 
-            // Set Form Data
             modalSelectUnit.value = trx.unitId || defaultUnitCode;
             modalTanggal.value = trx.date || '';
             modalJumlah.value = formatInputCurrency(trx.amount || 0);
             modalKeterangan.value = trx.keterangan || '';
 
-            // Extract Kas dan Modal Acc Code dari array items
             if (trx.items && Array.isArray(trx.items) && trx.items.length >= 2) {
                 if (jenis === 'TAMBAH') {
                     modalSelectKas.value = trx.items[0].accCode || '';
@@ -822,10 +919,40 @@
             openModal(true);
         };
 
+        // Fitur Hapus Transaksi
+        window.deleteTransaction = async function(id) {
+            const result = await Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: "Transaksi modal yang dihapus tidak dapat dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    await deleteDoc(doc(db, 'journals', id));
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Terhapus!',
+                        text: 'Transaksi modal berhasil dihapus.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    loadModalTransactions();
+                } catch (err) {
+                    console.error("Gagal menghapus transaksi:", err);
+                    Swal.fire('Gagal', err.message, 'error');
+                }
+            }
+        };
+
         btnOpenModal.addEventListener('click', () => openModal(false));
         btnCloseModal.addEventListener('click', closeModal);
         
-        // Tombol BATAL sekarang mereset form TANPA menutup modal (kecuali sedang mode edit)
         btnBatal.addEventListener('click', async () => {
             if (editDocId.value) {
                 closeModal();
@@ -837,12 +964,10 @@
             }
         });
 
-        // Input Format Rupiah Realtime
         modalJumlah.addEventListener('input', (e) => {
             e.target.value = formatInputCurrency(e.target.value);
         });
 
-        // Filter Unit Event
         filterUnit.addEventListener('change', loadModalTransactions);
 
         // 4. Simpan / Update Transaksi Modal & Jurnal Umum
@@ -864,7 +989,6 @@
             }
 
             try {
-                // Susun Jurnal Debit/Kredit
                 let items = [];
                 if (jenisModal === 'TAMBAH') {
                     items = [
@@ -890,7 +1014,6 @@
                 };
 
                 if (docId) {
-                    // Update Data Lama
                     await updateDoc(doc(db, 'journals', docId), payload);
                     Swal.fire({
                         icon: 'success',
@@ -901,7 +1024,6 @@
                     });
                     closeModal();
                 } else {
-                    // Simpan Data Baru (Reset Form & Tetap Buka Modal)
                     payload.createdAt = serverTimestamp();
                     await addDoc(collection(db, 'journals'), payload);
                     Swal.fire({
@@ -927,6 +1049,7 @@
 
         // Inisialisasi awal
         async function initApp() {
+            await initActiveMonthDate();
             initModalDate();
             await loadUnitOptions();
             await loadAccounts();
